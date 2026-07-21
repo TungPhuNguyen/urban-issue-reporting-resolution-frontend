@@ -53,7 +53,7 @@ async function refreshSession(): Promise<void> {
   const refresh = tokenStorage.getRefresh()
   if (!refresh) throw new Error('No refresh token')
   const { data } = await axios.post<{ accessToken: string; refreshToken?: string }>(
-    `${env.apiBaseUrl}/auth/refresh`,
+    `${env.apiBaseUrl}/auth/refresh-token`,
     { refreshToken: refresh },
   )
   tokenStorage.set(data.accessToken, data.refreshToken)
