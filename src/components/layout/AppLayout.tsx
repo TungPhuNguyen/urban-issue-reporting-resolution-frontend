@@ -47,7 +47,7 @@ export function AppLayout() {
               </option>
             ))}
           </select>
-          {user && <span className="text-sm text-gray-500">{user.name}</span>}
+          {user && <span className="text-sm text-gray-500">{user.fullName}</span>}
           <Button
             variant="ghost"
             size="sm"

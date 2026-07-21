@@ -16,17 +16,27 @@ export interface LoginRequest {
 export interface RegisterRequest {
   fullName: string
   email: string
-  phoneNumber: string
   password: string
   confirmPassword: string
+  phoneNumber?: string
 }
 
-export interface AuthResponse {
+export interface LoginResponse {
   userId: string
   fullName: string
   email: string
   role: UserRole
   departmentId: number | null
+  accessToken: string
+  refreshToken: string
+  refreshTokenExpiresAt: string
+}
+
+export interface RegisterResponse {
+  userId: string
+  fullName: string
+  email: string
+  role: UserRole
   accessToken: string
   refreshToken: string
   refreshTokenExpiresAt: string
@@ -40,4 +50,10 @@ export interface CurrentUserResponse {
   role: UserRole
   departmentId: number | null
   departmentName: string | null
+}
+
+export interface RefreshTokenResponse {
+  accessToken: string
+  refreshToken: string
+  refreshTokenExpiresAt: string
 }
