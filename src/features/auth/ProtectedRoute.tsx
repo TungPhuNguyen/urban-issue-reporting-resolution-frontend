@@ -1,16 +1,29 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom'
+
+import { tokenStorage } from '@/lib/api/token-storage'
+
 import { useAuthStore } from './auth.store'
 
-/**
- * Route guard. Wrap protected routes with this element; unauthenticated users
- * are redirected to /login and returned to their target after signing in.
- */
-export function ProtectedRoute() {
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+export default function ProtectedRoute() {
   const location = useLocation()
 
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace state={{ from: location }} />
+  const isAuthenticated = useAuthStore(
+    (state) => state.isAuthenticated,
+  )
+
+  const accessToken = tokenStorage.getAccess()
+
+  if (!isAuthenticated || !accessToken) {
+    return (
+      <Navigate
+        to="/login"
+        replace
+        state={{
+          from: location.pathname,
+        }}
+      />
+    )
   }
+
   return <Outlet />
 }

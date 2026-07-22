@@ -1,37 +1,125 @@
 import { lazy } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
-import { AppLayout } from '@/components/layout/AppLayout'
-import { ProtectedRoute } from '@/features/auth/ProtectedRoute'
+
+import AdminLayout from '@/components/layout/AdminLayout'
+import CitizenLayout from '@/components/layout/CitizenLayout'
+import PublicLayout from '@/components/layout/PublicLayout'
+import StaffLayout from '@/components/layout/StaffLayout'
+
+import ProtectedRoute from '@/features/auth/ProtectedRoute'
+import RoleRoute from '@/features/auth/RoleRoute'
+
+import AdminDashboardPage from '@/features/admin/DashboardPage'
+import CitizenReportsPage from '@/features/citizen/ReportsPage'
+import StaffReportsPage from '@/features/staff/ReportsPage'
+
+import ForbiddenPage from '@/pages/ForbiddenPage'
+
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
-// Route-level code splitting: each page is its own chunk.
+// Public pages
 const HomePage = lazy(() =>
-  import('@/pages/HomePage').then((m) => ({ default: m.HomePage })),
-)
-const UsersListPage = lazy(() =>
-  import('@/features/users/UsersListPage').then((m) => ({ default: m.UsersListPage })),
-)
-const LoginPage = lazy(() =>
-  import('@/features/auth/LoginPage').then((m) => ({ default: m.LoginPage })),
-)
-const RegisterPage = lazy(
-  () => import('@/features/auth/RegisterPage'),
+  import('@/pages/HomePage').then((module) => ({
+    default: module.HomePage,
+  })),
 )
 
+const LoginPage = lazy(() =>
+  import('@/features/auth/LoginPage').then((module) => ({
+    default: module.LoginPage,
+  })),
+)
+
+// RegisterPage đang export default
+const RegisterPage = lazy(() =>
+  import('@/features/auth/RegisterPage'),
+)
+
+
 export const router = createBrowserRouter([
-  { path: '/login', element: <LoginPage /> },
-  { path: '/register', element: <RegisterPage />},
+  // Public routes
+  {
+    element: <PublicLayout />,
+    children: [
+      {
+        index: true,
+        element: <HomePage />,
+      },
+      {
+        path: 'login',
+        element: <LoginPage />,
+      },
+      {
+        path: 'register',
+        element: <RegisterPage />,
+      },
+      {
+        path: '403',
+        element: <ForbiddenPage />,
+      },
+    ],
+  },
+
+  // Các route bên dưới bắt buộc phải đăng nhập
   {
     element: <ProtectedRoute />,
     children: [
+      // Citizen routes
       {
-        element: <AppLayout />,
+        element: <RoleRoute allowedRoles={['Citizen']} />,
         children: [
-          { index: true, element: <HomePage /> },
-          { path: 'users', element: <UsersListPage /> },
+          {
+            path: 'citizen',
+            element: <CitizenLayout />,
+            children: [
+              {
+                path: 'reports',
+                element: <CitizenReportsPage />,
+              },
+            ],
+          },
+        ],
+      },
+
+      // Staff routes
+      {
+        element: <RoleRoute allowedRoles={['Staff']} />,
+        children: [
+          {
+            path: 'staff',
+            element: <StaffLayout />,
+            children: [
+              {
+                path: 'reports',
+                element: <StaffReportsPage />,
+              },
+            ],
+          },
+        ],
+      },
+
+      // Admin routes
+      {
+        element: <RoleRoute allowedRoles={['Admin']} />,
+        children: [
+          {
+            path: 'admin',
+            element: <AdminLayout />,
+            children: [
+              {
+                path: 'dashboard',
+                element: <AdminDashboardPage />,
+              },
+            ],
+          },
         ],
       },
     ],
   },
-  { path: '*', element: <NotFoundPage /> },
+
+  // Route không tồn tại
+  {
+    path: '*',
+    element: <NotFoundPage />,
+  },
 ])
