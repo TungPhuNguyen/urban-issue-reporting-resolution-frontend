@@ -8,7 +8,9 @@ import { tokenStorage } from './token-storage'
 
 /** Shape our backend uses for error payloads. Adapt to your API. */
 export interface ApiErrorBody {
-  message: string
+  message?: string
+  title?: string
+  detail?: string
   code?: string
   errors?: Record<string, string[]>
 }
@@ -23,7 +25,13 @@ export class ApiError extends Error {
   readonly fieldErrors?: Record<string, string[]>
 
   constructor(status: number, body?: ApiErrorBody) {
-    super(body?.message ?? `Request failed with status ${status}`)
+    super(
+      body?.detail ??
+        body?.title ??
+        body?.message ??
+        `Request failed with status ${status}`,
+    )
+
     this.name = 'ApiError'
     this.status = status
     this.code = body?.code

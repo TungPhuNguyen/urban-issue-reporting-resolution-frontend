@@ -1,14 +1,8 @@
-import axios from 'axios'
+import { ApiError } from '@/lib/api/http'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { authApi } from './auth.api'
-
-interface ApiErrorResponse {
-  title?: string
-  detail?: string
-  errors?: Record<string, string[]>
-}
 
 export default function RegisterPage() {
   const navigate = useNavigate()
@@ -97,27 +91,24 @@ export default function RegisterPage() {
         navigate('/login', { replace: true })
       }, 1000)
     } catch (error) {
-      if (axios.isAxiosError<ApiErrorResponse>(error)) {
-        const responseData = error.response?.data
+  if (error instanceof ApiError) {
+    const firstValidationError = error.fieldErrors
+      ? Object.values(error.fieldErrors).flat()[0]
+      : undefined
 
-        const firstValidationError = responseData?.errors
-          ? Object.values(responseData.errors).flat()[0]
-          : undefined
+    setFormError(
+      firstValidationError ??
+        error.message ??
+        'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
+    )
 
-        setFormError(
-          firstValidationError ??
-            responseData?.detail ??
-            responseData?.title ??
-            'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
-        )
+    return
+  }
 
-        return
-      }
-
-      setFormError('Đã xảy ra lỗi không xác định.')
-    } finally {
-      setIsLoading(false)
-    }
+  setFormError('Đã xảy ra lỗi không xác định.')
+} finally {
+  setIsLoading(false)
+}
   }
 
   return (

@@ -149,3 +149,9 @@ export const useAuthStore = create<AuthState>()(
     },
   ),
 )
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('auth:logout', () => {
+    useAuthStore.getState().clearAuth()
+  })
+}
