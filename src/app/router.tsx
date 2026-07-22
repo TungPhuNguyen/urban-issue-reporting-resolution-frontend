@@ -14,9 +14,13 @@ const UsersListPage = lazy(() =>
 const LoginPage = lazy(() =>
   import('@/features/auth/LoginPage').then((m) => ({ default: m.LoginPage })),
 )
+const RegisterPage = lazy(
+  () => import('@/features/auth/RegisterPage'),
+)
 
 export const router = createBrowserRouter([
   { path: '/login', element: <LoginPage /> },
+  { path: '/register', element: <RegisterPage />},
   {
     element: <ProtectedRoute />,
     children: [
