@@ -1,5 +1,10 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom'
+import {
+  Navigate,
+  Outlet,
+  useLocation,
+} from 'react-router-dom'
 
+import { Spinner } from '@/components/ui/Spinner'
 import { tokenStorage } from '@/lib/api/token-storage'
 
 import { useAuthStore } from './auth.store'
@@ -11,7 +16,19 @@ export default function ProtectedRoute() {
     (state) => state.isAuthenticated,
   )
 
+  const isInitialized = useAuthStore(
+    (state) => state.isInitialized,
+  )
+
   const accessToken = tokenStorage.getAccess()
+
+  if (!isInitialized) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner label="Đang kiểm tra đăng nhập..." />
+      </div>
+    )
+  }
 
   if (!isAuthenticated || !accessToken) {
     return (
@@ -19,7 +36,7 @@ export default function ProtectedRoute() {
         to="/login"
         replace
         state={{
-          from: location.pathname,
+          from: `${location.pathname}${location.search}`,
         }}
       />
     )

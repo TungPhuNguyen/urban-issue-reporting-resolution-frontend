@@ -42,7 +42,6 @@ export class ApiError extends Error {
 export const http: AxiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
   timeout: 15_000,
-  headers: { 'Content-Type': 'application/json' },
 })
 
 // --- Request interceptor: attach bearer token -------------------------------

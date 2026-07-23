@@ -14,6 +14,7 @@ type AuthStatus = 'idle' | 'loading' | 'error'
 interface AuthState {
   user: AuthUser | null
   isAuthenticated: boolean
+  isInitialized: boolean
   status: AuthStatus
   error: string | null
 
@@ -28,6 +29,7 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       user: null,
       isAuthenticated: false,
+      isInitialized: false,
       status: 'idle',
       error: null,
 
@@ -56,6 +58,7 @@ export const useAuthStore = create<AuthState>()(
           set({
             user,
             isAuthenticated: true,
+            isInitialized: true,
             status: 'idle',
             error: null,
           })
@@ -67,6 +70,7 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: null,
             isAuthenticated: false,
+            isInitialized: true,
             status: 'error',
             error: 'Email hoặc mật khẩu không chính xác.',
           })
@@ -76,12 +80,30 @@ export const useAuthStore = create<AuthState>()(
       },
 
       loadCurrentUser: async () => {
+        const accessToken = tokenStorage.getAccess()
+        const refreshToken = tokenStorage.getRefresh()
+
+        // Không có cả hai token thì xem như chưa đăng nhập
+        if (!accessToken && !refreshToken) {
+          set({
+            user: null,
+            isAuthenticated: false,
+            isInitialized: true,
+            status: 'idle',
+            error: null,
+          })
+
+          return
+        }
+
         set({
           status: 'loading',
           error: null,
         })
 
         try {
+          // Gọi GET /api/v1/auth/me
+          // Nếu access token hết hạn, Axios interceptor sẽ thử refresh token
           const response = await authApi.getCurrentUser()
 
           const user: AuthUser = {
@@ -95,15 +117,18 @@ export const useAuthStore = create<AuthState>()(
           set({
             user,
             isAuthenticated: true,
+            isInitialized: true,
             status: 'idle',
             error: null,
           })
         } catch {
+          // Token không hợp lệ hoặc refresh token cũng thất bại
           tokenStorage.clear()
 
           set({
             user: null,
             isAuthenticated: false,
+            isInitialized: true,
             status: 'idle',
             error: null,
           })
@@ -123,6 +148,7 @@ export const useAuthStore = create<AuthState>()(
           set({
             user: null,
             isAuthenticated: false,
+            isInitialized: true,
             status: 'idle',
             error: null,
           })
@@ -135,6 +161,7 @@ export const useAuthStore = create<AuthState>()(
         set({
           user: null,
           isAuthenticated: false,
+          isInitialized: true,
           status: 'idle',
           error: null,
         })
