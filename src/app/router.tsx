@@ -1,3 +1,4 @@
+import ReportFormDemoPage from '@/pages/ReportFormDemoPage'
 import { lazy } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 
@@ -56,6 +57,10 @@ export const router = createBrowserRouter([
       {
         path: '403',
         element: <ForbiddenPage />,
+      },
+      {
+        path: 'demo/report-form',
+        element: <ReportFormDemoPage />,
       },
     ],
   },
