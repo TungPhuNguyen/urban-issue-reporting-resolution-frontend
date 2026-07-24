@@ -1,11 +1,11 @@
 export const REPORT_STATUS = {
-  New: 1,
-  Assigned: 2,
-  Accepted: 3,
-  InProgress: 4,
-  Resolved: 5,
-  Closed: 6,
-  Rejected: 7,
+  New: 'New',
+  Assigned: 'Assigned',
+  Accepted: 'Accepted',
+  InProgress: 'InProgress',
+  Resolved: 'Resolved',
+  Closed: 'Closed',
+  Rejected: 'Rejected',
 } as const
 
 export type ReportStatus =
