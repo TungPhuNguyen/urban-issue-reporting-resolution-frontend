@@ -4,6 +4,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { Card } from '@/components/ui/Card'
 import { ReportStatusBadge } from './ReportStatusBadge'
 import { ReportTimeline } from './ReportTimeline'
+import { ApiError } from '@/lib/api/http'
 import { env } from '@/config/env'
 
 export default function ReportDetailPage() {
@@ -23,16 +24,46 @@ export default function ReportDetailPage() {
     return <Spinner />
   }
 
+  if (error instanceof ApiError) {
+    if (error.status === 404) {
+      return (
+        <Card className="p-6">
+          <p className="text-gray-700 dark:text-gray-300">Không tìm thấy báo cáo.</p>
+        </Card>
+      )
+    }
+
+    if (error.status === 403) {
+      return (
+        <Card className="p-6">
+          <p className="text-gray-700 dark:text-gray-300">
+            Bạn không có quyền xem báo cáo này.
+          </p>
+        </Card>
+      )
+    }
+
+    return (
+      <Card className="p-6">
+        <p className="text-red-600">{error.message}</p>
+      </Card>
+    )
+  }
+
   if (error) {
     return (
       <Card className="p-6">
-        <p className="text-red-600">Failed to load report.</p>
+        <p className="text-red-600">Không thể tải thông tin báo cáo.</p>
       </Card>
     )
   }
 
   if (!report) {
-    return <div>Report not found.</div>
+    return (
+      <Card className="p-6">
+        <p className="text-gray-700 dark:text-gray-300">Không có dữ liệu báo cáo.</p>
+      </Card>
+    )
   }
 
   return (
