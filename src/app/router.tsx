@@ -6,18 +6,17 @@ import CitizenLayout from '@/components/layout/CitizenLayout'
 import PublicLayout from '@/components/layout/PublicLayout'
 import StaffLayout from '@/components/layout/StaffLayout'
 
+import AdminDashboardPage from '@/features/admin/DashboardPage'
 import ProtectedRoute from '@/features/auth/ProtectedRoute'
 import RoleRoute from '@/features/auth/RoleRoute'
-
-import AdminDashboardPage from '@/features/admin/DashboardPage'
 import CitizenReportsPage from '@/features/citizen/ReportsPage'
+import CreateReportPage from '@/features/citizen/reports/CreateReportPage'
+import ReportDetailPage from '@/features/citizen/reports/ReportDetailPage'
 import StaffReportsPage from '@/features/staff/ReportsPage'
 
 import ForbiddenPage from '@/pages/ForbiddenPage'
-
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
-// Public pages
 const HomePage = lazy(() =>
   import('@/pages/HomePage').then((module) => ({
     default: module.HomePage,
@@ -30,14 +29,11 @@ const LoginPage = lazy(() =>
   })),
 )
 
-// RegisterPage đang export default
-const RegisterPage = lazy(() =>
-  import('@/features/auth/RegisterPage'),
+const RegisterPage = lazy(
+  () => import('@/features/auth/RegisterPage'),
 )
 
-
 export const router = createBrowserRouter([
-  // Public routes
   {
     element: <PublicLayout />,
     children: [
@@ -60,13 +56,13 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Các route bên dưới bắt buộc phải đăng nhập
   {
     element: <ProtectedRoute />,
     children: [
-      // Citizen routes
       {
-        element: <RoleRoute allowedRoles={['Citizen']} />,
+        element: (
+          <RoleRoute allowedRoles={['Citizen']} />
+        ),
         children: [
           {
             path: 'citizen',
@@ -76,12 +72,19 @@ export const router = createBrowserRouter([
                 path: 'reports',
                 element: <CitizenReportsPage />,
               },
+              {
+                path: 'reports/create',
+                element: <CreateReportPage />,
+              },
+              {
+                path: 'reports/:reportId',
+                element: <ReportDetailPage />,
+              },
             ],
           },
         ],
       },
 
-      // Staff routes
       {
         element: <RoleRoute allowedRoles={['Staff']} />,
         children: [
@@ -98,7 +101,6 @@ export const router = createBrowserRouter([
         ],
       },
 
-      // Admin routes
       {
         element: <RoleRoute allowedRoles={['Admin']} />,
         children: [
@@ -117,9 +119,8 @@ export const router = createBrowserRouter([
     ],
   },
 
-  // Route không tồn tại
   {
     path: '*',
     element: <NotFoundPage />,
   },
-])
+])  
