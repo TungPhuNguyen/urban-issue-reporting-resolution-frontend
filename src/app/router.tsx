@@ -17,6 +17,8 @@ import ForbiddenPage from '@/pages/ForbiddenPage'
 
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
+import ReportDetailPage from '@/features/citizen/ReportDetailPage'
+
 // Public pages
 const HomePage = lazy(() =>
   import('@/pages/HomePage').then((module) => ({
@@ -31,10 +33,7 @@ const LoginPage = lazy(() =>
 )
 
 // RegisterPage đang export default
-const RegisterPage = lazy(() =>
-  import('@/features/auth/RegisterPage'),
-)
-
+const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
 
 export const router = createBrowserRouter([
   // Public routes
@@ -75,6 +74,10 @@ export const router = createBrowserRouter([
               {
                 path: 'reports',
                 element: <CitizenReportsPage />,
+              },
+              {
+                path: 'reports/:reportId',
+                element: <ReportDetailPage />,
               },
             ],
           },
