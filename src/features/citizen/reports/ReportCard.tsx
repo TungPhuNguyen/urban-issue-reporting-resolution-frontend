@@ -2,7 +2,7 @@ import { Card } from '@/components/ui/Card'
 import { ReportStatusBadge } from './ReportStatusBadge'
 import { Link } from 'react-router-dom'
 
-import type { CitizenReportSummary } from './reports.types'
+import type { CitizenReportSummary } from './citizen-report.types'
 
 type ReportCardProps = {
   report: CitizenReportSummary
