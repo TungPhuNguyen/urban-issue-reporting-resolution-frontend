@@ -1,6 +1,6 @@
 import { clsx } from 'clsx'
 
-import type { CitizenReportSummary } from './reports.types'
+import type { CitizenReportSummary } from './citizen-report.types'
 
 type ReportStatusBadgeProps = {
   status: CitizenReportSummary['status']

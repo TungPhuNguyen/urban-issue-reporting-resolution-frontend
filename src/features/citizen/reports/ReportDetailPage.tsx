@@ -1,329 +1,399 @@
 import {
-  useEffect,
-  useState,
-} from 'react'
-import {
-  Link,
   useLocation,
   useParams,
 } from 'react-router-dom'
 
+import { Card } from '@/components/ui/Card'
+import { Spinner } from '@/components/ui/Spinner'
 import { env } from '@/config/env'
+import { ApiError } from '@/lib/api/http'
 
-import { citizenReportApi } from './citizen-report.api'
-import type {
-  CitizenReportDetail,
-  ReportStatus,
-} from './citizen-report.types'
+import { ReportStatusBadge } from './ReportStatusBadge'
+import { ReportTimeline } from './ReportTimeline'
+import {
+  useCitizenReportDetail,
+  useCitizenReportTimeline,
+} from './citizen-report.queries'
 
-const statusLabels: Record<ReportStatus, string> = {
-  New: 'Mới tạo',
-  Assigned: 'Đã phân công',
-  Accepted: 'Đã tiếp nhận',
-  InProgress: 'Đang xử lý',
-  Resolved: 'Đã xử lý',
-  Closed: 'Đã đóng',
-  Rejected: 'Bị từ chối',
+interface ReportDetailLocationState {
+  created?: boolean
 }
 
-function formatDate(value: string | null): string {
+function resolveImageUrl(
+  imageUrl: string,
+  apiOrigin: string,
+): string {
+  if (
+    imageUrl.startsWith('http://') ||
+    imageUrl.startsWith('https://')
+  ) {
+    return imageUrl
+  }
+
+  const normalizedPath = imageUrl.startsWith('/')
+    ? imageUrl
+    : `/${imageUrl}`
+
+  return `${apiOrigin}${normalizedPath}`
+}
+
+function formatDateTime(
+  value: string | null | undefined,
+): string {
   if (!value) {
-    return 'Chưa có'
+    return 'Chưa cập nhật'
   }
 
-  return new Intl.DateTimeFormat('vi-VN', {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value))
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return 'Không xác định'
+  }
+
+  return date.toLocaleString('vi-VN')
 }
 
-function resolveImageUrl(imageUrl: string): string {
-  if (/^https?:\/\//i.test(imageUrl)) {
-    return imageUrl
-  }
+function getPriorityLabel(
+  priority: string | null | undefined,
+): string {
+  switch (priority) {
+    case 'High':
+      return 'Cao'
 
-  try {
-    const backendOrigin = new URL(
-      env.apiBaseUrl,
-    ).origin
+    case 'Medium':
+      return 'Trung bình'
 
-    return `${backendOrigin}${
-      imageUrl.startsWith('/') ? '' : '/'
-    }${imageUrl}`
-  } catch {
-    return imageUrl
+    case 'Low':
+      return 'Thấp'
+
+    default:
+      return 'Chưa phân loại'
   }
 }
 
 export default function ReportDetailPage() {
-  const { reportId } = useParams<{
-    reportId: string
-  }>()
-
+  const { reportId = '' } = useParams()
   const location = useLocation()
 
-  const created = Boolean(
-    (
-      location.state as
-        | {
-            created?: boolean
-          }
-        | null
-    )?.created,
-  )
+  const apiOrigin = new URL(env.apiBaseUrl).origin
 
-  const [report, setReport] =
-    useState<CitizenReportDetail | null>(null)
+  const locationState =
+    location.state as ReportDetailLocationState | null
 
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const createdSuccessfully =
+    locationState?.created === true
 
-  useEffect(() => {
-    let cancelled = false
+  const {
+    data: report,
+    isLoading,
+    error,
+  } = useCitizenReportDetail(reportId)
 
-    async function loadReport() {
-      if (!reportId) {
-        setError('ID báo cáo không hợp lệ.')
-        setLoading(false)
-        return
-      }
+  const {
+    data: timeline,
+    isLoading: isTimelineLoading,
+    error: timelineError,
+  } = useCitizenReportTimeline(reportId)
 
-      setLoading(true)
-      setError('')
-
-      try {
-        const result =
-          await citizenReportApi.getReportDetail(reportId)
-
-        if (!cancelled) {
-          setReport(result)
-        }
-      } catch (loadError) {
-        if (!cancelled) {
-          setError(
-            loadError instanceof Error
-              ? loadError.message
-              : 'Không tải được thông tin báo cáo.',
-          )
-        }
-      } finally {
-        if (!cancelled) {
-          setLoading(false)
-        }
-      }
-    }
-
-    void loadReport()
-
-    return () => {
-      cancelled = true
-    }
-  }, [reportId])
-
-  if (loading) {
+  if (isLoading) {
     return (
-      <div className="rounded-xl border border-gray-200 bg-white p-8 text-center text-gray-600 shadow-sm">
-        Đang tải thông tin báo cáo...
+      <div className="flex min-h-[300px] items-center justify-center">
+        <Spinner />
       </div>
     )
   }
 
-  if (error || !report) {
-    return (
-      <div className="mx-auto max-w-4xl">
-        <div className="rounded-xl border border-red-200 bg-red-50 p-6 text-red-700">
-          <h1 className="font-semibold">
-            Không tải được báo cáo
-          </h1>
-
-          <p className="mt-2 text-sm">
-            {error || 'Không tìm thấy báo cáo.'}
+  if (error instanceof ApiError) {
+    if (error.status === 404) {
+      return (
+        <Card className="p-6">
+          <p className="text-gray-700 dark:text-gray-300">
+            Không tìm thấy báo cáo.
           </p>
+        </Card>
+      )
+    }
 
-          <Link
-            to="/citizen/reports"
-            className="mt-4 inline-block rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white"
-          >
-            Quay lại
-          </Link>
-        </div>
-      </div>
+    if (error.status === 403) {
+      return (
+        <Card className="p-6">
+          <p className="text-gray-700 dark:text-gray-300">
+            Bạn không có quyền xem báo cáo này.
+          </p>
+        </Card>
+      )
+    }
+
+    return (
+      <Card className="p-6">
+        <p className="text-red-600 dark:text-red-400">
+          {error.message}
+        </p>
+      </Card>
     )
   }
 
-  const isManualAssignment =
-    report.requiresManualAssignment
+  if (error) {
+    return (
+      <Card className="p-6">
+        <p className="text-red-600 dark:text-red-400">
+          Không thể tải thông tin báo cáo.
+        </p>
+      </Card>
+    )
+  }
+
+  if (!report) {
+    return (
+      <Card className="p-6">
+        <p className="text-gray-700 dark:text-gray-300">
+          Không có dữ liệu báo cáo.
+        </p>
+      </Card>
+    )
+  }
+
+  const isAutomaticallyAssigned =
+    !report.requiresManualAssignment &&
+    report.departmentId !== null
 
   return (
-    <div className="mx-auto max-w-5xl space-y-6">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <Card className="p-5">
+      {createdSuccessfully && (
+        <div className="mb-5 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">
+          Phản ánh đã được gửi thành công.
+        </div>
+      )}
+
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
-            Chi tiết phản ánh
+          <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            Mã phản ánh
+          </p>
+
+          <p className="mt-1 break-all text-sm text-gray-600 dark:text-gray-400">
+            {report.id}
+          </p>
+
+          <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
+            {report.categoryName}
           </h1>
 
-          <p className="mt-1 break-all text-sm text-gray-500">
-            Mã báo cáo: {report.id}
+          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+            {report.addressText ?? report.areaName}
           </p>
         </div>
 
-        <Link
-          to="/citizen/reports"
-          className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Quay lại danh sách
-        </Link>
+        <ReportStatusBadge status={report.status} />
       </div>
 
-      {created && (
-        <div className="rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
-          <p className="font-semibold">
-            Tạo phản ánh thành công
+      <div className="mt-6">
+        {report.requiresManualAssignment ? (
+          <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4 dark:border-yellow-900 dark:bg-yellow-950/40">
+            <h2 className="font-semibold text-yellow-900 dark:text-yellow-300">
+              Chờ Admin phân công
+            </h2>
+
+            <p className="mt-1 text-sm text-yellow-800 dark:text-yellow-400">
+              Hiện chưa tìm thấy quy tắc phân công phù hợp.
+              Báo cáo đang chờ quản trị viên phân công thủ
+              công.
+            </p>
+          </div>
+        ) : isAutomaticallyAssigned ? (
+          <div className="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-900 dark:bg-green-950/40">
+            <h2 className="font-semibold text-green-900 dark:text-green-300">
+              Đã tự động phân công
+            </h2>
+
+            <p className="mt-1 text-sm text-green-800 dark:text-green-400">
+              Báo cáo đã được hệ thống chuyển đến{' '}
+              <strong>
+                {report.departmentName ??
+                  'đơn vị xử lý phù hợp'}
+              </strong>
+              .
+            </p>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:bg-gray-900">
+            <p className="text-sm text-gray-700 dark:text-gray-300">
+              Thông tin phân công đang được cập nhật.
+            </p>
+          </div>
+        )}
+      </div>
+
+      <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
+        <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+          Mô tả sự cố
+        </h2>
+
+        <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-300">
+          {report.description}
+        </p>
+      </div>
+
+      <div className="mt-6 grid gap-4 border-t border-gray-200 pt-5 text-sm sm:grid-cols-2 lg:grid-cols-3 dark:border-gray-800">
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Khu vực
           </p>
 
-          <p className="mt-1 text-sm">
-            Hệ thống đã lưu phản ánh của bạn.
+          <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
+            {report.areaName}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Đơn vị xử lý
+          </p>
+
+          <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
+            {report.departmentName ??
+              'Chưa được phân công'}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Mức ưu tiên
+          </p>
+
+          <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
+            {getPriorityLabel(report.priority)}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Lượt ủng hộ
+          </p>
+
+          <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
+            {report.upvoteCount}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Ngày gửi
+          </p>
+
+          <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
+            {formatDateTime(report.createdAt)}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Cập nhật gần nhất
+          </p>
+
+          <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
+            {formatDateTime(report.updatedAt)}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Vĩ độ
+          </p>
+
+          <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
+            {report.latitude}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Kinh độ
+          </p>
+
+          <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
+            {report.longitude}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-gray-500 dark:text-gray-400">
+            Thời hạn xử lý
+          </p>
+
+          <p className="mt-1 font-medium text-gray-900 dark:text-gray-100">
+            {formatDateTime(report.dueAt)}
+          </p>
+        </div>
+      </div>
+
+      {report.rejectedReason && (
+        <div className="mt-6 rounded-lg border border-red-200 bg-red-50 p-4 dark:border-red-900 dark:bg-red-950/40">
+          <h2 className="font-semibold text-red-900 dark:text-red-300">
+            Lý do từ chối
+          </h2>
+
+          <p className="mt-1 text-sm text-red-800 dark:text-red-400">
+            {report.rejectedReason}
           </p>
         </div>
       )}
 
-      {isManualAssignment ? (
-        <div className="rounded-xl border border-amber-300 bg-amber-50 p-5">
-          <h2 className="font-bold text-amber-800">
-            Chờ Admin phân công
+      {report.reopenReason && (
+        <div className="mt-6 rounded-lg border border-blue-200 bg-blue-50 p-4 dark:border-blue-900 dark:bg-blue-950/40">
+          <h2 className="font-semibold text-blue-900 dark:text-blue-300">
+            Lý do mở lại
           </h2>
 
-          <p className="mt-2 text-sm text-amber-700">
-            Hiện chưa tìm thấy quy tắc phân công phù hợp
-            với loại sự cố và khu vực đã chọn. Báo cáo đang
-            chờ Admin phân công thủ công.
-          </p>
-        </div>
-      ) : (
-        <div className="rounded-xl border border-emerald-300 bg-emerald-50 p-5">
-          <h2 className="font-bold text-emerald-800">
-            Đã tự động phân công
-          </h2>
-
-          <p className="mt-2 text-sm text-emerald-700">
-            Báo cáo đã được hệ thống tự động chuyển đến{' '}
-            <strong>
-              {report.departmentName ??
-                'phòng ban phụ trách'}
-            </strong>
-            .
+          <p className="mt-1 text-sm text-blue-800 dark:text-blue-400">
+            {report.reopenReason}
           </p>
         </div>
       )}
-
-      <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-        <div className="mb-5 flex flex-wrap items-center gap-3">
-          <span className="rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700">
-            {statusLabels[report.status] ??
-              report.status}
-          </span>
-
-          {report.priority && (
-            <span className="rounded-full bg-gray-100 px-3 py-1 text-sm font-medium text-gray-700">
-              Mức độ: {report.priority}
-            </span>
-          )}
-        </div>
-
-        <dl className="grid gap-5 md:grid-cols-2">
-          <div>
-            <dt className="text-sm font-medium text-gray-500">
-              Loại sự cố
-            </dt>
-
-            <dd className="mt-1 text-gray-900">
-              {report.categoryName}
-            </dd>
-          </div>
-
-          <div>
-            <dt className="text-sm font-medium text-gray-500">
-              Khu vực
-            </dt>
-
-            <dd className="mt-1 text-gray-900">
-              {report.areaName}
-            </dd>
-          </div>
-
-          <div>
-            <dt className="text-sm font-medium text-gray-500">
-              Phòng ban
-            </dt>
-
-            <dd className="mt-1 text-gray-900">
-              {report.departmentName ??
-                'Chưa được phân công'}
-            </dd>
-          </div>
-
-          <div>
-            <dt className="text-sm font-medium text-gray-500">
-              Ngày tạo
-            </dt>
-
-            <dd className="mt-1 text-gray-900">
-              {formatDate(report.createdAt)}
-            </dd>
-          </div>
-
-          <div>
-            <dt className="text-sm font-medium text-gray-500">
-              Địa chỉ
-            </dt>
-
-            <dd className="mt-1 text-gray-900">
-              {report.addressText || 'Không có'}
-            </dd>
-          </div>
-
-          <div>
-            <dt className="text-sm font-medium text-gray-500">
-              Tọa độ
-            </dt>
-
-            <dd className="mt-1 text-gray-900">
-              {report.latitude}, {report.longitude}
-            </dd>
-          </div>
-        </dl>
-
-        <div className="mt-6 border-t border-gray-200 pt-5">
-          <h2 className="text-sm font-medium text-gray-500">
-            Nội dung phản ánh
-          </h2>
-
-          <p className="mt-2 whitespace-pre-wrap text-gray-900">
-            {report.description}
-          </p>
-        </div>
-      </div>
 
       {report.imageUrls.length > 0 && (
-        <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm">
-          <h2 className="mb-4 text-lg font-semibold text-gray-900">
-            Ảnh sự cố
+        <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
+          <h2 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+            Hình ảnh sự cố
           </h2>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-3 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {report.imageUrls.map(
               (imageUrl, index) => (
-                <img
+                <a
                   key={`${imageUrl}-${index}`}
-                  src={resolveImageUrl(imageUrl)}
-                  alt={`Ảnh sự cố ${index + 1}`}
-                  className="h-52 w-full rounded-lg border border-gray-200 object-cover"
-                />
+                  href={resolveImageUrl(
+                    imageUrl,
+                    apiOrigin,
+                  )}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="overflow-hidden rounded-lg bg-black/5 dark:bg-white/5"
+                >
+                  <img
+                    src={resolveImageUrl(
+                      imageUrl,
+                      apiOrigin,
+                    )}
+                    alt={`Hình ảnh sự cố ${index + 1}`}
+                    className="h-64 w-full object-cover transition-transform hover:scale-105"
+                    loading="lazy"
+                  />
+                </a>
               ),
             )}
           </div>
         </div>
       )}
-    </div>
+
+      <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
+        <ReportTimeline
+          timeline={timeline}
+          isLoading={isTimelineLoading}
+          error={timelineError}
+          apiOrigin={apiOrigin}
+        />
+      </div>
+    </Card>
   )
 }

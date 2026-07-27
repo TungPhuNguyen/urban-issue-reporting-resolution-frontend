@@ -1,6 +1,6 @@
 import { Spinner } from '@/components/ui/Spinner'
 import { ReportStatusBadge } from './ReportStatusBadge'
-import type { ReportTimeline as ReportTimelineData } from './reports.types'
+import type { ReportTimeline as ReportTimelineData } from './citizen-report.types'
 
 interface ReportTimelineProps {
   timeline: ReportTimelineData | undefined

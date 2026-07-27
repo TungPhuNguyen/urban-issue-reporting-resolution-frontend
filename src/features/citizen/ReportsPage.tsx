@@ -4,8 +4,8 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 
-import { ReportCard } from './ReportCard'
-import { useCitizenReports } from './reports.queries'
+import { ReportCard } from './reports/ReportCard'
+import { useCitizenReports } from './reports/citizen-report.queries'
 
 export default function CitizenReportsPage() {
   const {

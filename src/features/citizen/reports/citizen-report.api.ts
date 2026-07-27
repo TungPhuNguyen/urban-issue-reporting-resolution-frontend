@@ -1,10 +1,20 @@
 import { http } from '@/lib/api/http'
 
 import type {
+  CitizenReportDetail,
+  CitizenReportsResponse,
   CreateReportRequest,
   CreateReportResult,
-  CitizenReportDetail,
+  ReportStatus,
+  ReportTimeline,
 } from './citizen-report.types'
+
+export interface GetCitizenReportsParams {
+  search?: string
+  status?: ReportStatus
+  pageNumber?: number
+  pageSize?: number
+}
 
 export const citizenReportApi = {
   async createReport(
@@ -57,12 +67,37 @@ export const citizenReportApi = {
     return response.data
   },
 
+  async getMyReports(
+    params?: GetCitizenReportsParams,
+  ): Promise<CitizenReportsResponse> {
+    const response =
+      await http.get<CitizenReportsResponse>(
+        '/citizen/reports',
+        {
+          params,
+        },
+      )
+
+    return response.data
+  },
+
   async getReportDetail(
     reportId: string,
   ): Promise<CitizenReportDetail> {
     const response =
       await http.get<CitizenReportDetail>(
         `/citizen/reports/${reportId}`,
+      )
+
+    return response.data
+  },
+
+  async getReportTimeline(
+    reportId: string,
+  ): Promise<ReportTimeline> {
+    const response =
+      await http.get<ReportTimeline>(
+        `/citizen/reports/${reportId}/timeline`,
       )
 
     return response.data
