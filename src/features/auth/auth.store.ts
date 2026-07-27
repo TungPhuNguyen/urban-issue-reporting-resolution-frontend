@@ -9,6 +9,8 @@ import type {
   LoginRequest,
 } from './auth.types'
 
+import { queryClient } from '@/app/query-client'
+
 type AuthStatus = 'idle' | 'loading' | 'error'
 
 interface AuthState {
@@ -145,6 +147,10 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           tokenStorage.clear()
 
+          queryClient.removeQueries({
+            queryKey: ['citizen-reports'],
+          })
+
           set({
             user: null,
             isAuthenticated: false,
@@ -157,6 +163,10 @@ export const useAuthStore = create<AuthState>()(
 
       clearAuth: () => {
         tokenStorage.clear()
+
+        queryClient.removeQueries({
+          queryKey: ['citizen-reports'],
+        })
 
         set({
           user: null,

@@ -19,7 +19,7 @@ export function ReportCard({ report }: ReportCardProps) {
             </h2>
 
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {report.addressText}
+              {report.addressText || report.areaName}
             </p>
           </div>
 

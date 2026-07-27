@@ -1,24 +1,64 @@
 import { useQuery } from '@tanstack/react-query'
 
+import { useAuthStore } from '@/features/auth/auth.store'
+import { ApiError } from '@/lib/api/http'
+
 import {
   citizenReportApi,
   type GetCitizenReportsParams,
 } from './citizen-report.api'
 
-export const reportKeys = {
+export const citizenReportKeys = {
   all: ['citizen-reports'] as const,
 
   lists: () =>
-    [...reportKeys.all, 'list'] as const,
+    [...citizenReportKeys.all, 'list'] as const,
 
-  list: (params: GetCitizenReportsParams) =>
-    [...reportKeys.lists(), params] as const,
+  list: (
+    userId: string,
+    params: GetCitizenReportsParams,
+  ) =>
+    [
+      ...citizenReportKeys.lists(),
+      userId,
+      params,
+    ] as const,
 
-  detail: (reportId: string) =>
-    [...reportKeys.all, 'detail', reportId] as const,
+  detail: (
+    userId: string,
+    reportId: string,
+  ) =>
+    [
+      ...citizenReportKeys.all,
+      'detail',
+      userId,
+      reportId,
+    ] as const,
 
-  timeline: (reportId: string) =>
-    [...reportKeys.all, 'timeline', reportId] as const,
+  timeline: (
+    userId: string,
+    reportId: string,
+  ) =>
+    [
+      ...citizenReportKeys.all,
+      'timeline',
+      userId,
+      reportId,
+    ] as const,
+}
+
+function shouldRetry(
+  failureCount: number,
+  error: unknown,
+): boolean {
+  if (
+    error instanceof ApiError &&
+    (error.status === 403 || error.status === 404)
+  ) {
+    return false
+  }
+
+  return failureCount < 2
 }
 
 export function useCitizenReports(
@@ -27,31 +67,63 @@ export function useCitizenReports(
     pageSize: 10,
   },
 ) {
+  const userId = useAuthStore(
+    (state) => state.user?.userId,
+  )
+
   return useQuery({
-    queryKey: reportKeys.list(params),
+    queryKey: citizenReportKeys.list(
+      userId ?? 'anonymous',
+      params,
+    ),
+
     queryFn: () =>
       citizenReportApi.getMyReports(params),
+
+    enabled: Boolean(userId),
   })
 }
 
 export function useCitizenReportDetail(
   reportId: string,
 ) {
+  const userId = useAuthStore(
+    (state) => state.user?.userId,
+  )
+
   return useQuery({
-    queryKey: reportKeys.detail(reportId),
+    queryKey: citizenReportKeys.detail(
+      userId ?? 'anonymous',
+      reportId,
+    ),
+
     queryFn: () =>
       citizenReportApi.getReportDetail(reportId),
-    enabled: Boolean(reportId),
+
+    enabled: Boolean(userId && reportId),
+
+    retry: shouldRetry,
   })
 }
 
 export function useCitizenReportTimeline(
   reportId: string,
 ) {
+  const userId = useAuthStore(
+    (state) => state.user?.userId,
+  )
+
   return useQuery({
-    queryKey: reportKeys.timeline(reportId),
+    queryKey: citizenReportKeys.timeline(
+      userId ?? 'anonymous',
+      reportId,
+    ),
+
     queryFn: () =>
       citizenReportApi.getReportTimeline(reportId),
-    enabled: Boolean(reportId),
+
+    enabled: Boolean(userId && reportId),
+
+    retry: shouldRetry,
   })
 }
