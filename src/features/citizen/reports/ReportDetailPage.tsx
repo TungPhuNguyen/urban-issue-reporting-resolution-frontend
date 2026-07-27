@@ -10,11 +10,11 @@ import {
 
 import { env } from '@/config/env'
 
-import { reportApi } from './report.api'
+import { citizenReportApi } from './citizen-report.api'
 import type {
   CitizenReportDetail,
   ReportStatus,
-} from './report.types'
+} from './citizen-report.types'
 
 const statusLabels: Record<ReportStatus, string> = {
   New: 'Mới tạo',
@@ -93,7 +93,7 @@ export default function ReportDetailPage() {
 
       try {
         const result =
-          await reportApi.getMyReportById(reportId)
+          await citizenReportApi.getReportDetail(reportId)
 
         if (!cancelled) {
           setReport(result)

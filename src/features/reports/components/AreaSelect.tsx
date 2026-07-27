@@ -1,4 +1,4 @@
-import { usePublicAreas } from '../reports.queries'
+import { usePublicAreas } from '@/features/public-catalog/public-catalog.queries'
 
 interface AreaSelectProps {
   id?: string

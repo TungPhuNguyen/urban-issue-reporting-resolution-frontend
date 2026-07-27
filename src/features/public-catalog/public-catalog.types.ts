@@ -8,10 +8,5 @@ export interface Area {
   id: number
   name: string
   code?: string | null
-  parentAreaId?: number | null
-}
-
-export interface LatLng {
-  latitude: number
-  longitude: number
+  parentAreaId: number | null
 }

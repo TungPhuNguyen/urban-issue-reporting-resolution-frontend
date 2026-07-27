@@ -1,4 +1,4 @@
-import { usePublicCategories } from '../reports.queries'
+import { usePublicCategories } from '@/features/public-catalog/public-catalog.queries'
 
 interface CategorySelectProps {
   id?: string

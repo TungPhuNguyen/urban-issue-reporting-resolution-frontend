@@ -1,25 +1,34 @@
 import {
-  useEffect,
   useState,
-  type ChangeEvent,
   type FormEvent,
 } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import {
+  Link,
+  useNavigate,
+} from 'react-router-dom'
 
-import { reportApi } from './report.api'
-import type {
-  PublicArea,
-  PublicCategory,
-} from './report.types'
+import { AreaHierarchySelect } from '@/features/reports/components/AreaHierarchySelect'
+import { CategorySelect } from '@/features/reports/components/CategorySelect'
+import { ImageUploader } from '@/features/reports/components/ImageUploader'
+import { LocationPicker } from '@/features/reports/components/LocationPicker'
+import type { LatLng } from '@/features/reports/report-form.types'
 
-const MAX_IMAGE_COUNT = 5
-const MAX_IMAGE_SIZE = 5 * 1024 * 1024
+import { citizenReportApi } from './citizen-report.api'
 
-const ALLOWED_IMAGE_TYPES = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-])
+interface AreaSelection {
+  parentAreaId: number | null
+  areaId: number | null
+}
+
+interface FormErrors {
+  categoryId?: string
+  parentAreaId?: string
+  areaId?: string
+  description?: string
+  addressText?: string
+  location?: string
+  images?: string
+}
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100'
@@ -35,243 +44,155 @@ function getErrorMessage(error: unknown): string {
 export default function CreateReportPage() {
   const navigate = useNavigate()
 
-  const [categories, setCategories] = useState<PublicCategory[]>(
-    [],
-  )
-  const [areas, setAreas] = useState<PublicArea[]>([])
+  const [categoryId, setCategoryId] =
+    useState<number | null>(null)
 
-  const [categoryId, setCategoryId] = useState('')
-  const [areaId, setAreaId] = useState('')
-  const [description, setDescription] = useState('')
-  const [addressText, setAddressText] = useState('')
+  const [selectedArea, setSelectedArea] =
+    useState<AreaSelection>({
+      parentAreaId: null,
+      areaId: null,
+    })
 
-  const [latitude, setLatitude] = useState('')
-  const [longitude, setLongitude] = useState('')
+  const [description, setDescription] =
+    useState('')
 
-  const [images, setImages] = useState<File[]>([])
+  const [addressText, setAddressText] =
+    useState('')
 
-  const [catalogLoading, setCatalogLoading] = useState(true)
-  const [locationLoading, setLocationLoading] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const [location, setLocation] =
+    useState<LatLng | null>(null)
 
-  const [catalogError, setCatalogError] = useState('')
-  const [error, setError] = useState('')
+  const [images, setImages] =
+    useState<File[]>([])
 
-  useEffect(() => {
-    let cancelled = false
+  const [formErrors, setFormErrors] =
+    useState<FormErrors>({})
 
-    async function loadCatalogs() {
-      setCatalogLoading(true)
-      setCatalogError('')
+  const [submitError, setSubmitError] =
+    useState('')
 
-      try {
-        const [categoryResult, areaResult] = await Promise.all([
-          reportApi.getCategories(),
-          reportApi.getAreas(),
-        ])
+  const [submitting, setSubmitting] =
+    useState(false)
 
-        if (cancelled) {
-          return
-        }
-
-        setCategories(categoryResult)
-        setAreas(areaResult)
-      } catch (loadError) {
-        if (cancelled) {
-          return
-        }
-
-        setCatalogError(getErrorMessage(loadError))
-      } finally {
-        if (!cancelled) {
-          setCatalogLoading(false)
-        }
-      }
-    }
-
-    void loadCatalogs()
-
-    return () => {
-      cancelled = true
-    }
-  }, [])
-
-  function handleImageChange(
-    event: ChangeEvent<HTMLInputElement>,
+  function clearFieldError(
+    field: keyof FormErrors,
   ) {
-    setError('')
-
-    const selectedFiles = Array.from(
-      event.target.files ?? [],
-    )
-
-    if (selectedFiles.length > MAX_IMAGE_COUNT) {
-      setImages(selectedFiles.slice(0, MAX_IMAGE_COUNT))
-      setError('Chỉ được chọn tối đa 5 ảnh.')
-      return
-    }
-
-    setImages(selectedFiles)
+    setFormErrors((current) => ({
+      ...current,
+      [field]: undefined,
+    }))
   }
 
-  function getCurrentLocation() {
-    setError('')
+  function validateForm(): boolean {
+    const errors: FormErrors = {}
 
-    if (!navigator.geolocation) {
-      setError(
-        'Trình duyệt của bạn không hỗ trợ lấy vị trí.',
-      )
-      return
+    const trimmedDescription =
+      description.trim()
+
+    const trimmedAddress =
+      addressText.trim()
+
+    if (categoryId === null) {
+      errors.categoryId =
+        'Vui lòng chọn loại sự cố.'
     }
 
-    setLocationLoading(true)
-
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLatitude(
-          position.coords.latitude.toFixed(6),
-        )
-        setLongitude(
-          position.coords.longitude.toFixed(6),
-        )
-        setLocationLoading(false)
-      },
-      () => {
-        setError(
-          'Không lấy được vị trí. Hãy cho phép trình duyệt truy cập vị trí hoặc nhập tọa độ thủ công.',
-        )
-        setLocationLoading(false)
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10_000,
-        maximumAge: 0,
-      },
-    )
-  }
-
-  function validateForm(): string | null {
-    if (!categoryId) {
-      return 'Vui lòng chọn loại sự cố.'
+    if (selectedArea.parentAreaId === null) {
+      errors.parentAreaId =
+        'Vui lòng chọn Quận/Huyện.'
+    } else if (selectedArea.areaId === null) {
+      errors.areaId =
+        'Vui lòng chọn Phường/Xã.'
     }
-
-    if (!areaId) {
-      return 'Vui lòng chọn khu vực.'
-    }
-
-    const trimmedDescription = description.trim()
 
     if (!trimmedDescription) {
-      return 'Mô tả sự cố không được để trống.'
-    }
-
-    if (trimmedDescription.length < 10) {
-      return 'Mô tả sự cố phải có ít nhất 10 ký tự.'
-    }
-
-    if (trimmedDescription.length > 2000) {
-      return 'Mô tả sự cố không được vượt quá 2000 ký tự.'
-    }
-
-    if (addressText.trim().length > 500) {
-      return 'Địa chỉ không được vượt quá 500 ký tự.'
-    }
-
-    if (!latitude.trim()) {
-      return 'Vui lòng nhập vĩ độ hoặc lấy vị trí hiện tại.'
-    }
-
-    if (!longitude.trim()) {
-      return 'Vui lòng nhập kinh độ hoặc lấy vị trí hiện tại.'
-    }
-
-    const latitudeNumber = Number(latitude)
-    const longitudeNumber = Number(longitude)
-
-    if (
-      Number.isNaN(latitudeNumber) ||
-      latitudeNumber < -90 ||
-      latitudeNumber > 90
+      errors.description =
+        'Mô tả sự cố không được để trống.'
+    } else if (
+      trimmedDescription.length < 10
     ) {
-      return 'Vĩ độ phải nằm trong khoảng từ -90 đến 90.'
-    }
-
-    if (
-      Number.isNaN(longitudeNumber) ||
-      longitudeNumber < -180 ||
-      longitudeNumber > 180
+      errors.description =
+        'Mô tả sự cố phải có ít nhất 10 ký tự.'
+    } else if (
+      trimmedDescription.length > 2000
     ) {
-      return 'Kinh độ phải nằm trong khoảng từ -180 đến 180.'
+      errors.description =
+        'Mô tả sự cố không được vượt quá 2000 ký tự.'
     }
 
-    if (
-      images.length < 1 ||
-      images.length > MAX_IMAGE_COUNT
-    ) {
-      return 'Báo cáo phải có từ 1 đến 5 ảnh.'
+    if (trimmedAddress.length > 500) {
+      errors.addressText =
+        'Địa chỉ không được vượt quá 500 ký tự.'
     }
 
-    const invalidTypeImage = images.find(
-      (image) => !ALLOWED_IMAGE_TYPES.has(image.type),
-    )
-
-    if (invalidTypeImage) {
-      return `Ảnh "${invalidTypeImage.name}" không hợp lệ. Chỉ hỗ trợ JPG, PNG và WEBP.`
+    if (location === null) {
+      errors.location =
+        'Vui lòng chọn vị trí xảy ra sự cố trên bản đồ.'
     }
 
-    const oversizedImage = images.find(
-      (image) => image.size > MAX_IMAGE_SIZE,
-    )
-
-    if (oversizedImage) {
-      return `Ảnh "${oversizedImage.name}" vượt quá 5 MB.`
+    if (images.length === 0) {
+      errors.images =
+        'Vui lòng chọn ít nhất một ảnh.'
+    } else if (images.length > 5) {
+      errors.images =
+        'Chỉ được chọn tối đa 5 ảnh.'
     }
 
-    const emptyImage = images.find(
-      (image) => image.size === 0,
-    )
+    setFormErrors(errors)
 
-    if (emptyImage) {
-      return `Ảnh "${emptyImage.name}" đang bị rỗng.`
-    }
-
-    return null
+    return Object.keys(errors).length === 0
   }
 
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault()
-    setError('')
 
-    const validationError = validateForm()
+    if (submitting) {
+      return
+    }
 
-    if (validationError) {
-      setError(validationError)
+    setSubmitError('')
+
+    const isValid = validateForm()
+
+    if (
+      !isValid ||
+      categoryId === null ||
+      selectedArea.areaId === null ||
+      location === null
+    ) {
       return
     }
 
     setSubmitting(true)
 
     try {
-      const result = await reportApi.createReport({
-        categoryId: Number(categoryId),
-        areaId: Number(areaId),
-        description: description.trim(),
-        addressText: addressText.trim() || undefined,
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        images,
-      })
+      const result =
+        await citizenReportApi.createReport({
+          categoryId,
+          areaId: selectedArea.areaId,
+          description: description.trim(),
+          addressText:
+            addressText.trim() || undefined,
+          latitude: location.latitude,
+          longitude: location.longitude,
+          images,
+        })
 
-      navigate(`/citizen/reports/${result.id}`, {
-        replace: true,
-        state: {
-          created: true,
+      navigate(
+        `/citizen/reports/${result.id}`,
+        {
+          replace: true,
+          state: {
+            created: true,
+          },
         },
-      })
-    } catch (submitError) {
-      setError(getErrorMessage(submitError))
+      )
+    } catch (error) {
+      setSubmitError(
+        getErrorMessage(error),
+      )
     } finally {
       setSubmitting(false)
     }
@@ -286,8 +207,8 @@ export default function CreateReportPage() {
           </h1>
 
           <p className="mt-1 text-sm text-gray-600">
-            Cung cấp đầy đủ thông tin và ảnh về sự cố hạ
-            tầng.
+            Cung cấp đầy đủ thông tin, vị trí
+            và hình ảnh về sự cố hạ tầng.
           </p>
         </div>
 
@@ -301,91 +222,56 @@ export default function CreateReportPage() {
 
       <form
         onSubmit={handleSubmit}
+        noValidate
         className="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
       >
-        <div className="grid gap-5 md:grid-cols-2">
-          <div>
-            <label
-              htmlFor="categoryId"
-              className="text-sm font-medium text-gray-700"
-            >
-              Loại sự cố{' '}
-              <span className="text-red-600">*</span>
-            </label>
+        {/* Category */}
+        <CategorySelect
+          id="categoryId"
+          value={categoryId}
+          disabled={submitting}
+          error={formErrors.categoryId}
+          onChange={(value) => {
+            setCategoryId(value)
+            clearFieldError('categoryId')
+          }}
+        />
 
-            <select
-              id="categoryId"
-              value={categoryId}
-              disabled={catalogLoading || submitting}
-              onChange={(event) =>
-                setCategoryId(event.target.value)
-              }
-              className={inputClass}
-            >
-              <option value="">
-                {catalogLoading
-                  ? 'Đang tải loại sự cố...'
-                  : 'Chọn loại sự cố'}
-              </option>
+        {/* Area hierarchy */}
+        <section>
+          <h2 className="mb-3 font-semibold text-gray-900">
+            Khu vực xảy ra sự cố
+          </h2>
 
-              {categories.map((category) => (
-                <option
-                  key={category.id}
-                  value={category.id}
-                >
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <AreaHierarchySelect
+            value={selectedArea}
+            disabled={submitting}
+            parentError={
+              formErrors.parentAreaId
+            }
+            areaError={formErrors.areaId}
+            onChange={(value) => {
+              setSelectedArea(value)
 
-          <div>
-            <label
-              htmlFor="areaId"
-              className="text-sm font-medium text-gray-700"
-            >
-              Khu vực{' '}
-              <span className="text-red-600">*</span>
-            </label>
+              setFormErrors((current) => ({
+                ...current,
+                parentAreaId: undefined,
+                areaId: undefined,
+              }))
+            }}
+          />
+        </section>
 
-            <select
-              id="areaId"
-              value={areaId}
-              disabled={catalogLoading || submitting}
-              onChange={(event) =>
-                setAreaId(event.target.value)
-              }
-              className={inputClass}
-            >
-              <option value="">
-                {catalogLoading
-                  ? 'Đang tải khu vực...'
-                  : 'Chọn khu vực'}
-              </option>
-
-              {areas.map((area) => (
-                <option key={area.id} value={area.id}>
-                  {area.name} ({area.code})
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        {catalogError && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-            Không tải được Category hoặc Area:{' '}
-            {catalogError}
-          </div>
-        )}
-
+        {/* Description */}
         <div>
           <label
             htmlFor="description"
             className="text-sm font-medium text-gray-700"
           >
-            Mô tả sự cố{' '}
-            <span className="text-red-600">*</span>
+            Mô tả sự cố
+            <span className="ml-1 text-red-600">
+              *
+            </span>
           </label>
 
           <textarea
@@ -395,18 +281,50 @@ export default function CreateReportPage() {
             disabled={submitting}
             maxLength={2000}
             placeholder="Ví dụ: Mặt đường xuất hiện ổ gà lớn, gây nguy hiểm cho người tham gia giao thông..."
-            onChange={(event) =>
-              setDescription(event.target.value)
+            onChange={(event) => {
+              setDescription(
+                event.target.value,
+              )
+
+              clearFieldError(
+                'description',
+              )
+            }}
+            className={[
+              inputClass,
+              formErrors.description
+                ? 'border-red-500'
+                : '',
+            ].join(' ')}
+            aria-invalid={Boolean(
+              formErrors.description,
+            )}
+            aria-describedby={
+              formErrors.description
+                ? 'description-error'
+                : undefined
             }
-            className={inputClass}
           />
 
           <div className="mt-1 flex justify-between text-xs text-gray-500">
             <span>Tối thiểu 10 ký tự</span>
-            <span>{description.length}/2000</span>
+
+            <span>
+              {description.length}/2000
+            </span>
           </div>
+
+          {formErrors.description && (
+            <p
+              id="description-error"
+              className="mt-1 text-sm text-red-600"
+            >
+              {formErrors.description}
+            </p>
+          )}
         </div>
 
+        {/* Address text */}
         <div>
           <label
             htmlFor="addressText"
@@ -422,165 +340,119 @@ export default function CreateReportPage() {
             disabled={submitting}
             maxLength={500}
             placeholder="Ví dụ: Trước số 123 đường Nguyễn Văn Linh"
-            onChange={(event) =>
-              setAddressText(event.target.value)
+            onChange={(event) => {
+              setAddressText(
+                event.target.value,
+              )
+
+              clearFieldError(
+                'addressText',
+              )
+            }}
+            className={[
+              inputClass,
+              formErrors.addressText
+                ? 'border-red-500'
+                : '',
+            ].join(' ')}
+            aria-invalid={Boolean(
+              formErrors.addressText,
+            )}
+            aria-describedby={
+              formErrors.addressText
+                ? 'addressText-error'
+                : undefined
             }
-            className={inputClass}
           />
 
           <p className="mt-1 text-xs text-gray-500">
-            Trường này không bắt buộc, tối đa 500 ký tự.
+            Trường này không bắt buộc, tối đa
+            500 ký tự.
           </p>
-        </div>
 
-        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="font-semibold text-gray-900">
-                Vị trí sự cố
-              </h2>
-
-              <p className="text-sm text-gray-500">
-                Sử dụng vị trí hiện tại hoặc nhập tọa độ
-                thủ công.
-              </p>
-            </div>
-
-            <button
-              type="button"
-              disabled={locationLoading || submitting}
-              onClick={getCurrentLocation}
-              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:cursor-not-allowed disabled:opacity-60"
+          {formErrors.addressText && (
+            <p
+              id="addressText-error"
+              className="mt-1 text-sm text-red-600"
             >
-              {locationLoading
-                ? 'Đang lấy vị trí...'
-                : 'Lấy vị trí hiện tại'}
-            </button>
-          </div>
-
-          <div className="grid gap-5 md:grid-cols-2">
-            <div>
-              <label
-                htmlFor="latitude"
-                className="text-sm font-medium text-gray-700"
-              >
-                Vĩ độ{' '}
-                <span className="text-red-600">*</span>
-              </label>
-
-              <input
-                id="latitude"
-                type="number"
-                step="any"
-                min={-90}
-                max={90}
-                value={latitude}
-                disabled={submitting}
-                placeholder="Ví dụ: 10.762622"
-                onChange={(event) =>
-                  setLatitude(event.target.value)
-                }
-                className={inputClass}
-              />
-            </div>
-
-            <div>
-              <label
-                htmlFor="longitude"
-                className="text-sm font-medium text-gray-700"
-              >
-                Kinh độ{' '}
-                <span className="text-red-600">*</span>
-              </label>
-
-              <input
-                id="longitude"
-                type="number"
-                step="any"
-                min={-180}
-                max={180}
-                value={longitude}
-                disabled={submitting}
-                placeholder="Ví dụ: 106.660172"
-                onChange={(event) =>
-                  setLongitude(event.target.value)
-                }
-                className={inputClass}
-              />
-            </div>
-          </div>
-        </div>
-
-        <div>
-          <label
-            htmlFor="images"
-            className="text-sm font-medium text-gray-700"
-          >
-            Ảnh sự cố{' '}
-            <span className="text-red-600">*</span>
-          </label>
-
-          <input
-            id="images"
-            type="file"
-            multiple
-            disabled={submitting}
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleImageChange}
-            className="mt-1 block w-full rounded-lg border border-gray-300 bg-white p-2 text-sm text-gray-700 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-medium file:text-blue-700 hover:file:bg-blue-100"
-          />
-
-          <p className="mt-2 text-xs text-gray-500">
-            Chọn từ 1 đến 5 ảnh. Chỉ nhận JPG, PNG hoặc
-            WEBP. Mỗi ảnh tối đa 5 MB.
-          </p>
-
-          {images.length > 0 && (
-            <div className="mt-3 rounded-lg bg-gray-50 p-3">
-              <p className="mb-2 text-sm font-medium text-gray-700">
-                Đã chọn {images.length} ảnh:
-              </p>
-
-              <ul className="space-y-1 text-sm text-gray-600">
-                {images.map((image) => (
-                  <li
-                    key={`${image.name}-${image.lastModified}`}
-                    className="flex justify-between gap-3"
-                  >
-                    <span className="truncate">
-                      {image.name}
-                    </span>
-
-                    <span className="shrink-0">
-                      {(image.size / 1024 / 1024).toFixed(
-                        2,
-                      )}{' '}
-                      MB
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
+              {formErrors.addressText}
+            </p>
           )}
         </div>
 
-        {error && (
-          <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-            {error}
+        {/* Location */}
+        <section>
+          <div className="mb-3">
+            <h2 className="font-semibold text-gray-900">
+              Chọn vị trí sự cố
+            </h2>
+
+            <p className="mt-1 text-sm text-gray-500">
+              Bấm vào bản đồ hoặc kéo marker
+              để chọn chính xác vị trí xảy ra
+              sự cố.
+            </p>
+          </div>
+
+          <LocationPicker
+            value={location}
+            disabled={submitting}
+            error={formErrors.location}
+            onChange={(value) => {
+              setLocation(value)
+              clearFieldError('location')
+            }}
+          />
+        </section>
+
+        {/* Images */}
+        <section>
+          <ImageUploader
+            value={images}
+            maxFiles={5}
+            maxSizeMb={5}
+            disabled={submitting}
+            error={formErrors.images}
+            onChange={(value) => {
+              setImages(value)
+
+              if (value.length > 0) {
+                clearFieldError('images')
+              }
+            }}
+          />
+        </section>
+
+        {/* API error */}
+        {submitError && (
+          <div
+            role="alert"
+            className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700"
+          >
+            {submitError}
           </div>
         )}
 
+        {/* Actions */}
         <div className="flex flex-wrap justify-end gap-3 border-t border-gray-200 pt-5">
           <Link
             to="/citizen/reports"
-            className="rounded-lg border border-gray-300 bg-white px-5 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            className={[
+              'rounded-lg border border-gray-300',
+              'bg-white px-5 py-2.5 text-sm',
+              'font-medium text-gray-700',
+              'hover:bg-gray-50',
+              submitting
+                ? 'pointer-events-none opacity-60'
+                : '',
+            ].join(' ')}
           >
             Hủy
           </Link>
 
           <button
             type="submit"
-            disabled={submitting || catalogLoading}
+            disabled={submitting}
             className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitting

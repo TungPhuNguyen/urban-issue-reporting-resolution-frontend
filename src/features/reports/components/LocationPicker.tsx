@@ -7,7 +7,7 @@ import {
   useMapEvents,
 } from 'react-leaflet'
 
-import type { LatLng } from '../reports.types'
+import type { LatLng } from '../report-form.types'
 
 import 'leaflet/dist/leaflet.css'
 
