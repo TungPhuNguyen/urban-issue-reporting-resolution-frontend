@@ -2,7 +2,7 @@ import { Link, Outlet } from 'react-router-dom'
 
 export default function PublicLayout() {
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 text-gray-900">
       <header className="flex h-16 items-center justify-between border-b bg-white px-6">
         <Link
           to="/"
