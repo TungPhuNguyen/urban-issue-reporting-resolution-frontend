@@ -9,7 +9,10 @@ export const reportsApi = {
 
   getAreas: async (parentAreaId?: number): Promise<Area[]> => {
     const { data } = await http.get<Area[]>('/public/areas', {
-      params: parentAreaId ? { parentAreaId } : undefined,
+      params:
+        parentAreaId !== undefined
+          ? { parentAreaId }
+          : undefined,
     })
     return data
   },

@@ -1,34 +1,108 @@
 import { usePublicCategories } from '../reports.queries'
 
 interface CategorySelectProps {
+  id?: string
   value: number | null
   onChange: (categoryId: number | null) => void
+  disabled?: boolean
+  error?: string
   className?: string
 }
 
-export function CategorySelect({ value, onChange, className }: CategorySelectProps) {
-  const { data: categories, isLoading, isError } = usePublicCategories()
-
-  if (isLoading) {
-    return <div className={className}>Đang tải loại sự cố...</div>
-  }
-
-  if (isError) {
-    return <div className={className}>Không tải được danh sách loại sự cố.</div>
-  }
+export function CategorySelect({
+  id = 'categoryId',
+  value,
+  onChange,
+  disabled = false,
+  error,
+  className,
+}: CategorySelectProps) {
+  const {
+    data: categories = [],
+    isLoading,
+    isError,
+    refetch,
+  } = usePublicCategories()
 
   return (
-    <select
-      className={className}
-      value={value ?? ''}
-      onChange={(e) => onChange(e.target.value ? Number(e.target.value) : null)}
-    >
-      <option value="">-- Chọn loại sự cố --</option>
-      {categories?.map((category) => (
-        <option key={category.id} value={category.id}>
-          {category.name}
+    <div className={className}>
+      <label
+        htmlFor={id}
+        className="mb-1 block text-sm font-medium"
+      >
+        Loại sự cố
+        <span className="ml-1 text-red-500">*</span>
+      </label>
+
+      <select
+        id={id}
+        value={value ?? ''}
+        disabled={disabled || isLoading || categories.length === 0}
+        onChange={(event) => {
+          const selectedValue = event.target.value
+
+          onChange(
+            selectedValue
+              ? Number(selectedValue)
+              : null,
+          )
+        }}
+        className="w-full rounded-md border px-3 py-2"
+        aria-invalid={Boolean(error)}
+        aria-describedby={
+          error ? `${id}-error` : undefined
+        }
+      >
+        <option value="">
+          {isLoading
+            ? 'Đang tải loại sự cố...'
+            : '-- Chọn loại sự cố --'}
         </option>
-      ))}
-    </select>
+
+        {categories.map((category) => (
+          <option
+            key={category.id}
+            value={category.id}
+          >
+            {category.name}
+          </option>
+        ))}
+      </select>
+
+      {isError && (
+        <div className="mt-1 text-sm text-red-600">
+          <span>
+            Không tải được danh sách loại sự cố.
+          </span>
+
+          <button
+            type="button"
+            className="ml-2 underline"
+            onClick={() => {
+              void refetch()
+            }}
+          >
+            Thử lại
+          </button>
+        </div>
+      )}
+
+      {!isLoading &&
+        !isError &&
+        categories.length === 0 && (
+          <p className="mt-1 text-sm text-gray-500">
+            Hiện chưa có loại sự cố nào.
+          </p>
+        )}
+
+      {error && (
+        <p
+          id={`${id}-error`}
+          className="mt-1 text-sm text-red-600"
+        >
+          {error}
+        </p>
+      )}
+    </div>
   )
 }
