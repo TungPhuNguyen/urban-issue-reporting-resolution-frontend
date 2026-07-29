@@ -13,6 +13,7 @@ import CitizenReportsPage from '@/features/citizen/ReportsPage'
 import CreateReportPage from '@/features/citizen/reports/CreateReportPage'
 import ReportDetailPage from '@/features/citizen/reports/ReportDetailPage'
 import StaffReportsPage from '@/features/staff/ReportsPage'
+import StaffReportDetailPage from '@/features/staff/ReportDetailPage'
 
 import ForbiddenPage from '@/pages/ForbiddenPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -29,9 +30,7 @@ const LoginPage = lazy(() =>
   })),
 )
 
-const RegisterPage = lazy(
-  () => import('@/features/auth/RegisterPage'),
-)
+const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
 
 export const router = createBrowserRouter([
   {
@@ -60,9 +59,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        element: (
-          <RoleRoute allowedRoles={['Citizen']} />
-        ),
+        element: <RoleRoute allowedRoles={['Citizen']} />,
         children: [
           {
             path: 'citizen',
@@ -95,6 +92,10 @@ export const router = createBrowserRouter([
               {
                 path: 'reports',
                 element: <StaffReportsPage />,
+              },
+              {
+                path: 'reports/:reportId',
+                element: <StaffReportDetailPage />,
               },
             ],
           },
