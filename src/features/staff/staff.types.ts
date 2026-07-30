@@ -8,8 +8,7 @@ export const REPORT_STATUS = {
   Rejected: 'Rejected',
 } as const
 
-export type ReportStatus =
-  (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]
+export type ReportStatus = (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]
 
 export const REPORT_PRIORITY = {
   Low: 1,
@@ -17,8 +16,7 @@ export const REPORT_PRIORITY = {
   High: 3,
 } as const
 
-export type ReportPriority =
-  (typeof REPORT_PRIORITY)[keyof typeof REPORT_PRIORITY]
+export type ReportPriority = (typeof REPORT_PRIORITY)[keyof typeof REPORT_PRIORITY]
 
 export interface PagedResult<T> {
   items: T[]
@@ -139,4 +137,26 @@ export interface StaffReportActionResult {
   updatedAt: string | null
 
   imageUrls: string[]
+}
+
+export interface StaffReportTimelineItem {
+  id: number
+
+  oldStatus: ReportStatus
+  newStatus: ReportStatus
+
+  note: string | null
+
+  updatedByUserId: string | null
+  updatedByUserName: string | null
+
+  createdAt: string
+
+  imageUrls: string[]
+}
+
+export interface StaffReportTimeline {
+  reportId: string
+  currentStatus: ReportStatus
+  items: StaffReportTimelineItem[]
 }

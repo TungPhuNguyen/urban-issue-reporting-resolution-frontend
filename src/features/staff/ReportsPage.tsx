@@ -2,11 +2,18 @@ import { Link } from 'react-router-dom'
 
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+import { useState } from 'react'
+import type { ReportStatus } from './staff.types'
 
 import { useStaffReports } from './staff.queries'
 
 export default function StaffReportsPage() {
-  const { data, isLoading, isError, isFetching, refetch } = useStaffReports()
+  const [status, setStatus] = useState<ReportStatus | undefined>(undefined)
+  const { data, isLoading, isError, isFetching, refetch } = useStaffReports({
+    status,
+    pageNumber: 1,
+    pageSize: 10,
+  })
 
   const reports = data?.items ?? []
 
@@ -20,6 +27,29 @@ export default function StaffReportsPage() {
         <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
           Danh sách báo cáo thuộc đơn vị của cán bộ.
         </p>
+        <div className="mt-4">
+          <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+            Trạng thái
+          </label>
+
+          <select
+            value={status ?? ''}
+            onChange={(event) =>
+              setStatus(
+                event.target.value ? (event.target.value as ReportStatus) : undefined,
+              )
+            }
+            className="rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="">Tất cả</option>
+            <option value="Assigned">Assigned</option>
+            <option value="Accepted">Accepted</option>
+            <option value="InProgress">InProgress</option>
+            <option value="Resolved">Resolved</option>
+            <option value="Closed">Closed</option>
+            <option value="Rejected">Rejected</option>
+          </select>
+        </div>
       </div>
 
       {isLoading && (
@@ -79,18 +109,52 @@ export default function StaffReportsPage() {
                 <Card className="p-5 transition hover:-translate-y-0.5 hover:shadow-md">
                   <div className="flex items-start justify-between gap-4">
                     <div>
-                      <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+                      <p className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
+                        Mã báo cáo: {report.id}
+                      </p>
+
+                      <h2 className="mt-1 font-semibold text-gray-900 dark:text-gray-100">
                         {report.categoryName}
                       </h2>
 
                       <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                        {report.addressText}
+                        Khu vực: {report.areaName}
                       </p>
+
+                      {report.addressText && (
+                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
+                          Địa chỉ: {report.addressText}
+                        </p>
+                      )}
                     </div>
 
-                    <span className="text-sm text-gray-600 dark:text-gray-400">
-                      {report.status}
-                    </span>
+                    <div className="text-right text-sm">
+                      <p className="font-medium text-gray-900 dark:text-gray-100">
+                        {report.status}
+                      </p>
+
+                      <p className="text-gray-500 dark:text-gray-400">
+                        Priority:{' '}
+                        {report.priority === null
+                          ? '-'
+                          : report.priority === 1
+                            ? 'Low'
+                            : report.priority === 2
+                              ? 'Medium'
+                              : 'High'}
+                      </p>
+
+                      <p className="text-gray-500 dark:text-gray-400">
+                        Created: {new Date(report.createdAt).toLocaleString('vi-VN')}
+                      </p>
+
+                      <p className="text-gray-500 dark:text-gray-400">
+                        Due:{' '}
+                        {report.dueAt
+                          ? new Date(report.dueAt).toLocaleString('vi-VN')
+                          : 'Not started'}
+                      </p>
+                    </div>
                   </div>
 
                   <p className="mt-3 text-sm text-gray-700 dark:text-gray-300">

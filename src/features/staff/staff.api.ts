@@ -7,6 +7,7 @@ import type {
   StaffReportSummary,
   ReportPriority,
   ReportStatus,
+  StaffReportTimeline,
 } from './staff.types'
 
 export interface GetStaffReportsParams {
@@ -30,6 +31,14 @@ export const staffReportApi = {
 
   async getReport(reportId: string): Promise<StaffReportDetail> {
     const response = await http.get<StaffReportDetail>(`/staff/reports/${reportId}`)
+
+    return response.data
+  },
+
+  async getTimeline(reportId: string): Promise<StaffReportTimeline> {
+    const response = await http.get<StaffReportTimeline>(
+      `/staff/reports/${reportId}/timeline`,
+    )
 
     return response.data
   },

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { staffReportApi } from './staff.api'
 import type { ReportPriority } from './staff.types'
+import type { GetStaffReportsParams } from './staff.api'
 
 export const staffReportKeys = {
   all: ['staff-reports'] as const,
@@ -32,15 +33,11 @@ interface ResolveReportInput {
   images: File[]
 }
 
-export function useStaffReports() {
+export function useStaffReports(params: GetStaffReportsParams) {
   return useQuery({
-    queryKey: staffReportKeys.list(),
+    queryKey: [...staffReportKeys.list(), params],
 
-    queryFn: () =>
-      staffReportApi.getReports({
-        pageNumber: 1,
-        pageSize: 10,
-      }),
+    queryFn: () => staffReportApi.getReports(params),
   })
 }
 
@@ -51,6 +48,14 @@ export function useStaffReport(reportId: string) {
     queryFn: () => staffReportApi.getReport(reportId),
 
     enabled: !!reportId,
+  })
+}
+
+export function useStaffReportTimeline(reportId: string) {
+  return useQuery({
+    queryKey: ['staff', 'reports', reportId, 'timeline'],
+    queryFn: () => staffReportApi.getTimeline(reportId),
+    enabled: Boolean(reportId),
   })
 }
 

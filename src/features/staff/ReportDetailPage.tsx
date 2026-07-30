@@ -4,6 +4,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { AcceptReportCard } from './components/AcceptReportCard'
 import { StartProcessingReportCard } from './components/StartProcessingReportCard'
 import { ProgressUpdateCard } from './components/ProgressUpdateCard'
+import { ReportTimeline } from './components/ReportTimeline'
 
 import { useStaffReport } from './staff.queries'
 
@@ -119,6 +120,7 @@ export default function StaffReportDetailPage() {
       {report.status === 'Assigned' && <AcceptReportCard reportId={reportId} />}
       {report.status === 'Accepted' && <StartProcessingReportCard reportId={reportId} />}
       {report.status === 'InProgress' && <ProgressUpdateCard reportId={reportId} />}
+      <ReportTimeline reportId={reportId} />
     </section>
   )
 }
