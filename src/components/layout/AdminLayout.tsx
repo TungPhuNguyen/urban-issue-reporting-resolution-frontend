@@ -6,6 +6,10 @@ const adminMenuItems = [
     path: '/admin/dashboard',
   },
   {
+    label: 'Tất cả báo cáo',
+    path: '/admin/reports',
+  },
+  {
     label: 'Phân công thủ công',
     path: '/admin/reports/manual-assignment',
   },
@@ -24,7 +28,8 @@ const adminMenuItems = [
   {
     label: 'Areas',
     path: '/admin/areas',
-  }, {
+  },
+  {
     label: 'Departments',
     path: '/admin/departments',
   },
@@ -33,18 +38,15 @@ const adminMenuItems = [
     path: '/admin/notifications',
   },
   {
-    label: 'overdue reports',
+    label: 'Báo cáo quá hạn',
     path: '/admin/overdue-reports',
   },
-
+  {
+    label: 'Nhật ký hệ thống',
+    path: '/admin/audit-logs',
+  },
 ]
 
 export default function AdminLayout() {
-  return (
-    <RoleLayout
-      role="Admin"
-      title="Admin Portal"
-      menuItems={adminMenuItems}
-    />
-  )
+  return <RoleLayout role="Admin" title="Admin Portal" menuItems={adminMenuItems} />
 }

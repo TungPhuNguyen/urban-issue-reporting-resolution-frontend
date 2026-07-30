@@ -1,7 +1,4 @@
-export type ReportPriority =
-  | 'Low'
-  | 'Medium'
-  | 'High'
+export type ReportPriority = 'Low' | 'Medium' | 'High'
 
 export interface PagedResult<T> {
   items: T[]

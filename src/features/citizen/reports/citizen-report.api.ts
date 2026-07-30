@@ -85,28 +85,26 @@ export const citizenReportApi = {
     reportId,
     reason,
   }: SubmitComplaintInput): Promise<PostResolutionActionResult> => {
-    const response =
-      await http.post<PostResolutionActionResult>(
-        `/citizen/reports/${reportId}/complaints`,
-        {
-          reason: reason.trim(),
-        },
-      )
+    const response = await http.post<PostResolutionActionResult>(
+      `/citizen/reports/${reportId}/complaints`,
+      {
+        reason: reason.trim(),
+      },
+    )
 
     return response.data
   },
-  
+
   closeReport: async ({
     reportId,
     note,
   }: CloseCitizenReportInput): Promise<PostResolutionActionResult> => {
-    const response =
-      await http.post<PostResolutionActionResult>(
-        `/citizen/reports/${reportId}/close`,
-        {
-          note: note?.trim() || null,
-        },
-      )
+    const response = await http.post<PostResolutionActionResult>(
+      `/citizen/reports/${reportId}/close`,
+      {
+        note: note?.trim() || null,
+      },
+    )
 
     return response.data
   },

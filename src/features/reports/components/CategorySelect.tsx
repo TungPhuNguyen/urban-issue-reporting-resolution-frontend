@@ -17,19 +17,11 @@ export function CategorySelect({
   error,
   className,
 }: CategorySelectProps) {
-  const {
-    data: categories = [],
-    isLoading,
-    isError,
-    refetch,
-  } = usePublicCategories()
+  const { data: categories = [], isLoading, isError, refetch } = usePublicCategories()
 
   return (
     <div className={className}>
-      <label
-        htmlFor={id}
-        className="mb-1 block text-sm font-medium"
-      >
+      <label htmlFor={id} className="mb-1 block text-sm font-medium">
         Loại sự cố
         <span className="ml-1 text-red-500">*</span>
       </label>
@@ -41,29 +33,18 @@ export function CategorySelect({
         onChange={(event) => {
           const selectedValue = event.target.value
 
-          onChange(
-            selectedValue
-              ? Number(selectedValue)
-              : null,
-          )
+          onChange(selectedValue ? Number(selectedValue) : null)
         }}
         className="w-full rounded-md border px-3 py-2"
         aria-invalid={Boolean(error)}
-        aria-describedby={
-          error ? `${id}-error` : undefined
-        }
+        aria-describedby={error ? `${id}-error` : undefined}
       >
         <option value="">
-          {isLoading
-            ? 'Đang tải loại sự cố...'
-            : '-- Chọn loại sự cố --'}
+          {isLoading ? 'Đang tải loại sự cố...' : '-- Chọn loại sự cố --'}
         </option>
 
         {categories.map((category) => (
-          <option
-            key={category.id}
-            value={category.id}
-          >
+          <option key={category.id} value={category.id}>
             {category.name}
           </option>
         ))}
@@ -71,9 +52,7 @@ export function CategorySelect({
 
       {isError && (
         <div className="mt-1 text-sm text-red-600">
-          <span>
-            Không tải được danh sách loại sự cố.
-          </span>
+          <span>Không tải được danh sách loại sự cố.</span>
 
           <button
             type="button"
@@ -87,19 +66,12 @@ export function CategorySelect({
         </div>
       )}
 
-      {!isLoading &&
-        !isError &&
-        categories.length === 0 && (
-          <p className="mt-1 text-sm text-gray-500">
-            Hiện chưa có loại sự cố nào.
-          </p>
-        )}
+      {!isLoading && !isError && categories.length === 0 && (
+        <p className="mt-1 text-sm text-gray-500">Hiện chưa có loại sự cố nào.</p>
+      )}
 
       {error && (
-        <p
-          id={`${id}-error`}
-          className="mt-1 text-sm text-red-600"
-        >
+        <p id={`${id}-error`} className="mt-1 text-sm text-red-600">
           {error}
         </p>
       )}

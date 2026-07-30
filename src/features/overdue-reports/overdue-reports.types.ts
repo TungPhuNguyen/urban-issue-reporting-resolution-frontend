@@ -1,10 +1,6 @@
 export type UserRole = 'Admin' | 'Staff'
 
-export type ReportPriority =
-  | 'Low'
-  | 'Medium'
-  | 'High'
-  | 'Critical'
+export type ReportPriority = 'Low' | 'Medium' | 'High'
 
 export type ReportStatus =
   | 'New'
@@ -42,11 +38,13 @@ export interface OverdueReport {
   createdAt: string
   dueAt: string | null
   overdueMilliseconds: number
+  isEscalated: boolean
+  escalatedAt: string | null
 }
 
 export interface AdminReportSummaryApi {
   id: string
-  citizenFullName: string
+  citizenName: string
   categoryId: number
   categoryName: string
   areaId: number
@@ -64,6 +62,10 @@ export interface AdminReportSummaryApi {
   thumbnailUrl: string | null
   createdAt: string
   dueAt: string | null
+  isOverdue: boolean
+  overdueHours: number | null
+  isEscalated: boolean
+  escalatedAt: string | null
 }
 
 export interface StaffReportSummaryApi {
@@ -83,10 +85,25 @@ export interface StaffReportSummaryApi {
   thumbnailUrl: string | null
   createdAt: string
   dueAt: string | null
+  isOverdue: boolean
+  overdueHours: number | null
+  isEscalated: boolean
+  escalatedAt: string | null
 }
 
 export interface OverdueReportFilters {
   search: string
   priority: 'all' | ReportPriority
   status: 'all' | ReportStatus
+  isEscalated: boolean
+}
+
+export interface OverdueReportParams {
+  role: UserRole
+  pageNumber: number
+  pageSize: number
+  search?: string
+  priority?: ReportPriority
+  status?: ReportStatus
+  isEscalated?: boolean
 }

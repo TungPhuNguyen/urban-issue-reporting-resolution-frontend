@@ -1,11 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  MapContainer,
-  Marker,
-  TileLayer,
-  useMap,
-  useMapEvents,
-} from 'react-leaflet'
+import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 
 import type { LatLng } from '../report-form.types'
 
@@ -28,25 +22,16 @@ interface MapViewControllerProps {
   position: [number, number] | null
 }
 
-const DEFAULT_CENTER: [number, number] = [
-  21.0285,
-  105.8542,
-]
+const DEFAULT_CENTER: [number, number] = [21.0285, 105.8542]
 
-function MapClickHandler({
-  disabled,
-  onPick,
-}: MapClickHandlerProps) {
+function MapClickHandler({ disabled, onPick }: MapClickHandlerProps) {
   useMapEvents({
     click(event) {
       if (disabled) {
         return
       }
 
-      onPick(
-        event.latlng.lat,
-        event.latlng.lng,
-      )
+      onPick(event.latlng.lat, event.latlng.lng)
     },
   })
 
@@ -57,9 +42,7 @@ function MapClickHandler({
  * MapContainer only uses its center value when the map is initialized.
  * This component moves the map when the selected value changes.
  */
-function MapViewController({
-  position,
-}: MapViewControllerProps) {
+function MapViewController({ position }: MapViewControllerProps) {
   const map = useMap()
 
   useEffect(() => {
@@ -78,15 +61,9 @@ export function LocationPicker({
   error,
   className,
 }: LocationPickerProps) {
-  const [position, setPosition] =
-    useState<[number, number] | null>(
-      value
-        ? [
-            value.latitude,
-            value.longitude,
-          ]
-        : null,
-    )
+  const [position, setPosition] = useState<[number, number] | null>(
+    value ? [value.latitude, value.longitude] : null,
+  )
 
   /*
    * Synchronize the marker with the parent form.
@@ -94,28 +71,15 @@ export function LocationPicker({
    * and the marker must disappear.
    */
   useEffect(() => {
-    setPosition(
-      value
-        ? [
-            value.latitude,
-            value.longitude,
-          ]
-        : null,
-    )
-  }, [value?.latitude, value?.longitude])
+    setPosition(value ? [value.latitude, value.longitude] : null)
+  }, [value])
 
-  const handlePick = (
-    latitude: number,
-    longitude: number,
-  ) => {
+  const handlePick = (latitude: number, longitude: number) => {
     if (disabled) {
       return
     }
 
-    const selectedPosition: [
-      number,
-      number,
-    ] = [latitude, longitude]
+    const selectedPosition: [number, number] = [latitude, longitude]
 
     setPosition(selectedPosition)
 
@@ -129,21 +93,14 @@ export function LocationPicker({
     <div className={className}>
       <label className="mb-1 block text-sm font-medium">
         Vị trí xảy ra sự cố
-
-        <span className="ml-1 text-red-500">
-          *
-        </span>
+        <span className="ml-1 text-red-500">*</span>
       </label>
 
       <div
         className={[
           'overflow-hidden rounded-md border',
-          error
-            ? 'border-red-500'
-            : 'border-gray-300',
-          disabled
-            ? 'pointer-events-none opacity-60'
-            : '',
+          error ? 'border-red-500' : 'border-gray-300',
+          disabled ? 'pointer-events-none opacity-60' : '',
         ].join(' ')}
         aria-invalid={Boolean(error)}
       >
@@ -160,14 +117,9 @@ export function LocationPicker({
             attribution="&copy; OpenStreetMap contributors"
           />
 
-          <MapClickHandler
-            disabled={disabled}
-            onPick={handlePick}
-          />
+          <MapClickHandler disabled={disabled} onPick={handlePick} />
 
-          <MapViewController
-            position={position}
-          />
+          <MapViewController position={position} />
 
           {position && (
             <Marker
@@ -180,13 +132,9 @@ export function LocationPicker({
                   }
 
                   const marker = event.target
-                  const newPosition =
-                    marker.getLatLng()
+                  const newPosition = marker.getLatLng()
 
-                  handlePick(
-                    newPosition.lat,
-                    newPosition.lng,
-                  )
+                  handlePick(newPosition.lat, newPosition.lng)
                 },
               }}
             />
@@ -196,22 +144,15 @@ export function LocationPicker({
 
       {position ? (
         <p className="mt-1 text-sm text-gray-600">
-          Đã chọn:{' '}
-          {position[0].toFixed(6)},{' '}
-          {position[1].toFixed(6)}
+          Đã chọn: {position[0].toFixed(6)}, {position[1].toFixed(6)}
         </p>
       ) : (
         <p className="mt-1 text-sm text-gray-500">
-          Bấm vào bản đồ để chọn vị trí
-          xảy ra sự cố.
+          Bấm vào bản đồ để chọn vị trí xảy ra sự cố.
         </p>
       )}
 
-      {error && (
-        <p className="mt-1 text-sm text-red-600">
-          {error}
-        </p>
-      )}
+      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
     </div>
   )
 }

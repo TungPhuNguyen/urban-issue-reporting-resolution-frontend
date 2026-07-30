@@ -1,8 +1,4 @@
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import { useAuthStore } from '@/features/auth/auth.store'
 import { ApiError } from '@/lib/api/http'
@@ -88,12 +84,7 @@ export function useSubmitComplaint() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (
-      input: SubmitComplaintInput,
-    ) =>
-      citizenReportApi.submitComplaint(
-        input,
-      ),
+    mutationFn: (input: SubmitComplaintInput) => citizenReportApi.submitComplaint(input),
 
     onSuccess: () => {
       void queryClient.invalidateQueries({
@@ -106,10 +97,7 @@ export function useCloseCitizenReport() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (
-      input: CloseCitizenReportInput,
-    ) =>
-      citizenReportApi.closeReport(input),
+    mutationFn: (input: CloseCitizenReportInput) => citizenReportApi.closeReport(input),
 
     onSuccess: () => {
       void queryClient.invalidateQueries({
@@ -118,4 +106,3 @@ export function useCloseCitizenReport() {
     },
   })
 }
-

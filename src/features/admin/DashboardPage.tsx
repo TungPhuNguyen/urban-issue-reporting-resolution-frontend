@@ -46,6 +46,16 @@ function formatNumber(value: number): string {
   return new Intl.NumberFormat('vi-VN').format(value)
 }
 
+function formatHours(value: number | null) {
+  if (value === null) {
+    return 'Chưa có dữ liệu'
+  }
+
+  return `${value.toLocaleString('vi-VN', {
+    maximumFractionDigits: 1,
+  })} giờ`
+}
+
 function errorMessage(error: unknown): string {
   if (error instanceof ApiError || error instanceof Error) {
     return error.message
@@ -65,21 +75,13 @@ interface BreakdownCardProps {
   }>
 }
 
-function BreakdownCard({
-  title,
-  emptyMessage,
-  items,
-}: BreakdownCardProps) {
+function BreakdownCard({ title, emptyMessage, items }: BreakdownCardProps) {
   return (
     <Card className="p-5">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-        {title}
-      </h2>
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
 
       {items.length === 0 ? (
-        <p className="mt-5 text-sm text-gray-500">
-          {emptyMessage}
-        </p>
+        <p className="mt-5 text-sm text-gray-500">{emptyMessage}</p>
       ) : (
         <div className="mt-5 space-y-4">
           {items.map((item) => (
@@ -95,7 +97,7 @@ function BreakdownCard({
 
               <div className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
                 <div
-                  className="h-full rounded-full bg-brand-600"
+                  className="bg-brand-600 h-full rounded-full"
                   style={{
                     width: `${Math.min(100, Math.max(0, item.percentage))}%`,
                   }}
@@ -134,14 +136,12 @@ export default function AdminDashboardPage() {
     setAppliedRange({ ...draftRange })
   }
 
-  const statusItems = (data?.reportsByStatus ?? []).map(
-    (item: ReportsByStatusItem) => ({
-      key: item.status,
-      label: STATUS_LABELS[item.status] ?? item.status,
-      count: item.reportCount,
-      percentage: item.percentage,
-    }),
-  )
+  const statusItems = (data?.reportsByStatus ?? []).map((item: ReportsByStatusItem) => ({
+    key: item.status,
+    label: STATUS_LABELS[item.status] ?? item.status,
+    count: item.reportCount,
+    percentage: item.percentage,
+  }))
 
   const categoryItems = (data?.reportsByCategory ?? [])
     .slice(0, 8)
@@ -223,9 +223,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {validationError && (
-          <p className="mt-3 text-sm text-red-600">
-            {validationError}
-          </p>
+          <p className="mt-3 text-sm text-red-600">{validationError}</p>
         )}
       </Card>
 
@@ -235,9 +233,7 @@ export default function AdminDashboardPage() {
         </Card>
       ) : dashboardQuery.isError ? (
         <Card className="flex min-h-72 flex-col items-center justify-center gap-3 p-8 text-center">
-          <p className="font-medium text-red-600">
-            {errorMessage(dashboardQuery.error)}
-          </p>
+          <p className="font-medium text-red-600">{errorMessage(dashboardQuery.error)}</p>
           <Button type="button" onClick={() => void dashboardQuery.refetch()}>
             Thử lại
           </Button>
@@ -255,9 +251,7 @@ export default function AdminDashboardPage() {
             <Card className="p-5">
               <p className="text-sm text-gray-500">Đã xử lý / đóng</p>
               <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {formatNumber(
-                  data.summary.resolvedReports + data.summary.closedReports,
-                )}
+                {formatNumber(data.summary.resolvedReports + data.summary.closedReports)}
               </p>
               <p className="mt-1 text-xs text-gray-500">
                 Tỷ lệ {data.summary.resolutionRate.toFixed(2)}%
@@ -285,6 +279,15 @@ export default function AdminDashboardPage() {
               <p className="mt-2 text-3xl font-bold text-orange-600">
                 {formatNumber(data.summary.escalatedReports)}
               </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="mt-2 px-0"
+                onClick={() => navigate('/admin/reports?isEscalated=true')}
+              >
+                Xem danh sách
+              </Button>
             </Card>
           </div>
 
@@ -310,6 +313,15 @@ export default function AdminDashboardPage() {
               <p className="mt-1 text-2xl font-semibold">
                 {formatNumber(data.summary.pendingComplaintReports)}
               </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="mt-2 px-0"
+                onClick={() => navigate('/admin/reports?hasComplaint=true')}
+              >
+                Xử lý ngay
+              </Button>
             </Card>
 
             <Card className="p-4">
@@ -343,6 +355,110 @@ export default function AdminDashboardPage() {
               emptyMessage="Không có dữ liệu khu vực trong khoảng thời gian này."
               items={areaItems}
             />
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-3">
+            <Card className="p-5 xl:col-span-1">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Hiệu suất SLA
+              </h2>
+              <div className="mt-5 space-y-4">
+                <div>
+                  <p className="text-sm text-gray-500">Tỷ lệ đúng hạn</p>
+                  <p className="mt-1 text-3xl font-bold text-green-600">
+                    {data.slaPerformance.complianceRate.toFixed(1)}%
+                  </p>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                    <p className="text-gray-500">Hoàn tất đúng hạn</p>
+                    <p className="mt-1 text-xl font-semibold">
+                      {formatNumber(data.slaPerformance.completedOnTimeReports)}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-gray-50 p-3 dark:bg-gray-800">
+                    <p className="text-gray-500">Hoàn tất trễ</p>
+                    <p className="mt-1 text-xl font-semibold text-red-600">
+                      {formatNumber(data.slaPerformance.completedLateReports)}
+                    </p>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">Thời gian xử lý trung bình</p>
+                  <p className="mt-1 text-xl font-semibold">
+                    {formatHours(data.slaPerformance.averageHandlingHours)}
+                  </p>
+                </div>
+              </div>
+            </Card>
+
+            <Card className="p-5 xl:col-span-2">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Xu hướng báo cáo
+              </h2>
+              {data.reportTrend.items.length === 0 ? (
+                <p className="mt-5 text-sm text-gray-500">
+                  Không có dữ liệu xu hướng trong khoảng thời gian này.
+                </p>
+              ) : (
+                <div className="mt-5 max-h-80 space-y-3 overflow-y-auto pr-2">
+                  {data.reportTrend.items.map((item) => {
+                    const maximum = Math.max(
+                      item.createdCount,
+                      item.resolvedCount,
+                      item.closedCount,
+                      1,
+                    )
+
+                    return (
+                      <div
+                        key={item.date}
+                        className="grid grid-cols-[6rem_1fr] items-center gap-3"
+                      >
+                        <span className="text-xs text-gray-500">
+                          {new Date(`${item.date}T00:00:00`).toLocaleDateString('vi-VN')}
+                        </span>
+                        <div className="space-y-1">
+                          {[
+                            {
+                              label: 'Tạo',
+                              value: item.createdCount,
+                              color: 'bg-blue-500',
+                            },
+                            {
+                              label: 'Xử lý',
+                              value: item.resolvedCount,
+                              color: 'bg-amber-500',
+                            },
+                            {
+                              label: 'Đóng',
+                              value: item.closedCount,
+                              color: 'bg-green-500',
+                            },
+                          ].map((bar) => (
+                            <div
+                              key={bar.label}
+                              className="flex items-center gap-2 text-xs"
+                            >
+                              <span className="w-10 text-gray-500">{bar.label}</span>
+                              <div className="h-2 flex-1 rounded-full bg-gray-100 dark:bg-gray-800">
+                                <div
+                                  className={`h-full rounded-full ${bar.color}`}
+                                  style={{
+                                    width: `${(bar.value / maximum) * 100}%`,
+                                  }}
+                                />
+                              </div>
+                              <span className="w-6 text-right">{bar.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </Card>
           </div>
         </>
       ) : null}

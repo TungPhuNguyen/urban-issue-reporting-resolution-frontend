@@ -13,9 +13,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <I18nextProvider i18n={i18n}>
         <QueryClientProvider client={queryClient}>
           <Suspense fallback={<Spinner />}>
-            <AuthInitializer>
-              {children}
-            </AuthInitializer>
+            <AuthInitializer>{children}</AuthInitializer>
           </Suspense>
         </QueryClientProvider>
       </I18nextProvider>

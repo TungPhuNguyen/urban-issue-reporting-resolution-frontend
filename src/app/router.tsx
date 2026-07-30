@@ -1,4 +1,3 @@
-import { lazy } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 
 import AdminLayout from '@/components/layout/AdminLayout'
@@ -7,7 +6,9 @@ import PublicLayout from '@/components/layout/PublicLayout'
 import StaffLayout from '@/components/layout/StaffLayout'
 
 import AdminReportDetailPage from '@/features/admin/reports/AdminReportDetailPage'
+import AdminReportsPage from '@/features/admin/reports/AdminReportsPage'
 import ManualAssignmentQueuePage from '@/features/admin/reports/ManualAssignmentQueuePage'
+import AuditLogsPage from '@/features/admin/audit-logs/AuditLogsPage'
 import ProtectedRoute from '@/features/auth/ProtectedRoute'
 import RoleRoute from '@/features/auth/RoleRoute'
 
@@ -23,33 +24,17 @@ import OverdueReportsPage from '@/features/overdue-reports/OverdueReportsPage'
 import ForbiddenPage from '@/pages/ForbiddenPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
 
-const HomePage = lazy(() =>
-  import('@/pages/HomePage').then((module) => ({
-    default: module.HomePage,
-  })),
-)
-
-const LoginPage = lazy(() =>
-  import('@/features/auth/LoginPage').then(
-    (module) => ({
-      default: module.LoginPage,
-    }),
-  ),
-)
-
-const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
-
-const AdminDashboardPage = lazy(() => import('@/features/admin/DashboardPage'))
-
-const CitizenReportsPage = lazy(() => import('@/features/citizen/ReportsPage'))
-
-const CreateReportPage = lazy(() => import('@/features/citizen/reports/CreateReportPage'))
-
-const ReportDetailPage = lazy(() => import('@/features/citizen/reports/ReportDetailPage'))
-
-const StaffReportsPage = lazy(() => import('@/features/staff/ReportsPage'))
-
-const StaffReportDetailPage = lazy(() => import('@/features/staff/ReportDetailPage'))
+import {
+  AdminDashboardPage,
+  CitizenReportsPage,
+  CreateReportPage,
+  HomePage,
+  LoginPage,
+  RegisterPage,
+  ReportDetailPage,
+  StaffReportDetailPage,
+  StaffReportsPage,
+} from './lazy-pages'
 
 export const router = createBrowserRouter([
   {
@@ -114,11 +99,7 @@ export const router = createBrowserRouter([
       },
 
       {
-        element: (
-          <RoleRoute
-            allowedRoles={['Staff']}
-          />
-        ),
+        element: <RoleRoute allowedRoles={['Staff']} />,
 
         children: [
           {
@@ -148,11 +129,7 @@ export const router = createBrowserRouter([
       },
 
       {
-        element: (
-          <RoleRoute
-            allowedRoles={['Admin']}
-          />
-        ),
+        element: <RoleRoute allowedRoles={['Admin']} />,
 
         children: [
           {
@@ -166,18 +143,20 @@ export const router = createBrowserRouter([
               },
 
               {
-                path:
-                  'reports/manual-assignment',
+                path: 'reports',
+                element: <AdminReportsPage />,
+              },
 
-                element:
-                  <ManualAssignmentQueuePage />,
+              {
+                path: 'reports/manual-assignment',
+
+                element: <ManualAssignmentQueuePage />,
               },
 
               {
                 path: 'reports/:reportId',
 
-                element:
-                  <AdminReportDetailPage />,
+                element: <AdminReportDetailPage />,
               },
               {
                 path: 'routing-rules',
@@ -199,6 +178,10 @@ export const router = createBrowserRouter([
               {
                 path: 'departments',
                 element: <DepartmentsPage />,
+              },
+              {
+                path: 'audit-logs',
+                element: <AuditLogsPage />,
               },
 
               {

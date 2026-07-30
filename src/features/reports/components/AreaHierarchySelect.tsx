@@ -7,9 +7,7 @@ interface AreaHierarchyValue {
 
 interface AreaHierarchySelectProps {
   value: AreaHierarchyValue
-  onChange: (
-    value: AreaHierarchyValue,
-  ) => void
+  onChange: (value: AreaHierarchyValue) => void
   disabled?: boolean
   parentError?: string
   areaError?: string
@@ -22,9 +20,7 @@ export function AreaHierarchySelect({
   parentError,
   areaError,
 }: AreaHierarchySelectProps) {
-  const handleParentChange = (
-    parentAreaId: number | null,
-  ) => {
+  const handleParentChange = (parentAreaId: number | null) => {
     onChange({
       parentAreaId,
       // Khi đổi quận/huyện phải xóa
@@ -33,9 +29,7 @@ export function AreaHierarchySelect({
     })
   }
 
-  const handleAreaChange = (
-    areaId: number | null,
-  ) => {
+  const handleAreaChange = (areaId: number | null) => {
     onChange({
       parentAreaId: value.parentAreaId,
       areaId,
@@ -62,14 +56,10 @@ export function AreaHierarchySelect({
             ? '-- Chọn quận/huyện trước --'
             : '-- Chọn phường/xã --'
         }
-        parentAreaId={
-          value.parentAreaId ?? undefined
-        }
+        parentAreaId={value.parentAreaId ?? undefined}
         value={value.areaId}
         onChange={handleAreaChange}
-        enabled={
-          value.parentAreaId !== null
-        }
+        enabled={value.parentAreaId !== null}
         disabled={disabled}
         error={areaError}
       />

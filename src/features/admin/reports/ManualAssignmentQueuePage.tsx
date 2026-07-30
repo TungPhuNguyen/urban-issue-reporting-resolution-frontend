@@ -41,10 +41,7 @@ export default function ManualAssignmentQueuePage() {
 
   if (query.isPending) {
     return (
-      <div
-        className="flex min-h-64 items-center justify-center"
-        aria-label="Đang tải"
-      >
+      <div className="flex min-h-64 items-center justify-center" aria-label="Đang tải">
         <Spinner />
       </div>
     )
@@ -53,17 +50,11 @@ export default function ManualAssignmentQueuePage() {
   if (query.isError) {
     return (
       <Card className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center">
-        <h1 className="text-xl font-semibold">
-          Không tải được hàng đợi
-        </h1>
+        <h1 className="text-xl font-semibold">Không tải được hàng đợi</h1>
 
-        <p className="max-w-xl text-sm text-red-600">
-          {getErrorMessage(query.error)}
-        </p>
+        <p className="max-w-xl text-sm text-red-600">{getErrorMessage(query.error)}</p>
 
-        <Button onClick={() => query.refetch()}>
-          Thử lại
-        </Button>
+        <Button onClick={() => query.refetch()}>Thử lại</Button>
       </Card>
     )
   }
@@ -81,8 +72,7 @@ export default function ManualAssignmentQueuePage() {
           </h1>
 
           <p className="mt-1 text-sm text-gray-500">
-            Báo cáo chưa thể tự động chuyển tuyến,
-            sắp xếp từ cũ nhất đến mới nhất.
+            Báo cáo chưa thể tự động chuyển tuyến, sắp xếp từ cũ nhất đến mới nhất.
           </p>
         </div>
 
@@ -98,13 +88,10 @@ export default function ManualAssignmentQueuePage() {
       <Card className="overflow-hidden">
         {reports.length === 0 ? (
           <div className="flex min-h-64 flex-col items-center justify-center gap-2 p-8 text-center">
-            <h2 className="text-lg font-medium">
-              Không có báo cáo chờ phân công
-            </h2>
+            <h2 className="text-lg font-medium">Không có báo cáo chờ phân công</h2>
 
             <p className="text-sm text-gray-500">
-              Hàng đợi sẽ tự động cập nhật khi có
-              báo cáo mới.
+              Hàng đợi sẽ tự động cập nhật khi có báo cáo mới.
             </p>
           </div>
         ) : (
@@ -112,37 +99,21 @@ export default function ManualAssignmentQueuePage() {
             <table className="w-full min-w-[1050px] text-left text-sm">
               <thead className="border-b border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-300">
                 <tr>
-                  <th className="px-4 py-3 font-medium">
-                    Mã báo cáo
-                  </th>
+                  <th className="px-4 py-3 font-medium">Mã báo cáo</th>
 
-                  <th className="px-4 py-3 font-medium">
-                    Danh mục
-                  </th>
+                  <th className="px-4 py-3 font-medium">Danh mục</th>
 
-                  <th className="px-4 py-3 font-medium">
-                    Khu vực
-                  </th>
+                  <th className="px-4 py-3 font-medium">Khu vực</th>
 
-                  <th className="px-4 py-3 font-medium">
-                    Mô tả
-                  </th>
+                  <th className="px-4 py-3 font-medium">Mô tả</th>
 
-                  <th className="px-4 py-3 font-medium">
-                    Ngày tạo
-                  </th>
+                  <th className="px-4 py-3 font-medium">Ngày tạo</th>
 
-                  <th className="px-4 py-3 font-medium">
-                    Trạng thái
-                  </th>
+                  <th className="px-4 py-3 font-medium">Trạng thái</th>
 
-                  <th className="px-4 py-3 font-medium">
-                    Phân công hiện tại
-                  </th>
+                  <th className="px-4 py-3 font-medium">Phân công hiện tại</th>
 
-                  <th className="px-4 py-3 text-right font-medium">
-                    Thao tác
-                  </th>
+                  <th className="px-4 py-3 text-right font-medium">Thao tác</th>
                 </tr>
               </thead>
 
@@ -157,19 +128,13 @@ export default function ManualAssignmentQueuePage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      {report.categoryName ??
-                        'Chưa xác định'}
+                      {report.categoryName ?? 'Chưa xác định'}
                     </td>
 
-                    <td className="px-4 py-3">
-                      {report.areaName ??
-                        'Chưa xác định'}
-                    </td>
+                    <td className="px-4 py-3">{report.areaName ?? 'Chưa xác định'}</td>
 
                     <td className="max-w-sm px-4 py-3 text-gray-600 dark:text-gray-300">
-                      <p className="line-clamp-3">
-                        {report.description}
-                      </p>
+                      <p className="line-clamp-3">{report.description}</p>
                     </td>
 
                     <td className="px-4 py-3 whitespace-nowrap">
@@ -183,8 +148,7 @@ export default function ManualAssignmentQueuePage() {
                     </td>
 
                     <td className="px-4 py-3 text-gray-500">
-                      {report.departmentName ??
-                        'Chưa có phòng ban'}
+                      {report.departmentName ?? 'Chưa có phòng ban'}
                     </td>
 
                     <td className="px-4 py-3 text-right">
@@ -205,23 +169,15 @@ export default function ManualAssignmentQueuePage() {
 
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500">
         <p>
-          Tổng cộng {page.totalItems} báo cáo ·
-          Trang {page.pageNumber}/{totalPages}
+          Tổng cộng {page.totalItems} báo cáo · Trang {page.pageNumber}/{totalPages}
         </p>
 
         <div className="flex gap-2">
           <Button
             variant="secondary"
             size="sm"
-            disabled={
-              pageNumber <= 1 ||
-              query.isFetching
-            }
-            onClick={() =>
-              setPageNumber((current) =>
-                Math.max(1, current - 1),
-              )
-            }
+            disabled={pageNumber <= 1 || query.isFetching}
+            onClick={() => setPageNumber((current) => Math.max(1, current - 1))}
           >
             Trang trước
           </Button>
@@ -229,15 +185,8 @@ export default function ManualAssignmentQueuePage() {
           <Button
             variant="secondary"
             size="sm"
-            disabled={
-              pageNumber >= totalPages ||
-              query.isFetching
-            }
-            onClick={() =>
-              setPageNumber(
-                (current) => current + 1,
-              )
-            }
+            disabled={pageNumber >= totalPages || query.isFetching}
+            onClick={() => setPageNumber((current) => current + 1)}
           >
             Trang sau
           </Button>

@@ -2,6 +2,8 @@ import { http } from '@/lib/api/http'
 
 import type {
   AdminReportDetail,
+  AdminReportsParams,
+  AdminReportTimeline,
   AssignReportInput,
   AssignReportResult,
   Department,
@@ -12,7 +14,9 @@ import type {
   AssignStaffInput,
   RejectReportInput,
   CloseReportInput,
+  DismissComplaintInput,
   PostResolutionActionResult,
+  ReassignReportInput,
   ReopenReportInput,
 } from './admin-reports.types'
 
@@ -23,59 +27,70 @@ function removeAssignedReports(
     ...page,
 
     items: page.items.filter(
-      (report) =>
-        report.requiresManualAssignment === true &&
-        report.departmentId == null,
+      (report) => report.requiresManualAssignment === true && report.departmentId == null,
     ),
   }
 }
 
 export const adminReportsApi = {
+  getReports: async (
+    params: AdminReportsParams,
+  ): Promise<PagedResult<ManualAssignmentReport>> => {
+    const response = await http.get<PagedResult<ManualAssignmentReport>>(
+      '/admin/reports',
+      {
+        params: {
+          ...params,
+          search: params.search?.trim() || undefined,
+          status: params.status || undefined,
+          priority: params.priority || undefined,
+        },
+      },
+    )
+
+    return response.data
+  },
+
   getManualAssignmentQueue: async (
     params: ManualAssignmentQueueParams,
   ): Promise<PagedResult<ManualAssignmentReport>> => {
-    const response = await http.get<
-      PagedResult<ManualAssignmentReport>
-    >('/admin/reports', {
-      params: {
-        pageNumber: params.pageNumber,
-        pageSize: params.pageSize,
-        requiresManualAssignment: true,
+    const response = await http.get<PagedResult<ManualAssignmentReport>>(
+      '/admin/reports',
+      {
+        params: {
+          pageNumber: params.pageNumber,
+          pageSize: params.pageSize,
+          requiresManualAssignment: true,
+        },
       },
-    })
-
-    const filteredPage = removeAssignedReports(
-      response.data,
     )
+
+    const filteredPage = removeAssignedReports(response.data)
 
     return {
       ...filteredPage,
 
       items: [...filteredPage.items].sort(
         (first, second) =>
-          new Date(first.createdAt).getTime() -
-          new Date(second.createdAt).getTime(),
+          new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime(),
       ),
     }
   },
 
-  getById: async (
-    id: string,
-  ): Promise<AdminReportDetail> => {
-    const response =
-      await http.get<AdminReportDetail>(
-        `/admin/reports/${id}`,
-      )
+  getById: async (id: string): Promise<AdminReportDetail> => {
+    const response = await http.get<AdminReportDetail>(`/admin/reports/${id}`)
 
     return response.data
   },
 
-  getActiveDepartments: async (): Promise<
-    Department[]
-  > => {
-    const response = await http.get<
-      PagedResult<Department>
-    >('/admin/departments', {
+  getTimeline: async (id: string): Promise<AdminReportTimeline> => {
+    const response = await http.get<AdminReportTimeline>(`/admin/reports/${id}/timeline`)
+
+    return response.data
+  },
+
+  getActiveDepartments: async (): Promise<Department[]> => {
+    const response = await http.get<PagedResult<Department>>('/admin/departments', {
       params: {
         isActive: true,
         pageNumber: 1,
@@ -83,17 +98,13 @@ export const adminReportsApi = {
       },
     })
 
-    return response.data.items.filter(
-      (department) => department.isActive,
-    )
+    return response.data.items.filter((department) => department.isActive)
   },
 
   getActiveStaffByDepartment: async (
     departmentId: number,
   ): Promise<AdminStaffSummary[]> => {
-    const response = await http.get<
-      PagedResult<AdminStaffSummary>
-    >('/admin/users', {
+    const response = await http.get<PagedResult<AdminStaffSummary>>('/admin/users', {
       params: {
         roleName: 'Staff',
         departmentId,
@@ -117,15 +128,32 @@ export const adminReportsApi = {
     staffId,
     reason,
   }: AssignStaffInput): Promise<AssignReportResult> => {
-    const response =
-      await http.post<AssignReportResult>(
-        `/admin/reports/${reportId}/reassign`,
-        {
-          departmentId,
-          staffId,
-          reason: reason.trim(),
-        },
-      )
+    const response = await http.post<AssignReportResult>(
+      `/admin/reports/${reportId}/reassign`,
+      {
+        departmentId,
+        staffId,
+        reason: reason.trim(),
+      },
+    )
+
+    return response.data
+  },
+
+  reassignReport: async ({
+    reportId,
+    departmentId,
+    staffId,
+    reason,
+  }: ReassignReportInput): Promise<AssignReportResult> => {
+    const response = await http.post<AssignReportResult>(
+      `/admin/reports/${reportId}/reassign`,
+      {
+        departmentId,
+        staffId,
+        reason: reason.trim(),
+      },
+    )
 
     return response.data
   },
@@ -133,13 +161,12 @@ export const adminReportsApi = {
     reportId,
     reason,
   }: RejectReportInput): Promise<AssignReportResult> => {
-    const response =
-      await http.post<AssignReportResult>(
-        `/admin/reports/${reportId}/reject`,
-        {
-          reason: reason.trim(),
-        },
-      )
+    const response = await http.post<AssignReportResult>(
+      `/admin/reports/${reportId}/reject`,
+      {
+        reason: reason.trim(),
+      },
+    )
 
     return response.data
   },
@@ -149,19 +176,14 @@ export const adminReportsApi = {
     departmentId,
     note,
   }: AssignReportInput): Promise<AssignReportResult> => {
-    const response =
-      await http.post<AssignReportResult>(
-        `/admin/reports/${reportId}/assign`,
-        {
-          departmentId,
-          staffId: null,
-          note:
-            note?.trim() ||
-            'Phân công thủ công bởi Admin',
-        },
-      )
-
-
+    const response = await http.post<AssignReportResult>(
+      `/admin/reports/${reportId}/assign`,
+      {
+        departmentId,
+        staffId: null,
+        note: note?.trim() || 'Phân công thủ công bởi Admin',
+      },
+    )
 
     return response.data
   },
@@ -169,13 +191,12 @@ export const adminReportsApi = {
     reportId,
     note,
   }: CloseReportInput): Promise<PostResolutionActionResult> => {
-    const response =
-      await http.post<PostResolutionActionResult>(
-        `/admin/reports/${reportId}/close`,
-        {
-          note: note?.trim() || null,
-        },
-      )
+    const response = await http.post<PostResolutionActionResult>(
+      `/admin/reports/${reportId}/close`,
+      {
+        note: note?.trim() || null,
+      },
+    )
 
     return response.data
   },
@@ -183,13 +204,26 @@ export const adminReportsApi = {
     reportId,
     reason,
   }: ReopenReportInput): Promise<PostResolutionActionResult> => {
-    const response =
-      await http.post<PostResolutionActionResult>(
-        `/admin/reports/${reportId}/reopen`,
-        {
-          reason: reason.trim(),
-        },
-      )
+    const response = await http.post<PostResolutionActionResult>(
+      `/admin/reports/${reportId}/reopen`,
+      {
+        reason: reason.trim(),
+      },
+    )
+
+    return response.data
+  },
+
+  dismissComplaint: async ({
+    reportId,
+    reason,
+  }: DismissComplaintInput): Promise<PostResolutionActionResult> => {
+    const response = await http.post<PostResolutionActionResult>(
+      `/admin/reports/${reportId}/dismiss-complaint`,
+      {
+        reason: reason.trim(),
+      },
+    )
 
     return response.data
   },

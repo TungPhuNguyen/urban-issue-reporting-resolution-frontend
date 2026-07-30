@@ -106,31 +106,21 @@ export default function ReportDetailPage() {
   const { reportId = '' } = useParams()
   const location = useLocation()
 
-  const [closeNote, setCloseNote] =
-    useState('')
+  const [closeNote, setCloseNote] = useState('')
 
-  const [closeError, setCloseError] =
-    useState<string | null>(null)
+  const [closeError, setCloseError] = useState<string | null>(null)
 
-  const [closeSuccess, setCloseSuccess] =
-    useState<string | null>(null)
+  const [closeSuccess, setCloseSuccess] = useState<string | null>(null)
 
-  const [showCloseConfirm, setShowCloseConfirm] =
-    useState(false)
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 
-  const [complaintReason, setComplaintReason] =
-    useState('')
+  const [complaintReason, setComplaintReason] = useState('')
 
-  const [complaintError, setComplaintError] =
-    useState<string | null>(null)
+  const [complaintError, setComplaintError] = useState<string | null>(null)
 
-  const [complaintSuccess, setComplaintSuccess] =
-    useState<string | null>(null)
+  const [complaintSuccess, setComplaintSuccess] = useState<string | null>(null)
 
-  const [
-    showComplaintConfirm,
-    setShowComplaintConfirm,
-  ] = useState(false)
+  const [showComplaintConfirm, setShowComplaintConfirm] = useState(false)
 
   const apiOrigin = resolveApiOrigin(env.apiBaseUrl, window.location.origin)
 
@@ -154,11 +144,9 @@ export default function ReportDetailPage() {
     refetch: refetchTimeline,
   } = useCitizenReportTimeline(reportId)
 
-  const closeMutation =
-    useCloseCitizenReport()
+  const closeMutation = useCloseCitizenReport()
 
-  const complaintMutation =
-    useSubmitComplaint()
+  const complaintMutation = useSubmitComplaint()
 
   if (!reportId) {
     return <ErrorCard message="Mã phản ánh không hợp lệ." />
@@ -213,9 +201,7 @@ export default function ReportDetailPage() {
   const isAutomaticallyAssigned =
     !report.requiresManualAssignment && report.departmentId !== null
 
-  const canClose =
-    report.status === 'Resolved' &&
-    !report.complaintSubmittedAt
+  const canClose = report.status === 'Resolved' && !report.complaintSubmittedAt
 
   const canSubmitComplaint =
     report.status === 'Resolved' &&
@@ -226,13 +212,10 @@ export default function ReportDetailPage() {
     setCloseError(null)
     setCloseSuccess(null)
 
-    const normalizedNote =
-      closeNote.trim()
+    const normalizedNote = closeNote.trim()
 
     if (normalizedNote.length > 1000) {
-      setCloseError(
-        'Ghi chú không được vượt quá 1000 ký tự.',
-      )
+      setCloseError('Ghi chú không được vượt quá 1000 ký tự.')
 
       return
     }
@@ -244,9 +227,7 @@ export default function ReportDetailPage() {
       })
 
       setShowCloseConfirm(false)
-      setCloseSuccess(
-        'Đã đóng báo cáo thành công.',
-      )
+      setCloseSuccess('Đã đóng báo cáo thành công.')
 
       await refetch()
     } catch (closeRequestError) {
@@ -264,21 +245,16 @@ export default function ReportDetailPage() {
     setComplaintError(null)
     setComplaintSuccess(null)
 
-    const normalizedReason =
-      complaintReason.trim()
+    const normalizedReason = complaintReason.trim()
 
     if (normalizedReason.length < 10) {
-      setComplaintError(
-        'Lý do yêu cầu mở lại phải có ít nhất 10 ký tự.',
-      )
+      setComplaintError('Lý do yêu cầu mở lại phải có ít nhất 10 ký tự.')
 
       return
     }
 
     if (normalizedReason.length > 2000) {
-      setComplaintError(
-        'Lý do yêu cầu mở lại không được vượt quá 2000 ký tự.',
-      )
+      setComplaintError('Lý do yêu cầu mở lại không được vượt quá 2000 ký tự.')
 
       return
     }
@@ -290,9 +266,7 @@ export default function ReportDetailPage() {
       })
 
       setShowComplaintConfirm(false)
-      setComplaintSuccess(
-        'Đã gửi yêu cầu mở lại báo cáo.',
-      )
+      setComplaintSuccess('Đã gửi yêu cầu mở lại báo cáo.')
 
       await refetch()
     } catch (complaintRequestError) {
@@ -522,27 +496,21 @@ export default function ReportDetailPage() {
           </h2>
 
           <p className="mt-1 text-sm text-gray-500">
-            Đóng báo cáo khi bạn xác nhận sự cố đã
-            được xử lý hoàn tất.
+            Đóng báo cáo khi bạn xác nhận sự cố đã được xử lý hoàn tất.
           </p>
 
           {report.status === 'Closed' ? (
             <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">
               Báo cáo đã được đóng
-              {report.closedAt
-                ? ` vào ${formatDateTime(report.closedAt)}`
-                : ''}
-              .
+              {report.closedAt ? ` vào ${formatDateTime(report.closedAt)}` : ''}.
             </div>
           ) : report.complaintSubmittedAt ? (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
-              Không thể đóng báo cáo khi yêu cầu mở
-              lại đang chờ Admin xem xét.
+              Không thể đóng báo cáo khi yêu cầu mở lại đang chờ Admin xem xét.
             </div>
           ) : !canClose ? (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
-              Chỉ có thể đóng báo cáo ở trạng thái
-              Resolved.
+              Chỉ có thể đóng báo cáo ở trạng thái Resolved.
             </div>
           ) : (
             <div className="mt-4 flex max-w-2xl flex-col gap-4">
@@ -602,13 +570,11 @@ export default function ReportDetailPage() {
               ) : (
                 <div className="rounded-lg border border-green-200 bg-green-50 p-4">
                   <p className="text-sm font-medium text-green-900">
-                    Bạn xác nhận vấn đề đã được xử lý
-                    hoàn tất?
+                    Bạn xác nhận vấn đề đã được xử lý hoàn tất?
                   </p>
 
                   <p className="mt-1 text-sm text-green-800">
-                    Báo cáo sẽ chuyển sang trạng thái
-                    Closed.
+                    Báo cáo sẽ chuyển sang trạng thái Closed.
                   </p>
 
                   <div className="mt-4 flex flex-wrap gap-3">
@@ -625,9 +591,7 @@ export default function ReportDetailPage() {
                       type="button"
                       variant="secondary"
                       disabled={closeMutation.isPending}
-                      onClick={() =>
-                        setShowCloseConfirm(false)
-                      }
+                      onClick={() => setShowCloseConfirm(false)}
                     >
                       Hủy
                     </Button>
@@ -644,24 +608,20 @@ export default function ReportDetailPage() {
           </h2>
 
           <p className="mt-1 text-sm text-gray-500">
-            Gửi yêu cầu khi vấn đề chưa được xử lý
-            hoàn toàn hoặc đã tái diễn.
+            Gửi yêu cầu khi vấn đề chưa được xử lý hoàn toàn hoặc đã tái diễn.
           </p>
 
           {report.complaintSubmittedAt ? (
             <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300">
-              Yêu cầu mở lại đã được gửi và đang chờ
-              Admin xem xét.
+              Yêu cầu mở lại đã được gửi và đang chờ Admin xem xét.
             </div>
           ) : report.hasSubmittedComplaint ? (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
-              Báo cáo này đã từng được gửi yêu cầu
-              mở lại.
+              Báo cáo này đã từng được gửi yêu cầu mở lại.
             </div>
           ) : !canSubmitComplaint ? (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
-              Chỉ có thể yêu cầu mở lại báo cáo ở
-              trạng thái Resolved.
+              Chỉ có thể yêu cầu mở lại báo cáo ở trạng thái Resolved.
             </div>
           ) : (
             <div className="mt-4 flex max-w-2xl flex-col gap-4">
@@ -681,9 +641,7 @@ export default function ReportDetailPage() {
                   disabled={complaintMutation.isPending}
                   placeholder="Mô tả lý do cần mở lại báo cáo, tối thiểu 10 ký tự."
                   onChange={(event) => {
-                    setComplaintReason(
-                      event.target.value,
-                    )
+                    setComplaintReason(event.target.value)
                     setComplaintError(null)
                     setComplaintSuccess(null)
                   }}
@@ -712,8 +670,7 @@ export default function ReportDetailPage() {
                   <Button
                     type="button"
                     disabled={
-                      complaintMutation.isPending ||
-                      complaintReason.trim().length < 10
+                      complaintMutation.isPending || complaintReason.trim().length < 10
                     }
                     onClick={() => {
                       setComplaintError(null)
@@ -730,19 +687,14 @@ export default function ReportDetailPage() {
                   </p>
 
                   <p className="mt-1 text-sm text-blue-800">
-                    Admin sẽ xem xét lý do trước khi
-                    quyết định mở lại báo cáo.
+                    Admin sẽ xem xét lý do trước khi quyết định mở lại báo cáo.
                   </p>
 
                   <div className="mt-4 flex flex-wrap gap-3">
                     <Button
                       type="button"
-                      loading={
-                        complaintMutation.isPending
-                      }
-                      disabled={
-                        complaintMutation.isPending
-                      }
+                      loading={complaintMutation.isPending}
+                      disabled={complaintMutation.isPending}
                       onClick={handleSubmitComplaint}
                     >
                       Xác nhận gửi
@@ -751,12 +703,8 @@ export default function ReportDetailPage() {
                     <Button
                       type="button"
                       variant="secondary"
-                      disabled={
-                        complaintMutation.isPending
-                      }
-                      onClick={() =>
-                        setShowComplaintConfirm(false)
-                      }
+                      disabled={complaintMutation.isPending}
+                      onClick={() => setShowComplaintConfirm(false)}
                     >
                       Hủy
                     </Button>

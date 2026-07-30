@@ -1,19 +1,15 @@
-import {
-  type FormEvent,
-  useState,
-} from 'react'
+import { type FormEvent, useState } from 'react'
 
-import {
-  Link,
-  useNavigate,
-  useParams,
-} from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+import { getImageUrl } from '@/features/staff/image'
 import { ApiError } from '@/lib/api/http'
 
+import AdminReportTimeline from './AdminReportTimeline'
+import ReassignReportPanel from './ReassignReportPanel'
 import ReopenReportPanel from './ReopenReportPanel'
 
 import {
@@ -26,9 +22,7 @@ import {
   useCloseAdminReport,
 } from './admin-reports.queries'
 
-function formatDate(
-  value: string | null | undefined,
-) {
+function formatDate(value: string | null | undefined) {
   if (!value) {
     return 'Chưa có'
   }
@@ -45,10 +39,7 @@ function formatDate(
   }).format(date)
 }
 
-function getErrorMessage(
-  error: unknown,
-  fallback: string,
-) {
+function getErrorMessage(error: unknown, fallback: string) {
   if (error instanceof ApiError) {
     return error.message
   }
@@ -64,73 +55,49 @@ export default function AdminReportDetailPage() {
   const { reportId = '' } = useParams()
   const navigate = useNavigate()
 
-  const [departmentId, setDepartmentId] =
-    useState('')
+  const [departmentId, setDepartmentId] = useState('')
 
   const [note, setNote] = useState('')
 
-  const [formError, setFormError] =
-    useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
-  const [staffId, setStaffId] =
-    useState('')
+  const [assignSuccess, setAssignSuccess] = useState<string | null>(null)
 
-  const [staffReason, setStaffReason] =
-    useState(
-      'Phân công Staff phụ trách báo cáo',
-    )
+  const [staffId, setStaffId] = useState('')
 
-  const [staffError, setStaffError] =
-    useState<string | null>(null)
+  const [staffReason, setStaffReason] = useState('Phân công Staff phụ trách báo cáo')
 
-  const [staffSuccess, setStaffSuccess] =
-    useState<string | null>(null)
-  const [rejectReason, setRejectReason] =
-    useState('')
+  const [staffError, setStaffError] = useState<string | null>(null)
 
-  const [rejectError, setRejectError] =
-    useState<string | null>(null)
+  const [staffSuccess, setStaffSuccess] = useState<string | null>(null)
+  const [rejectReason, setRejectReason] = useState('')
 
-  const [rejectSuccess, setRejectSuccess] =
-    useState<string | null>(null)
+  const [rejectError, setRejectError] = useState<string | null>(null)
 
-  const [showRejectConfirm, setShowRejectConfirm] =
-    useState(false)
+  const [rejectSuccess, setRejectSuccess] = useState<string | null>(null)
 
-  const [closeNote, setCloseNote] =
-    useState('')
+  const [showRejectConfirm, setShowRejectConfirm] = useState(false)
 
-  const [closeError, setCloseError] =
-    useState<string | null>(null)
+  const [closeNote, setCloseNote] = useState('')
 
-  const [closeSuccess, setCloseSuccess] =
-    useState<string | null>(null)
+  const [closeError, setCloseError] = useState<string | null>(null)
 
-  const [showCloseConfirm, setShowCloseConfirm] =
-    useState(false)
+  const [closeSuccess, setCloseSuccess] = useState<string | null>(null)
 
-  const reportQuery =
-    useAdminReportDetail(reportId)
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 
-  const departmentsQuery =
-    useActiveDepartments()
+  const reportQuery = useAdminReportDetail(reportId)
 
-  const assignMutation =
-    useAssignDepartment()
-  const reportDepartmentId =
-    reportQuery.data?.departmentId ?? null
+  const departmentsQuery = useActiveDepartments()
 
-  const staffQuery =
-    useActiveStaffByDepartment(
-      reportDepartmentId,
-    )
+  const assignMutation = useAssignDepartment()
+  const reportDepartmentId = reportQuery.data?.departmentId ?? null
 
-  const assignStaffMutation =
-    useAssignStaff()
-  const rejectMutation =
-    useRejectReport()
-  const closeMutation =
-    useCloseAdminReport()
+  const staffQuery = useActiveStaffByDepartment(reportDepartmentId)
+
+  const assignStaffMutation = useAssignStaff()
+  const rejectMutation = useRejectReport()
+  const closeMutation = useCloseAdminReport()
 
   if (reportQuery.isPending) {
     return (
@@ -143,31 +110,19 @@ export default function AdminReportDetailPage() {
   if (reportQuery.isError) {
     return (
       <Card className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center">
-        <h1 className="text-xl font-semibold">
-          Không tải được chi tiết báo cáo
-        </h1>
+        <h1 className="text-xl font-semibold">Không tải được chi tiết báo cáo</h1>
 
         <p className="text-sm text-red-600">
-          {getErrorMessage(
-            reportQuery.error,
-            'Không thể tải báo cáo.',
-          )}
+          {getErrorMessage(reportQuery.error, 'Không thể tải báo cáo.')}
         </p>
 
-        <Button
-          onClick={() =>
-            reportQuery.refetch()
-          }
-        >
-          Thử lại
-        </Button>
+        <Button onClick={() => reportQuery.refetch()}>Thử lại</Button>
       </Card>
     )
   }
 
   const report = reportQuery.data
-  const canClose =
-    report.status === 'Resolved'
+  const canClose = report.status === 'Resolved' && report.complaintSubmittedAt === null
 
   const canReject =
     report.status !== 'Resolved' &&
@@ -179,28 +134,17 @@ export default function AdminReportDetailPage() {
     report.departmentId !== null &&
     report.assignedStaffId === null
 
-  const canAssign =
-    report.status === 'New' &&
-    report.departmentId == null
+  const canAssign = report.status === 'New' && report.departmentId == null
 
-  async function handleAssign(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleAssign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setFormError(null)
+    setAssignSuccess(null)
 
-    const selectedDepartmentId =
-      Number(departmentId)
+    const selectedDepartmentId = Number(departmentId)
 
-    if (
-      !Number.isInteger(
-        selectedDepartmentId,
-      ) ||
-      selectedDepartmentId <= 0
-    ) {
-      setFormError(
-        'Vui lòng chọn phòng ban.',
-      )
+    if (!Number.isInteger(selectedDepartmentId) || selectedDepartmentId <= 0) {
+      setFormError('Vui lòng chọn phòng ban.')
 
       return
     }
@@ -208,108 +152,77 @@ export default function AdminReportDetailPage() {
     try {
       await assignMutation.mutateAsync({
         reportId,
-        departmentId:
-          selectedDepartmentId,
+        departmentId: selectedDepartmentId,
         note,
       })
 
-      navigate(
-        '/admin/reports/manual-assignment',
-        {
-          replace: true,
-        },
-      )
+      setAssignSuccess('Đã phân công phòng ban. Bạn có thể chọn Staff ngay bên dưới.')
+      setDepartmentId('')
+      setNote('')
+      await reportQuery.refetch()
     } catch (error) {
-      setFormError(
-        getErrorMessage(
-          error,
-          'Không thể phân công báo cáo.',
-        ),
-      )
+      setFormError(getErrorMessage(error, 'Không thể phân công báo cáo.'))
     }
   }
-  async function handleAssignStaff(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleAssignStaff(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
 
     setStaffError(null)
     setStaffSuccess(null)
 
     if (report.departmentId === null) {
-      setStaffError(
-        'Báo cáo chưa được phân công phòng ban.',
-      )
+      setStaffError('Báo cáo chưa được phân công phòng ban.')
 
       return
     }
 
     if (!staffId) {
-      setStaffError(
-        'Vui lòng chọn Staff phụ trách.',
-      )
+      setStaffError('Vui lòng chọn Staff phụ trách.')
 
       return
     }
 
-    const normalizedReason =
-      staffReason.trim()
+    const normalizedReason = staffReason.trim()
 
     if (normalizedReason.length < 5) {
-      setStaffError(
-        'Lý do phân công phải có ít nhất 5 ký tự.',
-      )
+      setStaffError('Lý do phân công phải có ít nhất 5 ký tự.')
 
       return
     }
 
     try {
-      const result =
-        await assignStaffMutation.mutateAsync({
-          reportId,
-          departmentId:
-            report.departmentId,
-          staffId,
-          reason: normalizedReason,
-        })
+      const result = await assignStaffMutation.mutateAsync({
+        reportId,
+        departmentId: report.departmentId,
+        staffId,
+        reason: normalizedReason,
+      })
 
       setStaffSuccess(
-        `Đã phân công báo cáo cho ${result.assignedStaffName ??
-        'Staff đã chọn'
-        }.`,
+        `Đã phân công báo cáo cho ${result.assignedStaffName ?? 'Staff đã chọn'}.`,
       )
 
       setStaffId('')
 
       await reportQuery.refetch()
     } catch (error) {
-      setStaffError(
-        getErrorMessage(
-          error,
-          'Không thể phân công Staff.',
-        ),
-      )
+      setStaffError(getErrorMessage(error, 'Không thể phân công Staff.'))
     }
   }
   async function handleRejectReport() {
     setRejectError(null)
     setRejectSuccess(null)
 
-    const normalizedReason =
-      rejectReason.trim()
+    const normalizedReason = rejectReason.trim()
 
     if (normalizedReason.length < 10) {
-      setRejectError(
-        'Lý do từ chối phải có ít nhất 10 ký tự.',
-      )
+      setRejectError('Lý do từ chối phải có ít nhất 10 ký tự.')
 
       return
     }
 
     if (normalizedReason.length > 1000) {
-      setRejectError(
-        'Lý do từ chối không được vượt quá 1000 ký tự.',
-      )
+      setRejectError('Lý do từ chối không được vượt quá 1000 ký tự.')
 
       return
     }
@@ -322,33 +235,23 @@ export default function AdminReportDetailPage() {
 
       setShowRejectConfirm(false)
 
-      setRejectSuccess(
-        'Đã từ chối báo cáo thành công.',
-      )
+      setRejectSuccess('Đã từ chối báo cáo thành công.')
 
       await reportQuery.refetch()
     } catch (error) {
       setShowRejectConfirm(false)
 
-      setRejectError(
-        getErrorMessage(
-          error,
-          'Không thể từ chối báo cáo.',
-        ),
-      )
+      setRejectError(getErrorMessage(error, 'Không thể từ chối báo cáo.'))
     }
   }
   async function handleCloseReport() {
     setCloseError(null)
     setCloseSuccess(null)
 
-    const normalizedNote =
-      closeNote.trim()
+    const normalizedNote = closeNote.trim()
 
     if (normalizedNote.length > 1000) {
-      setCloseError(
-        'Ghi chú không được vượt quá 1000 ký tự.',
-      )
+      setCloseError('Ghi chú không được vượt quá 1000 ký tự.')
 
       return
     }
@@ -356,45 +259,35 @@ export default function AdminReportDetailPage() {
     try {
       await closeMutation.mutateAsync({
         reportId,
-        note:
-          normalizedNote || undefined,
+        note: normalizedNote || undefined,
       })
 
       setShowCloseConfirm(false)
 
-      setCloseSuccess(
-        'Đã đóng báo cáo thành công.',
-      )
+      setCloseSuccess('Đã đóng báo cáo thành công.')
 
       await reportQuery.refetch()
     } catch (error) {
       setShowCloseConfirm(false)
 
-      setCloseError(
-        getErrorMessage(
-          error,
-          'Không thể đóng báo cáo.',
-        ),
-      )
+      setCloseError(getErrorMessage(error, 'Không thể đóng báo cáo.'))
     }
   }
   return (
     <section className="flex flex-col gap-5">
       <div>
         <Link
-          to="/admin/reports/manual-assignment"
+          to="/admin/reports"
           className="text-sm font-medium text-blue-600 hover:underline"
         >
-          ← Quay lại hàng đợi
+          ← Quay lại danh sách báo cáo
         </Link>
 
         <h1 className="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
           Chi tiết báo cáo
         </h1>
 
-        <p className="mt-1 font-mono text-sm text-gray-500">
-          {report.id}
-        </p>
+        <p className="mt-1 font-mono text-sm text-gray-500">{report.id}</p>
       </div>
 
       <Card className="grid gap-5 p-6 md:grid-cols-2">
@@ -403,13 +296,9 @@ export default function AdminReportDetailPage() {
             Người báo cáo
           </p>
 
-          <p className="mt-1">
-            {report.citizenName}
-          </p>
+          <p className="mt-1">{report.citizenName}</p>
 
-          <p className="text-sm text-gray-500">
-            {report.citizenEmail}
-          </p>
+          <p className="text-sm text-gray-500">{report.citizenEmail}</p>
         </div>
 
         <div>
@@ -417,9 +306,7 @@ export default function AdminReportDetailPage() {
             Trạng thái
           </p>
 
-          <p className="mt-1">
-            {report.status}
-          </p>
+          <p className="mt-1">{report.status}</p>
         </div>
 
         <div>
@@ -427,9 +314,7 @@ export default function AdminReportDetailPage() {
             Danh mục
           </p>
 
-          <p className="mt-1">
-            {report.categoryName}
-          </p>
+          <p className="mt-1">{report.categoryName}</p>
         </div>
 
         <div>
@@ -437,9 +322,7 @@ export default function AdminReportDetailPage() {
             Khu vực
           </p>
 
-          <p className="mt-1">
-            {report.areaName}
-          </p>
+          <p className="mt-1">{report.areaName}</p>
         </div>
 
         <div>
@@ -447,10 +330,7 @@ export default function AdminReportDetailPage() {
             Địa chỉ
           </p>
 
-          <p className="mt-1">
-            {report.addressText ??
-              'Chưa xác định'}
-          </p>
+          <p className="mt-1">{report.addressText ?? 'Chưa xác định'}</p>
         </div>
 
         <div>
@@ -458,9 +338,7 @@ export default function AdminReportDetailPage() {
             Ngày tạo
           </p>
 
-          <p className="mt-1">
-            {formatDate(report.createdAt)}
-          </p>
+          <p className="mt-1">{formatDate(report.createdAt)}</p>
         </div>
 
         <div>
@@ -468,10 +346,7 @@ export default function AdminReportDetailPage() {
             Phòng ban hiện tại
           </p>
 
-          <p className="mt-1">
-            {report.departmentName ??
-              'Chưa phân công'}
-          </p>
+          <p className="mt-1">{report.departmentName ?? 'Chưa phân công'}</p>
         </div>
 
         <div>
@@ -479,10 +354,58 @@ export default function AdminReportDetailPage() {
             Staff hiện tại
           </p>
 
-          <p className="mt-1">
-            {report.assignedStaffName ??
-              'Chưa phân công'}
+          <p className="mt-1">{report.assignedStaffName ?? 'Chưa phân công'}</p>
+        </div>
+
+        <div>
+          <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+            Mức ưu tiên
           </p>
+
+          <p className="mt-1">{report.priority ?? 'Chưa xác định'}</p>
+        </div>
+
+        <div>
+          <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">SLA</p>
+
+          <p className="mt-1">
+            {report.appliedSlaHours !== null
+              ? `${report.appliedSlaHours} giờ`
+              : 'Chưa bắt đầu'}
+          </p>
+
+          <p className="text-sm text-gray-500">Hạn xử lý: {formatDate(report.dueAt)}</p>
+        </div>
+
+        <div>
+          <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+            Escalation
+          </p>
+
+          <p
+            className={`mt-1 font-medium ${
+              report.isEscalated ? 'text-red-600' : 'text-gray-700 dark:text-gray-300'
+            }`}
+          >
+            {report.isEscalated
+              ? `Đã escalation lúc ${formatDate(report.escalatedAt)}`
+              : 'Chưa escalation'}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+            Tọa độ
+          </p>
+
+          <a
+            href={`https://www.google.com/maps?q=${report.latitude},${report.longitude}`}
+            target="_blank"
+            rel="noreferrer"
+            className="mt-1 inline-block text-blue-600 hover:underline"
+          >
+            {report.latitude}, {report.longitude}
+          </a>
         </div>
 
         <div className="md:col-span-2">
@@ -490,28 +413,59 @@ export default function AdminReportDetailPage() {
             Mô tả
           </p>
 
-          <p className="mt-1 whitespace-pre-wrap">
-            {report.description}
-          </p>
+          <p className="mt-1 whitespace-pre-wrap">{report.description}</p>
         </div>
       </Card>
+
+      <Card className="p-6">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+          Hình ảnh phản ánh
+        </h2>
+
+        {report.imageUrls.length === 0 ? (
+          <p className="mt-4 text-sm text-gray-500">Báo cáo chưa có hình ảnh.</p>
+        ) : (
+          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {report.imageUrls.map((imageUrl, index) => (
+              <a
+                key={`${imageUrl}-${index}`}
+                href={getImageUrl(imageUrl)}
+                target="_blank"
+                rel="noreferrer"
+                className="overflow-hidden rounded-lg border border-gray-200 dark:border-gray-700"
+              >
+                <img
+                  src={getImageUrl(imageUrl)}
+                  alt={`Ảnh phản ánh ${index + 1}`}
+                  loading="lazy"
+                  className="h-52 w-full object-cover"
+                />
+              </a>
+            ))}
+          </div>
+        )}
+      </Card>
+
+      <AdminReportTimeline reportId={report.id} />
 
       <Card className="p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Phân công phòng ban
         </h2>
 
+        {assignSuccess && (
+          <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+            {assignSuccess}
+          </div>
+        )}
+
         {!canAssign ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Báo cáo này không thể phân công mới.
-            Chỉ báo cáo trạng thái New và chưa có
+            Báo cáo này không thể phân công mới. Chỉ báo cáo trạng thái New và chưa có
             phòng ban mới được phân công.
           </div>
         ) : (
-          <form
-            className="mt-4 flex max-w-2xl flex-col gap-4"
-            onSubmit={handleAssign}
-          >
+          <form className="mt-4 flex max-w-2xl flex-col gap-4" onSubmit={handleAssign}>
             <div className="flex flex-col gap-1">
               <label
                 htmlFor="departmentId"
@@ -523,33 +477,21 @@ export default function AdminReportDetailPage() {
               <select
                 id="departmentId"
                 value={departmentId}
-                disabled={
-                  departmentsQuery.isPending ||
-                  assignMutation.isPending
-                }
+                disabled={departmentsQuery.isPending || assignMutation.isPending}
                 onChange={(event) => {
-                  setDepartmentId(
-                    event.target.value,
-                  )
+                  setDepartmentId(event.target.value)
 
                   setFormError(null)
                 }}
-                className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 transition-colors outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               >
-                <option value="">
-                  Chọn phòng ban
-                </option>
+                <option value="">Chọn phòng ban</option>
 
-                {departmentsQuery.data?.map(
-                  (department) => (
-                    <option
-                      key={department.id}
-                      value={department.id}
-                    >
-                      {department.name}
-                    </option>
-                  ),
-                )}
+                {departmentsQuery.data?.map((department) => (
+                  <option key={department.id} value={department.id}>
+                    {department.name}
+                  </option>
+                ))}
               </select>
             </div>
 
@@ -567,9 +509,7 @@ export default function AdminReportDetailPage() {
                   variant="secondary"
                   size="sm"
                   className="mt-2"
-                  onClick={() =>
-                    departmentsQuery.refetch()
-                  }
+                  onClick={() => departmentsQuery.refetch()}
                 >
                   Tải lại phòng ban
                 </Button>
@@ -589,19 +529,13 @@ export default function AdminReportDetailPage() {
                 value={note}
                 maxLength={1000}
                 rows={4}
-                disabled={
-                  assignMutation.isPending
-                }
+                disabled={assignMutation.isPending}
                 placeholder="Ví dụ: Phân công xử lý báo cáo theo khu vực phụ trách."
-                onChange={(event) =>
-                  setNote(event.target.value)
-                }
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                onChange={(event) => setNote(event.target.value)}
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
 
-              <p className="text-right text-xs text-gray-500">
-                {note.length}/1000
-              </p>
+              <p className="text-right text-xs text-gray-500">{note.length}/1000</p>
             </div>
 
             {formError && (
@@ -613,13 +547,9 @@ export default function AdminReportDetailPage() {
             <div className="flex flex-wrap gap-3">
               <Button
                 type="submit"
-                loading={
-                  assignMutation.isPending
-                }
+                loading={assignMutation.isPending}
                 disabled={
-                  departmentsQuery.isPending ||
-                  departmentsQuery.isError ||
-                  !departmentId
+                  departmentsQuery.isPending || departmentsQuery.isError || !departmentId
                 }
               >
                 Xác nhận phân công
@@ -628,14 +558,8 @@ export default function AdminReportDetailPage() {
               <Button
                 type="button"
                 variant="secondary"
-                disabled={
-                  assignMutation.isPending
-                }
-                onClick={() =>
-                  navigate(
-                    '/admin/reports/manual-assignment',
-                  )
-                }
+                disabled={assignMutation.isPending}
+                onClick={() => navigate('/admin/reports/manual-assignment')}
               >
                 Hủy
               </Button>
@@ -649,29 +573,22 @@ export default function AdminReportDetailPage() {
         </h2>
 
         <p className="mt-1 text-sm text-gray-500">
-          Chỉ hiển thị Staff đang hoạt động và
-          thuộc phòng ban của báo cáo.
+          Chỉ hiển thị Staff đang hoạt động và thuộc phòng ban của báo cáo.
         </p>
 
         {report.departmentId === null ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Hãy phân công phòng ban cho báo cáo
-            trước khi chọn Staff.
+            Hãy phân công phòng ban cho báo cáo trước khi chọn Staff.
           </div>
         ) : report.assignedStaffId !== null ? (
           <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
             Báo cáo hiện được giao cho{' '}
-            <strong>
-              {report.assignedStaffName ??
-                report.assignedStaffId}
-            </strong>
-            .
+            <strong>{report.assignedStaffName ?? report.assignedStaffId}</strong>.
           </div>
         ) : !canAssignStaff ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Chỉ report ở trạng thái Assigned,
-            đã có phòng ban và chưa có Staff mới
-            được phân công trong UC33.
+            Chỉ report ở trạng thái Assigned, đã có phòng ban và chưa có Staff mới được
+            phân công trong UC33.
           </div>
         ) : (
           <form
@@ -689,48 +606,32 @@ export default function AdminReportDetailPage() {
               <select
                 id="staffId"
                 value={staffId}
-                disabled={
-                  staffQuery.isPending ||
-                  assignStaffMutation.isPending
-                }
+                disabled={staffQuery.isPending || assignStaffMutation.isPending}
                 onChange={(event) => {
                   setStaffId(event.target.value)
                   setStaffError(null)
                   setStaffSuccess(null)
                 }}
-                className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 transition-colors outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               >
-                <option value="">
-                  Chọn Staff
-                </option>
+                <option value="">Chọn Staff</option>
 
-                {staffQuery.data?.map(
-                  (staff) => (
-                    <option
-                      key={staff.id}
-                      value={staff.id}
-                    >
-                      {staff.fullName} —{' '}
-                      {staff.email}
-                    </option>
-                  ),
-                )}
+                {staffQuery.data?.map((staff) => (
+                  <option key={staff.id} value={staff.id}>
+                    {staff.fullName} — {staff.email}
+                  </option>
+                ))}
               </select>
             </div>
 
             {staffQuery.isPending && (
-              <p className="text-sm text-gray-500">
-                Đang tải danh sách Staff...
-              </p>
+              <p className="text-sm text-gray-500">Đang tải danh sách Staff...</p>
             )}
 
             {staffQuery.isError && (
               <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                 <p>
-                  {getErrorMessage(
-                    staffQuery.error,
-                    'Không thể tải danh sách Staff.',
-                  )}
+                  {getErrorMessage(staffQuery.error, 'Không thể tải danh sách Staff.')}
                 </p>
 
                 <Button
@@ -738,9 +639,7 @@ export default function AdminReportDetailPage() {
                   variant="secondary"
                   size="sm"
                   className="mt-2"
-                  onClick={() =>
-                    staffQuery.refetch()
-                  }
+                  onClick={() => staffQuery.refetch()}
                 >
                   Tải lại Staff
                 </Button>
@@ -751,8 +650,7 @@ export default function AdminReportDetailPage() {
               !staffQuery.isError &&
               staffQuery.data?.length === 0 && (
                 <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
-                  Phòng ban này chưa có Staff
-                  đang hoạt động.
+                  Phòng ban này chưa có Staff đang hoạt động.
                 </div>
               )}
 
@@ -769,18 +667,14 @@ export default function AdminReportDetailPage() {
                 value={staffReason}
                 rows={3}
                 maxLength={1000}
-                disabled={
-                  assignStaffMutation.isPending
-                }
+                disabled={assignStaffMutation.isPending}
                 onChange={(event) => {
-                  setStaffReason(
-                    event.target.value,
-                  )
+                  setStaffReason(event.target.value)
 
                   setStaffError(null)
                   setStaffSuccess(null)
                 }}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
 
               <p className="text-right text-xs text-gray-500">
@@ -803,9 +697,7 @@ export default function AdminReportDetailPage() {
             <div>
               <Button
                 type="submit"
-                loading={
-                  assignStaffMutation.isPending
-                }
+                loading={assignStaffMutation.isPending}
                 disabled={
                   staffQuery.isPending ||
                   staffQuery.isError ||
@@ -820,20 +712,26 @@ export default function AdminReportDetailPage() {
           </form>
         )}
       </Card>
+      {(report.assignedStaffId !== null ||
+        report.status === 'Accepted' ||
+        report.status === 'InProgress') && (
+        <ReassignReportPanel
+          report={report}
+          onSuccess={() => void reportQuery.refetch()}
+        />
+      )}
       <Card className="border-red-200 p-6 dark:border-red-900">
         <h2 className="text-lg font-semibold text-red-700 dark:text-red-400">
           Từ chối báo cáo
         </h2>
 
         <p className="mt-1 text-sm text-gray-500">
-          Chỉ sử dụng khi báo cáo không hợp lệ,
-          không phù hợp hoặc không thể xử lý.
+          Chỉ sử dụng khi báo cáo không hợp lệ, không phù hợp hoặc không thể xử lý.
         </p>
 
         {!canReject ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Không thể từ chối báo cáo ở trạng thái{' '}
-            <strong>{report.status}</strong>.
+            Không thể từ chối báo cáo ở trạng thái <strong>{report.status}</strong>.
           </div>
         ) : (
           <div className="mt-4 flex max-w-2xl flex-col gap-4">
@@ -853,14 +751,12 @@ export default function AdminReportDetailPage() {
                 disabled={rejectMutation.isPending}
                 placeholder="Nhập lý do cụ thể, tối thiểu 10 ký tự."
                 onChange={(event) => {
-                  setRejectReason(
-                    event.target.value,
-                  )
+                  setRejectReason(event.target.value)
 
                   setRejectError(null)
                   setRejectSuccess(null)
                 }}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-red-500 focus:ring-2 focus:ring-red-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors outline-none focus:border-red-500 focus:ring-2 focus:ring-red-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
 
               <p className="text-right text-xs text-gray-500">
@@ -884,10 +780,7 @@ export default function AdminReportDetailPage() {
               <div>
                 <Button
                   type="button"
-                  disabled={
-                    rejectMutation.isPending ||
-                    rejectReason.trim().length < 10
-                  }
+                  disabled={rejectMutation.isPending || rejectReason.trim().length < 10}
                   onClick={() => {
                     setRejectError(null)
                     setShowRejectConfirm(true)
@@ -903,8 +796,7 @@ export default function AdminReportDetailPage() {
                 </p>
 
                 <p className="mt-1 text-sm text-red-700">
-                  Báo cáo sẽ chuyển sang trạng thái
-                  Rejected và không còn nằm trong hàng
+                  Báo cáo sẽ chuyển sang trạng thái Rejected và không còn nằm trong hàng
                   đợi xử lý.
                 </p>
 
@@ -922,9 +814,7 @@ export default function AdminReportDetailPage() {
                     type="button"
                     variant="secondary"
                     disabled={rejectMutation.isPending}
-                    onClick={() =>
-                      setShowRejectConfirm(false)
-                    }
+                    onClick={() => setShowRejectConfirm(false)}
                   >
                     Hủy
                   </Button>
@@ -940,24 +830,24 @@ export default function AdminReportDetailPage() {
         </h2>
 
         <p className="mt-1 text-sm text-gray-500">
-          Xác nhận kết thúc báo cáo sau khi vấn đề
-          đã được xử lý thành công.
+          Xác nhận kết thúc báo cáo sau khi vấn đề đã được xử lý thành công.
         </p>
 
         {report.status === 'Closed' ? (
           <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800">
             Báo cáo đã được đóng
-            {report.closedAt
-              ? ` vào ${formatDate(report.closedAt)}`
-              : ''}
-            .
+            {report.closedAt ? ` vào ${formatDate(report.closedAt)}` : ''}.
           </div>
         ) : !canClose ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Chỉ có thể đóng báo cáo ở trạng thái{' '}
-            <strong>Resolved</strong>. Trạng thái
-            hiện tại là{' '}
-            <strong>{report.status}</strong>.
+            {report.complaintSubmittedAt ? (
+              'Báo cáo có khiếu nại đang chờ. Hãy xử lý khiếu nại ở phần bên dưới.'
+            ) : (
+              <>
+                Chỉ có thể đóng báo cáo ở trạng thái <strong>Resolved</strong>. Trạng thái
+                hiện tại là <strong>{report.status}</strong>.
+              </>
+            )}
           </div>
         ) : (
           <div className="mt-4 flex max-w-2xl flex-col gap-4">
@@ -977,19 +867,15 @@ export default function AdminReportDetailPage() {
                 disabled={closeMutation.isPending}
                 placeholder="Ví dụ: Đã kiểm tra kết quả xử lý và xác nhận hoàn tất."
                 onChange={(event) => {
-                  setCloseNote(
-                    event.target.value,
-                  )
+                  setCloseNote(event.target.value)
 
                   setCloseError(null)
                   setCloseSuccess(null)
                 }}
-                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition-colors focus:border-green-500 focus:ring-2 focus:ring-green-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 transition-colors outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
               />
 
-              <p className="text-right text-xs text-gray-500">
-                {closeNote.length}/1000
-              </p>
+              <p className="text-right text-xs text-gray-500">{closeNote.length}/1000</p>
             </div>
 
             {closeError && (
@@ -1024,10 +910,8 @@ export default function AdminReportDetailPage() {
                 </p>
 
                 <p className="mt-1 text-sm text-green-800">
-                  Trạng thái sẽ chuyển từ Resolved
-                  sang Closed. Ghi chú xử lý và hình
-                  ảnh minh chứng hiện có sẽ được giữ
-                  nguyên.
+                  Trạng thái sẽ chuyển từ Resolved sang Closed. Ghi chú xử lý và hình ảnh
+                  minh chứng hiện có sẽ được giữ nguyên.
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-3">
@@ -1044,9 +928,7 @@ export default function AdminReportDetailPage() {
                     type="button"
                     variant="secondary"
                     disabled={closeMutation.isPending}
-                    onClick={() =>
-                      setShowCloseConfirm(false)
-                    }
+                    onClick={() => setShowCloseConfirm(false)}
                   >
                     Hủy
                   </Button>

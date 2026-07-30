@@ -17,30 +17,21 @@ export const authApi = {
   },
 
   async register(payload: RegisterRequest): Promise<RegisterResponse> {
-    const response = await http.post<RegisterResponse>(
-      '/auth/register',
-      payload,
-    )
+    const response = await http.post<RegisterResponse>('/auth/register', payload)
 
     return response.data
   },
 
   async getCurrentUser(): Promise<CurrentUserResponse> {
-    const response =
-      await http.get<CurrentUserResponse>('/auth/me')
+    const response = await http.get<CurrentUserResponse>('/auth/me')
 
     return response.data
   },
 
-  async refreshToken(
-    refreshToken: string,
-  ): Promise<RefreshTokenResponse> {
-    const response = await http.post<RefreshTokenResponse>(
-      '/auth/refresh-token',
-      {
-        refreshToken,
-      },
-    )
+  async refreshToken(refreshToken: string): Promise<RefreshTokenResponse> {
+    const response = await http.post<RefreshTokenResponse>('/auth/refresh-token', {
+      refreshToken,
+    })
 
     return response.data
   },

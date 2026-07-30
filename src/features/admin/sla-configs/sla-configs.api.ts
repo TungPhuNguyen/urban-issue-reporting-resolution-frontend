@@ -7,12 +7,9 @@ import type {
   UpdateSlaConfigInput,
 } from './sla-configs.types'
 
-function cleanParams(
-  params: GetSlaConfigsParams,
-) {
+function cleanParams(params: GetSlaConfigsParams) {
   return {
-    search:
-      params.search?.trim() || undefined,
+    search: params.search?.trim() || undefined,
     categoryId: params.categoryId,
     priority: params.priority,
     pageNumber: params.pageNumber,
@@ -21,42 +18,24 @@ function cleanParams(
 }
 
 export const slaConfigsApi = {
-  getAll: async (
-    params: GetSlaConfigsParams,
-  ): Promise<PagedResult<SlaConfig>> => {
-    const response =
-      await http.get<PagedResult<SlaConfig>>(
-        '/admin/sla-configs',
-        {
-          params: cleanParams(params),
-        },
-      )
+  getAll: async (params: GetSlaConfigsParams): Promise<PagedResult<SlaConfig>> => {
+    const response = await http.get<PagedResult<SlaConfig>>('/admin/sla-configs', {
+      params: cleanParams(params),
+    })
 
     return response.data
   },
 
-  getById: async (
-    id: number,
-  ): Promise<SlaConfig> => {
-    const response =
-      await http.get<SlaConfig>(
-        `/admin/sla-configs/${id}`,
-      )
+  getById: async (id: number): Promise<SlaConfig> => {
+    const response = await http.get<SlaConfig>(`/admin/sla-configs/${id}`)
 
     return response.data
   },
 
-  update: async ({
-    id,
-    durationHours,
-  }: UpdateSlaConfigInput): Promise<SlaConfig> => {
-    const response =
-      await http.put<SlaConfig>(
-        `/admin/sla-configs/${id}`,
-        {
-          durationHours,
-        },
-      )
+  update: async ({ id, durationHours }: UpdateSlaConfigInput): Promise<SlaConfig> => {
+    const response = await http.put<SlaConfig>(`/admin/sla-configs/${id}`, {
+      durationHours,
+    })
 
     return response.data
   },

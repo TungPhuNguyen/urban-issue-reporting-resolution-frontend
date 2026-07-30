@@ -12,11 +12,5 @@ const citizenMenuItems = [
 ]
 
 export default function CitizenLayout() {
-  return (
-    <RoleLayout
-      role="Citizen"
-      title="Citizen Portal"
-      menuItems={citizenMenuItems}
-    />
-  )
+  return <RoleLayout role="Citizen" title="Citizen Portal" menuItems={citizenMenuItems} />
 }

@@ -1,9 +1,4 @@
-import {
-  useEffect,
-  useRef,
-  useState,
-  type ChangeEvent,
-} from 'react'
+import { useEffect, useRef, useState, type ChangeEvent } from 'react'
 
 interface ImageUploaderProps {
   value: File[]
@@ -21,11 +16,7 @@ interface ImagePreviewProps {
   onRemove: () => void
 }
 
-const ALLOWED_IMAGE_TYPES = [
-  'image/jpeg',
-  'image/png',
-  'image/webp',
-]
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp']
 
 function isSameFile(firstFile: File, secondFile: File) {
   return (
@@ -35,11 +26,7 @@ function isSameFile(firstFile: File, secondFile: File) {
   )
 }
 
-function ImagePreview({
-  file,
-  disabled,
-  onRemove,
-}: ImagePreviewProps) {
+function ImagePreview({ file, disabled, onRemove }: ImagePreviewProps) {
   const [previewUrl, setPreviewUrl] = useState('')
 
   useEffect(() => {
@@ -66,16 +53,13 @@ function ImagePreview({
         type="button"
         disabled={disabled}
         aria-label={`Xóa ảnh ${file.name}`}
-        className="absolute right-1 top-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white disabled:cursor-not-allowed disabled:opacity-50"
+        className="absolute top-1 right-1 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-white disabled:cursor-not-allowed disabled:opacity-50"
         onClick={onRemove}
       >
         ×
       </button>
 
-      <p
-        className="truncate px-2 py-1 text-xs text-gray-600"
-        title={file.name}
-      >
+      <p className="truncate px-2 py-1 text-xs text-gray-600" title={file.name}>
         {file.name}
       </p>
     </div>
@@ -93,62 +77,42 @@ export function ImageUploader({
 }: ImageUploaderProps) {
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const [validationErrors, setValidationErrors] = useState<
-    string[]
-  >([])
+  const [validationErrors, setValidationErrors] = useState<string[]>([])
 
   const maxSizeBytes = maxSizeMb * 1024 * 1024
 
-  const handleFileChange = (
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
-    const selectedFiles = Array.from(
-      event.target.files ?? [],
-    )
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = Array.from(event.target.files ?? [])
 
     const newErrors: string[] = []
     const acceptedFiles: File[] = []
 
     for (const file of selectedFiles) {
-      const duplicatedInCurrentValue = value.some(
-        (existingFile) => isSameFile(existingFile, file),
+      const duplicatedInCurrentValue = value.some((existingFile) =>
+        isSameFile(existingFile, file),
       )
 
-      const duplicatedInNewSelection = acceptedFiles.some(
-        (acceptedFile) => isSameFile(acceptedFile, file),
+      const duplicatedInNewSelection = acceptedFiles.some((acceptedFile) =>
+        isSameFile(acceptedFile, file),
       )
 
-      if (
-        duplicatedInCurrentValue ||
-        duplicatedInNewSelection
-      ) {
-        newErrors.push(
-          `Ảnh "${file.name}" đã được chọn trước đó.`,
-        )
+      if (duplicatedInCurrentValue || duplicatedInNewSelection) {
+        newErrors.push(`Ảnh "${file.name}" đã được chọn trước đó.`)
         continue
       }
 
       if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-        newErrors.push(
-          `Ảnh "${file.name}" không đúng định dạng JPG, PNG hoặc WEBP.`,
-        )
+        newErrors.push(`Ảnh "${file.name}" không đúng định dạng JPG, PNG hoặc WEBP.`)
         continue
       }
 
       if (file.size > maxSizeBytes) {
-        newErrors.push(
-          `Ảnh "${file.name}" vượt quá ${maxSizeMb} MB.`,
-        )
+        newErrors.push(`Ảnh "${file.name}" vượt quá ${maxSizeMb} MB.`)
         continue
       }
 
-      if (
-        value.length + acceptedFiles.length >=
-        maxFiles
-      ) {
-        newErrors.push(
-          `Bạn chỉ được chọn tối đa ${maxFiles} ảnh.`,
-        )
+      if (value.length + acceptedFiles.length >= maxFiles) {
+        newErrors.push(`Bạn chỉ được chọn tối đa ${maxFiles} ảnh.`)
         break
       }
 
@@ -166,9 +130,7 @@ export function ImageUploader({
   }
 
   const removeImage = (indexToRemove: number) => {
-    const updatedFiles = value.filter(
-      (_, index) => index !== indexToRemove,
-    )
+    const updatedFiles = value.filter((_, index) => index !== indexToRemove)
 
     onChange(updatedFiles)
     setValidationErrors([])
@@ -176,12 +138,8 @@ export function ImageUploader({
 
   return (
     <div className={className}>
-      <label
-        htmlFor="report-images"
-        className="mb-1 block text-sm font-medium"
-      >
+      <label htmlFor="report-images" className="mb-1 block text-sm font-medium">
         Hình ảnh sự cố
-
         <span className="ml-1 text-red-500">*</span>
       </label>
 
@@ -194,17 +152,12 @@ export function ImageUploader({
         disabled={disabled || value.length >= maxFiles}
         onChange={handleFileChange}
         className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100"
-        aria-invalid={
-          Boolean(error) || validationErrors.length > 0
-        }
-        aria-describedby={
-          error ? 'report-images-error' : undefined
-        }
+        aria-invalid={Boolean(error) || validationErrors.length > 0}
+        aria-describedby={error ? 'report-images-error' : undefined}
       />
 
       <p className="mt-1 text-sm text-gray-500">
-        Chấp nhận JPG, PNG hoặc WEBP. Tối đa{' '}
-        {maxFiles} ảnh, mỗi ảnh không vượt quá{' '}
+        Chấp nhận JPG, PNG hoặc WEBP. Tối đa {maxFiles} ảnh, mỗi ảnh không vượt quá{' '}
         {maxSizeMb} MB.
       </p>
 
@@ -231,21 +184,14 @@ export function ImageUploader({
 
       {validationErrors.length > 0 && (
         <ul className="mt-2 space-y-1 text-sm text-red-600">
-          {validationErrors.map(
-            (validationError, index) => (
-              <li key={`${validationError}-${index}`}>
-                {validationError}
-              </li>
-            ),
-          )}
+          {validationErrors.map((validationError, index) => (
+            <li key={`${validationError}-${index}`}>{validationError}</li>
+          ))}
         </ul>
       )}
 
       {error && (
-        <p
-          id="report-images-error"
-          className="mt-1 text-sm text-red-600"
-        >
+        <p id="report-images-error" className="mt-1 text-sm text-red-600">
           {error}
         </p>
       )}

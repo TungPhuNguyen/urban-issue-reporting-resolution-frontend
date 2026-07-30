@@ -7,9 +7,7 @@ interface RoleRouteProps {
   allowedRoles: UserRole[]
 }
 
-export default function RoleRoute({
-  allowedRoles,
-}: RoleRouteProps) {
+export default function RoleRoute({ allowedRoles }: RoleRouteProps) {
   const user = useAuthStore((state) => state.user)
 
   if (!user) {

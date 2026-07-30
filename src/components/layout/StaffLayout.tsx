@@ -16,11 +16,5 @@ const staffMenuItems = [
 ]
 
 export default function StaffLayout() {
-  return (
-    <RoleLayout
-      role="Staff"
-      title="Staff Portal"
-      menuItems={staffMenuItems}
-    />
-  )
+  return <RoleLayout role="Staff" title="Staff Portal" menuItems={staffMenuItems} />
 }

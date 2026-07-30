@@ -1,8 +1,4 @@
-import {
-  type FormEvent,
-  useEffect,
-  useState,
-} from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -15,10 +11,7 @@ import {
   useUpdateDepartment,
 } from './departments.queries'
 
-import type {
-  Department,
-  DepartmentListParams,
-} from './departments.types'
+import type { Department, DepartmentListParams } from './departments.types'
 
 const PAGE_SIZE = 10
 
@@ -34,10 +27,7 @@ const EMPTY_FORM: DepartmentFormState = {
   isActive: true,
 }
 
-function getErrorMessage(
-  error: unknown,
-  fallback: string,
-): string {
+function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     return error.message
   }
@@ -49,9 +39,7 @@ function getErrorMessage(
   return fallback
 }
 
-function formatDate(
-  value: string | null,
-): string {
+function formatDate(value: string | null): string {
   if (!value) {
     return 'Chưa có'
   }
@@ -62,93 +50,55 @@ function formatDate(
     return value
   }
 
-  return new Intl.DateTimeFormat(
-    'vi-VN',
-    {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    },
-  ).format(date)
+  return new Intl.DateTimeFormat('vi-VN', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(date)
 }
 
 export default function DepartmentsPage() {
-  const [pageNumber, setPageNumber] =
-    useState(1)
+  const [pageNumber, setPageNumber] = useState(1)
 
-  const [searchInput, setSearchInput] =
-    useState('')
+  const [searchInput, setSearchInput] = useState('')
 
-  const [search, setSearch] =
-    useState('')
+  const [search, setSearch] = useState('')
 
-  const [statusFilter, setStatusFilter] =
-    useState<
-      'all' | 'active' | 'inactive'
-    >('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
 
-  const [form, setForm] =
-    useState<DepartmentFormState>(
-      EMPTY_FORM,
-    )
+  const [form, setForm] = useState<DepartmentFormState>(EMPTY_FORM)
 
-  const [editingDepartment, setEditingDepartment] =
-    useState<Department | null>(null)
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null)
 
-  const [showForm, setShowForm] =
-    useState(false)
+  const [showForm, setShowForm] = useState(false)
 
-  const [formError, setFormError] =
-    useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
-  const [
-    successMessage,
-    setSuccessMessage,
-  ] = useState<string | null>(null)
-
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const params: DepartmentListParams = {
     search: search || undefined,
-    isActive:
-      statusFilter === 'all'
-        ? undefined
-        : statusFilter === 'active',
+    isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
     pageNumber,
     pageSize: PAGE_SIZE,
   }
 
-  const departmentsQuery =
-    useDepartments(params)
+  const departmentsQuery = useDepartments(params)
 
-  const createMutation =
-    useCreateDepartment()
+  const createMutation = useCreateDepartment()
 
-  const updateMutation =
-    useUpdateDepartment()
+  const updateMutation = useUpdateDepartment()
 
-
-  const isSaving =
-    createMutation.isPending ||
-    updateMutation.isPending
+  const isSaving = createMutation.isPending || updateMutation.isPending
 
   useEffect(() => {
     if (
       departmentsQuery.data &&
       pageNumber > 1 &&
-      departmentsQuery.data.items
-        .length === 0
+      departmentsQuery.data.items.length === 0
     ) {
-      setPageNumber(
-        Math.max(
-          1,
-          departmentsQuery.data
-            .totalPages,
-        ),
-      )
+      setPageNumber(Math.max(1, departmentsQuery.data.totalPages))
     }
-  }, [
-    departmentsQuery.data,
-    pageNumber,
-  ])
+  }, [departmentsQuery.data, pageNumber])
 
   function openCreateForm() {
     setEditingDepartment(null)
@@ -158,15 +108,12 @@ export default function DepartmentsPage() {
     setShowForm(true)
   }
 
-  function openEditForm(
-    department: Department,
-  ) {
+  function openEditForm(department: Department) {
     setEditingDepartment(department)
 
     setForm({
       name: department.name,
-      description:
-        department.description ?? '',
+      description: department.description ?? '',
       isActive: department.isActive,
     })
 
@@ -188,27 +135,23 @@ export default function DepartmentsPage() {
 
   function validateForm() {
     const name = form.name.trim()
-    const description =
-      form.description.trim()
+    const description = form.description.trim()
 
     if (!name) {
       return {
-        error:
-          'Tên đơn vị xử lý không được để trống.',
+        error: 'Tên đơn vị xử lý không được để trống.',
       }
     }
 
     if (name.length > 150) {
       return {
-        error:
-          'Tên đơn vị xử lý không được vượt quá 150 ký tự.',
+        error: 'Tên đơn vị xử lý không được vượt quá 150 ký tự.',
       }
     }
 
     if (description.length > 1000) {
       return {
-        error:
-          'Mô tả không được vượt quá 1000 ký tự.',
+        error: 'Mô tả không được vượt quá 1000 ký tự.',
       }
     }
 
@@ -216,30 +159,20 @@ export default function DepartmentsPage() {
       error: null,
       value: {
         name,
-        description:
-          description || null,
+        description: description || null,
       },
     }
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setFormError(null)
     setSuccessMessage(null)
 
-    const validation =
-      validateForm()
+    const validation = validateForm()
 
-    if (
-      validation.error ||
-      !validation.value
-    ) {
-      setFormError(
-        validation.error ??
-          'Dữ liệu không hợp lệ.',
-      )
+    if (validation.error || !validation.value) {
+      setFormError(validation.error ?? 'Dữ liệu không hợp lệ.')
       return
     }
 
@@ -251,22 +184,16 @@ export default function DepartmentsPage() {
           isActive: form.isActive,
         })
 
-        setSuccessMessage(
-          'Đã cập nhật Department.',
-        )
+        setSuccessMessage('Đã cập nhật Department.')
       } else {
-        await createMutation.mutateAsync(
-          validation.value,
-        )
+        await createMutation.mutateAsync(validation.value)
 
         setSearchInput('')
         setSearch('')
         setStatusFilter('all')
         setPageNumber(1)
 
-        setSuccessMessage(
-          'Đã tạo Department thành công.',
-        )
+        setSuccessMessage('Đã tạo Department thành công.')
       }
 
       setShowForm(false)
@@ -284,9 +211,7 @@ export default function DepartmentsPage() {
     }
   }
 
-  async function handleToggleActive(
-    department: Department,
-  ) {
+  async function handleToggleActive(department: Department) {
     setFormError(null)
     setSuccessMessage(null)
 
@@ -294,30 +219,19 @@ export default function DepartmentsPage() {
       await updateMutation.mutateAsync({
         id: department.id,
         name: department.name,
-        description:
-          department.description,
-        isActive:
-          !department.isActive,
+        description: department.description,
+        isActive: !department.isActive,
       })
 
       setSuccessMessage(
-        department.isActive
-          ? 'Đã vô hiệu hóa Department.'
-          : 'Đã kích hoạt Department.',
+        department.isActive ? 'Đã vô hiệu hóa Department.' : 'Đã kích hoạt Department.',
       )
     } catch (error) {
-      setFormError(
-        getErrorMessage(
-          error,
-          'Không thể thay đổi trạng thái Department.',
-        ),
-      )
+      setFormError(getErrorMessage(error, 'Không thể thay đổi trạng thái Department.'))
     }
   }
 
-
-  const page =
-    departmentsQuery.data
+  const page = departmentsQuery.data
 
   return (
     <section className="flex flex-col gap-5">
@@ -328,15 +242,11 @@ export default function DepartmentsPage() {
           </h1>
 
           <p className="mt-1 text-sm text-gray-500">
-            Quản lý các đơn vị chịu trách nhiệm
-            tiếp nhận và xử lý báo cáo.
+            Quản lý các đơn vị chịu trách nhiệm tiếp nhận và xử lý báo cáo.
           </p>
         </div>
 
-        <Button
-          type="button"
-          onClick={openCreateForm}
-        >
+        <Button type="button" onClick={openCreateForm}>
           Thêm Department
         </Button>
       </div>
@@ -359,50 +269,31 @@ export default function DepartmentsPage() {
           onSubmit={(event) => {
             event.preventDefault()
             setPageNumber(1)
-            setSearch(
-              searchInput.trim(),
-            )
+            setSearch(searchInput.trim())
           }}
         >
           <input
             value={searchInput}
             maxLength={150}
             placeholder="Tìm theo tên đơn vị xử lý..."
-            onChange={(event) =>
-              setSearchInput(
-                event.target.value,
-              )
-            }
+            onChange={(event) => setSearchInput(event.target.value)}
             className="h-10 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           />
 
           <select
             value={statusFilter}
             onChange={(event) => {
-              setStatusFilter(
-                event.target.value as
-                  | 'all'
-                  | 'active'
-                  | 'inactive',
-              )
+              setStatusFilter(event.target.value as 'all' | 'active' | 'inactive')
               setPageNumber(1)
             }}
             className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
           >
-            <option value="all">
-              Tất cả trạng thái
-            </option>
-            <option value="active">
-              Đang hoạt động
-            </option>
-            <option value="inactive">
-              Ngừng hoạt động
-            </option>
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Đang hoạt động</option>
+            <option value="inactive">Ngừng hoạt động</option>
           </select>
 
-          <Button type="submit">
-            Tìm kiếm
-          </Button>
+          <Button type="submit">Tìm kiếm</Button>
 
           <Button
             type="button"
@@ -427,15 +318,9 @@ export default function DepartmentsPage() {
               : 'Tạo Department'}
           </h2>
 
-          <form
-            className="mt-4 grid max-w-3xl gap-4"
-            onSubmit={handleSubmit}
-          >
+          <form className="mt-4 grid max-w-3xl gap-4" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-1">
-              <label
-                htmlFor="departmentName"
-                className="text-sm font-medium"
-              >
+              <label htmlFor="departmentName" className="text-sm font-medium">
                 Tên đơn vị xử lý
               </label>
 
@@ -447,24 +332,18 @@ export default function DepartmentsPage() {
                 onChange={(event) => {
                   setForm((current) => ({
                     ...current,
-                    name:
-                      event.target.value,
+                    name: event.target.value,
                   }))
                   setFormError(null)
                 }}
                 className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
               />
 
-              <p className="text-xs text-gray-500">
-                {form.name.length}/150
-              </p>
+              <p className="text-xs text-gray-500">{form.name.length}/150</p>
             </div>
 
             <div className="flex flex-col gap-1">
-              <label
-                htmlFor="departmentDescription"
-                className="text-sm font-medium"
-              >
+              <label htmlFor="departmentDescription" className="text-sm font-medium">
                 Mô tả
               </label>
 
@@ -477,8 +356,7 @@ export default function DepartmentsPage() {
                 onChange={(event) => {
                   setForm((current) => ({
                     ...current,
-                    description:
-                      event.target.value,
+                    description: event.target.value,
                   }))
                   setFormError(null)
                 }}
@@ -500,12 +378,10 @@ export default function DepartmentsPage() {
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      isActive:
-                        event.target.checked,
+                      isActive: event.target.checked,
                     }))
                   }
                 />
-
                 Department đang hoạt động
               </label>
             )}
@@ -517,14 +393,8 @@ export default function DepartmentsPage() {
             )}
 
             <div className="flex flex-wrap gap-3">
-              <Button
-                type="submit"
-                loading={isSaving}
-                disabled={isSaving}
-              >
-                {editingDepartment
-                  ? 'Lưu thay đổi'
-                  : 'Tạo Department'}
+              <Button type="submit" loading={isSaving} disabled={isSaving}>
+                {editingDepartment ? 'Lưu thay đổi' : 'Tạo Department'}
               </Button>
 
               <Button
@@ -547,31 +417,19 @@ export default function DepartmentsPage() {
       ) : departmentsQuery.isError ? (
         <Card className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center">
           <p className="font-medium text-red-600">
-            {getErrorMessage(
-              departmentsQuery.error,
-              'Không thể tải Departments.',
-            )}
+            {getErrorMessage(departmentsQuery.error, 'Không thể tải Departments.')}
           </p>
 
-          <Button
-            type="button"
-            onClick={() =>
-              departmentsQuery.refetch()
-            }
-          >
+          <Button type="button" onClick={() => departmentsQuery.refetch()}>
             Thử lại
           </Button>
         </Card>
-      ) : !page ||
-        page.items.length === 0 ? (
+      ) : !page || page.items.length === 0 ? (
         <Card className="p-10 text-center">
-          <h2 className="text-lg font-semibold">
-            Chưa có Department phù hợp
-          </h2>
+          <h2 className="text-lg font-semibold">Chưa có Department phù hợp</h2>
 
           <p className="mt-2 text-sm text-gray-500">
-            Tạo Department mới hoặc thay
-            đổi bộ lọc.
+            Tạo Department mới hoặc thay đổi bộ lọc.
           </p>
         </Card>
       ) : (
@@ -579,112 +437,69 @@ export default function DepartmentsPage() {
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-900">
+                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
                   <tr>
-                    <th className="px-4 py-3">
-                      ID
-                    </th>
-                    <th className="px-4 py-3">
-                      Tên
-                    </th>
-                    <th className="px-4 py-3">
-                      Mô tả
-                    </th>
-                    <th className="px-4 py-3">
-                      Trạng thái
-                    </th>
-                    <th className="px-4 py-3">
-                      Cập nhật
-                    </th>
-                    <th className="px-4 py-3 text-right">
-                      Thao tác
-                    </th>
+                    <th className="px-4 py-3">ID</th>
+                    <th className="px-4 py-3">Tên</th>
+                    <th className="px-4 py-3">Mô tả</th>
+                    <th className="px-4 py-3">Trạng thái</th>
+                    <th className="px-4 py-3">Cập nhật</th>
+                    <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                  {page.items.map(
-                    (department) => (
-                      <tr
-                        key={department.id}
-                        className="align-top"
-                      >
-                        <td className="px-4 py-3 font-medium">
-                          #{department.id}
-                        </td>
+                  {page.items.map((department) => (
+                    <tr key={department.id} className="align-top">
+                      <td className="px-4 py-3 font-medium">#{department.id}</td>
 
-                        <td className="px-4 py-3 font-medium">
-                          {department.name}
-                        </td>
+                      <td className="px-4 py-3 font-medium">{department.name}</td>
 
-                        <td className="max-w-md px-4 py-3 text-gray-500">
-                          {department.description ||
-                            'Không có mô tả'}
-                        </td>
+                      <td className="max-w-md px-4 py-3 text-gray-500">
+                        {department.description || 'Không có mô tả'}
+                      </td>
 
-                        <td className="px-4 py-3">
-                          <span
-                            className={
-                              department.isActive
-                                ? 'inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800'
-                                : 'inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700'
-                            }
+                      <td className="px-4 py-3">
+                        <span
+                          className={
+                            department.isActive
+                              ? 'inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800'
+                              : 'inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700'
+                          }
+                        >
+                          {department.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-500">
+                        {formatDate(department.updatedAt ?? department.createdAt)}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={updateMutation.isPending}
+                            onClick={() => openEditForm(department)}
                           >
-                            {department.isActive
-                              ? 'Đang hoạt động'
-                              : 'Ngừng hoạt động'}
-                          </span>
-                        </td>
+                            Sửa
+                          </Button>
 
-                        <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                          {formatDate(
-                            department.updatedAt ??
-                              department.createdAt,
-                          )}
-                        </td>
-
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap justify-end gap-2">
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              disabled={
-                                updateMutation.isPending
-                              }
-                              onClick={() =>
-                                openEditForm(
-                                  department,
-                                )
-                              }
-                            >
-                              Sửa
-                            </Button>
-
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              disabled={
-                                updateMutation.isPending
-                              }
-                              onClick={() =>
-                                void handleToggleActive(
-                                  department,
-                                )
-                              }
-                            >
-                              {department.isActive
-                                ? 'Vô hiệu hóa'
-                                : 'Kích hoạt'}
-                            </Button>
-
-
-                          </div>
-                        </td>
-                      </tr>
-                    ),
-                  )}
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={updateMutation.isPending}
+                            onClick={() => void handleToggleActive(department)}
+                          >
+                            {department.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -692,13 +507,8 @@ export default function DepartmentsPage() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500">
             <p>
-              Tổng cộng {page.totalItems}{' '}
-              Department · Trang{' '}
-              {page.pageNumber}/
-              {Math.max(
-                1,
-                page.totalPages,
-              )}
+              Tổng cộng {page.totalItems} Department · Trang {page.pageNumber}/
+              {Math.max(1, page.totalPages)}
             </p>
 
             <div className="flex gap-2">
@@ -706,19 +516,8 @@ export default function DepartmentsPage() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                disabled={
-                  pageNumber <= 1 ||
-                  departmentsQuery.isFetching
-                }
-                onClick={() =>
-                  setPageNumber(
-                    (current) =>
-                      Math.max(
-                        1,
-                        current - 1,
-                      ),
-                  )
-                }
+                disabled={pageNumber <= 1 || departmentsQuery.isFetching}
+                onClick={() => setPageNumber((current) => Math.max(1, current - 1))}
               >
                 Trang trước
               </Button>
@@ -727,17 +526,8 @@ export default function DepartmentsPage() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                disabled={
-                  pageNumber >=
-                    page.totalPages ||
-                  departmentsQuery.isFetching
-                }
-                onClick={() =>
-                  setPageNumber(
-                    (current) =>
-                      current + 1,
-                  )
-                }
+                disabled={pageNumber >= page.totalPages || departmentsQuery.isFetching}
+                onClick={() => setPageNumber((current) => current + 1)}
               >
                 Trang sau
               </Button>
@@ -745,7 +535,6 @@ export default function DepartmentsPage() {
           </div>
         </>
       )}
-
     </section>
   )
 }

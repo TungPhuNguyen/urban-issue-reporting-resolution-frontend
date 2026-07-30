@@ -1,9 +1,5 @@
 import { useState } from 'react'
-import {
-  NavLink,
-  Outlet,
-  useNavigate,
-} from 'react-router-dom'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
 import { useAuthStore } from '@/features/auth/auth.store'
 import type { UserRole } from '@/features/auth/auth.types'
@@ -19,11 +15,7 @@ interface RoleLayoutProps {
   menuItems: MenuItem[]
 }
 
-export default function RoleLayout({
-  role,
-  title,
-  menuItems,
-}: RoleLayoutProps) {
+export default function RoleLayout({ role, title, menuItems }: RoleLayoutProps) {
   const navigate = useNavigate()
 
   const user = useAuthStore((state) => state.user)
@@ -49,9 +41,7 @@ export default function RoleLayout({
             Urban Issue Reporting System
           </h1>
 
-          <p className="text-xs text-gray-500">
-            {title}
-          </p>
+          <p className="text-xs text-gray-500">{title}</p>
         </div>
 
         <div className="flex items-center gap-4">
@@ -60,9 +50,7 @@ export default function RoleLayout({
               {user?.fullName ?? 'Unknown User'}
             </p>
 
-            <p className="text-xs text-gray-500">
-              {user?.role ?? role}
-            </p>
+            <p className="text-xs text-gray-500">{user?.role ?? role}</p>
           </div>
 
           <button

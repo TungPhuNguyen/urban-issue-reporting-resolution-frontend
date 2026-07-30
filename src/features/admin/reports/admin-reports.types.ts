@@ -8,12 +8,7 @@ export type ReportStatus =
   | 'Reopened'
   | string
 
-export type ReportPriority =
-  | 'Low'
-  | 'Medium'
-  | 'High'
-  | 'Critical'
-  | string
+export type ReportPriority = 'Low' | 'Medium' | 'High'
 
 export interface ManualAssignmentReport {
   id: string
@@ -44,11 +39,24 @@ export interface ManualAssignmentReport {
   upvoteCount?: number
   thumbnailUrl?: string | null
   dueAt?: string | null
+  isOverdue?: boolean
+  overdueHours?: number | null
+  isEscalated?: boolean
+  escalatedAt?: string | null
 }
 
 export interface ManualAssignmentQueueParams {
   pageNumber: number
   pageSize: number
+}
+
+export interface AdminReportsParams extends ManualAssignmentQueueParams {
+  search?: string
+  status?: string
+  priority?: ReportPriority
+  hasComplaint?: boolean
+  isOverdue?: boolean
+  isEscalated?: boolean
 }
 
 export interface PagedResult<T> {
@@ -59,8 +67,7 @@ export interface PagedResult<T> {
   totalPages: number
 }
 
-export interface AdminReportDetail
-  extends ManualAssignmentReport {
+export interface AdminReportDetail extends ManualAssignmentReport {
   citizenId: string
   citizenEmail: string
 
@@ -145,6 +152,14 @@ export interface AssignStaffInput {
   staffId: string
   reason: string
 }
+
+export interface ReassignReportInput {
+  reportId: string
+  departmentId: number
+  staffId: string | null
+  reason: string
+}
+
 export interface RejectReportInput {
   reportId: string
   reason: string
@@ -166,4 +181,26 @@ export interface PostResolutionActionResult {
 export interface ReopenReportInput {
   reportId: string
   reason: string
+}
+
+export interface DismissComplaintInput {
+  reportId: string
+  reason: string
+}
+
+export interface AdminReportTimelineItem {
+  id: number
+  oldStatus: ReportStatus | null
+  newStatus: ReportStatus
+  note: string | null
+  updatedByUserId: string | null
+  updatedByUserName: string | null
+  createdAt: string
+  imageUrls: string[]
+}
+
+export interface AdminReportTimeline {
+  reportId: string
+  currentStatus: ReportStatus
+  items: AdminReportTimelineItem[]
 }

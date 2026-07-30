@@ -16,9 +16,7 @@ export function LoginPage() {
 
   const isLoading = status === 'loading'
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>,
-  ) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     setFormError('')
 
@@ -38,9 +36,7 @@ export function LoginPage() {
         password,
       })
 
-      const redirectTo = (
-        location.state as { from?: string } | null
-      )?.from
+      const redirectTo = (location.state as { from?: string } | null)?.from
 
       if (redirectTo) {
         navigate(redirectTo, { replace: true })
@@ -61,18 +57,14 @@ export function LoginPage() {
           break
       }
     } catch {
-      setFormError(
-        'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.',
-      )
+      setFormError('Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.')
     }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-6 shadow">
-        <h1 className="mb-6 text-center text-2xl font-bold">
-          Đăng nhập
-        </h1>
+        <h1 className="mb-6 text-center text-2xl font-bold">Đăng nhập</h1>
 
         {formError && (
           <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">
@@ -82,9 +74,7 @@ export function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Email
-            </label>
+            <label className="mb-1 block text-sm font-medium">Email</label>
 
             <input
               type="email"
@@ -97,9 +87,7 @@ export function LoginPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Mật khẩu
-            </label>
+            <label className="mb-1 block text-sm font-medium">Mật khẩu</label>
 
             <input
               type="password"
@@ -122,10 +110,7 @@ export function LoginPage() {
 
         <p className="mt-4 text-center text-sm">
           Chưa có tài khoản?{' '}
-          <Link
-            to="/register"
-            className="text-blue-600 hover:underline"
-          >
+          <Link to="/register" className="text-blue-600 hover:underline">
             Đăng ký
           </Link>
         </p>

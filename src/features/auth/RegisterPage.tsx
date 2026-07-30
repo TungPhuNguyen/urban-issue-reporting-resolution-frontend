@@ -57,9 +57,7 @@ export default function RegisterPage() {
     return null
   }
 
-  const handleSubmit = async (
-    event: FormEvent<HTMLFormElement>,
-  ) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
     setFormError('')
@@ -83,40 +81,36 @@ export default function RegisterPage() {
         confirmPassword,
       })
 
-      setSuccessMessage(
-        'Đăng ký thành công. Đang chuyển đến trang đăng nhập...',
-      )
+      setSuccessMessage('Đăng ký thành công. Đang chuyển đến trang đăng nhập...')
 
       setTimeout(() => {
         navigate('/login', { replace: true })
       }, 1000)
     } catch (error) {
-  if (error instanceof ApiError) {
-    const firstValidationError = error.fieldErrors
-      ? Object.values(error.fieldErrors).flat()[0]
-      : undefined
+      if (error instanceof ApiError) {
+        const firstValidationError = error.fieldErrors
+          ? Object.values(error.fieldErrors).flat()[0]
+          : undefined
 
-    setFormError(
-      firstValidationError ??
-        error.message ??
-        'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
-    )
+        setFormError(
+          firstValidationError ??
+            error.message ??
+            'Đăng ký thất bại. Vui lòng kiểm tra lại thông tin.',
+        )
 
-    return
-  }
+        return
+      }
 
-  setFormError('Đã xảy ra lỗi không xác định.')
-} finally {
-  setIsLoading(false)
-}
+      setFormError('Đã xảy ra lỗi không xác định.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
       <div className="w-full max-w-md rounded-lg bg-white p-6 shadow">
-        <h1 className="mb-6 text-center text-2xl font-bold">
-          Đăng ký tài khoản
-        </h1>
+        <h1 className="mb-6 text-center text-2xl font-bold">Đăng ký tài khoản</h1>
 
         {formError && (
           <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">
@@ -132,9 +126,7 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Họ và tên
-            </label>
+            <label className="mb-1 block text-sm font-medium">Họ và tên</label>
 
             <input
               type="text"
@@ -147,9 +139,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Email
-            </label>
+            <label className="mb-1 block text-sm font-medium">Email</label>
 
             <input
               type="email"
@@ -162,9 +152,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Số điện thoại
-            </label>
+            <label className="mb-1 block text-sm font-medium">Số điện thoại</label>
 
             <input
               type="tel"
@@ -177,9 +165,7 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Mật khẩu
-            </label>
+            <label className="mb-1 block text-sm font-medium">Mật khẩu</label>
 
             <input
               type="password"
@@ -192,16 +178,12 @@ export default function RegisterPage() {
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium">
-              Xác nhận mật khẩu
-            </label>
+            <label className="mb-1 block text-sm font-medium">Xác nhận mật khẩu</label>
 
             <input
               type="password"
               value={confirmPassword}
-              onChange={(event) =>
-                setConfirmPassword(event.target.value)
-              }
+              onChange={(event) => setConfirmPassword(event.target.value)}
               disabled={isLoading}
               className="w-full rounded border px-3 py-2"
               placeholder="Nhập lại mật khẩu"
@@ -219,10 +201,7 @@ export default function RegisterPage() {
 
         <p className="mt-4 text-center text-sm">
           Đã có tài khoản?{' '}
-          <Link
-            to="/login"
-            className="text-blue-600 hover:underline"
-          >
+          <Link to="/login" className="text-blue-600 hover:underline">
             Đăng nhập
           </Link>
         </p>

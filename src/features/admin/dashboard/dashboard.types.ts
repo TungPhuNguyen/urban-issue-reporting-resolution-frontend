@@ -32,6 +32,7 @@ export interface ReportsByCategoryItem {
   categoryName: string
   reportCount: number
   percentage: number
+  averageHandlingHours: number | null
 }
 
 export interface ReportsByAreaItem {
@@ -39,6 +40,33 @@ export interface ReportsByAreaItem {
   areaName: string
   reportCount: number
   percentage: number
+  averageHandlingHours: number | null
+}
+
+export interface SlaPerformance {
+  fromDate: string
+  toDate: string
+  slaTrackedReports: number
+  completedReports: number
+  completedOnTimeReports: number
+  completedLateReports: number
+  activeOverdueReports: number
+  escalatedReports: number
+  complianceRate: number
+  averageHandlingHours: number | null
+}
+
+export interface ReportTrendItem {
+  date: string
+  createdCount: number
+  resolvedCount: number
+  closedCount: number
+}
+
+export interface ReportTrend {
+  fromDate: string
+  toDate: string
+  items: ReportTrendItem[]
 }
 
 export interface AdminDashboardData {
@@ -46,4 +74,6 @@ export interface AdminDashboardData {
   reportsByStatus: ReportsByStatusItem[]
   reportsByCategory: ReportsByCategoryItem[]
   reportsByArea: ReportsByAreaItem[]
+  slaPerformance: SlaPerformance
+  reportTrend: ReportTrend
 }

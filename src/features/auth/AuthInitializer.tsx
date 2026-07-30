@@ -5,33 +5,27 @@ import { Spinner } from '@/components/ui/Spinner'
 import { useAuthStore } from './auth.store'
 
 interface AuthInitializerProps {
-    children: ReactNode
+  children: ReactNode
 }
 
-export default function AuthInitializer({
-    children,
-}: AuthInitializerProps) {
-    const loadCurrentUser = useAuthStore(
-        (state) => state.loadCurrentUser,
-    )
+export default function AuthInitializer({ children }: AuthInitializerProps) {
+  const loadCurrentUser = useAuthStore((state) => state.loadCurrentUser)
 
-    const isInitialized = useAuthStore(
-        (state) => state.isInitialized,
-    )
+  const isInitialized = useAuthStore((state) => state.isInitialized)
 
-    useEffect(() => {
-        if (!isInitialized) {
-            void loadCurrentUser()
-        }
-    }, [isInitialized, loadCurrentUser])
-
+  useEffect(() => {
     if (!isInitialized) {
-        return (
-            <div className="flex min-h-screen items-center justify-center">
-                <Spinner label="Đang kiểm tra phiên đăng nhập..." />
-            </div>
-        )
+      void loadCurrentUser()
     }
+  }, [isInitialized, loadCurrentUser])
 
-    return children
+  if (!isInitialized) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <Spinner label="Đang kiểm tra phiên đăng nhập..." />
+      </div>
+    )
+  }
+
+  return children
 }

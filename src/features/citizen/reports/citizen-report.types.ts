@@ -140,9 +140,8 @@ export interface ReportTimeline {
   items: ReportTimelineItem[]
 }
 
-export type CitizenReportsResponse =
-  PagedResult<CitizenReportSummary>
-  
+export type CitizenReportsResponse = PagedResult<CitizenReportSummary>
+
 export interface SubmitComplaintInput {
   reportId: string
   reason: string
@@ -161,4 +160,3 @@ export interface CloseCitizenReportInput {
   reportId: string
   note?: string
 }
-

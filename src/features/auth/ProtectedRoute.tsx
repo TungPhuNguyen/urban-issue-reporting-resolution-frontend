@@ -1,8 +1,4 @@
-import {
-  Navigate,
-  Outlet,
-  useLocation,
-} from 'react-router-dom'
+import { Navigate, Outlet, useLocation } from 'react-router-dom'
 
 import { Spinner } from '@/components/ui/Spinner'
 import { tokenStorage } from '@/lib/api/token-storage'
@@ -12,13 +8,9 @@ import { useAuthStore } from './auth.store'
 export default function ProtectedRoute() {
   const location = useLocation()
 
-  const isAuthenticated = useAuthStore(
-    (state) => state.isAuthenticated,
-  )
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
 
-  const isInitialized = useAuthStore(
-    (state) => state.isInitialized,
-  )
+  const isInitialized = useAuthStore((state) => state.isInitialized)
 
   const accessToken = tokenStorage.getAccess()
 

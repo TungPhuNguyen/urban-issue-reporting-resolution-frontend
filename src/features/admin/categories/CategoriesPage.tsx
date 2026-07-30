@@ -1,24 +1,13 @@
-import {
-  type FormEvent,
-  useEffect,
-  useState,
-} from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api/http'
 
-import {
-  useCategories,
-  useCreateCategory,
-  useUpdateCategory,
-} from './categories.queries'
+import { useCategories, useCreateCategory, useUpdateCategory } from './categories.queries'
 
-import type {
-  Category,
-  CategoryListParams,
-} from './categories.types'
+import type { Category, CategoryListParams } from './categories.types'
 
 const PAGE_SIZE = 10
 
@@ -34,10 +23,7 @@ const EMPTY_FORM: CategoryFormState = {
   isActive: true,
 }
 
-function getErrorMessage(
-  error: unknown,
-  fallback: string,
-): string {
+function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     return error.message
   }
@@ -49,9 +35,7 @@ function getErrorMessage(
   return fallback
 }
 
-function formatDate(
-  value: string | null,
-): string {
+function formatDate(value: string | null): string {
   if (!value) {
     return 'Chưa có'
   }
@@ -62,95 +46,55 @@ function formatDate(
     return value
   }
 
-  return new Intl.DateTimeFormat(
-    'vi-VN',
-    {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    },
-  ).format(date)
+  return new Intl.DateTimeFormat('vi-VN', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(date)
 }
 
 export default function CategoriesPage() {
-  const [pageNumber, setPageNumber] =
-    useState(1)
+  const [pageNumber, setPageNumber] = useState(1)
 
-  const [searchInput, setSearchInput] =
-    useState('')
+  const [searchInput, setSearchInput] = useState('')
 
-  const [search, setSearch] =
-    useState('')
+  const [search, setSearch] = useState('')
 
-  const [statusFilter, setStatusFilter] =
-    useState<
-      'all' | 'active' | 'inactive'
-    >('all')
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
 
-  const [form, setForm] =
-    useState<CategoryFormState>(
-      EMPTY_FORM,
-    )
+  const [form, setForm] = useState<CategoryFormState>(EMPTY_FORM)
 
-  const [editingCategory, setEditingCategory] =
-    useState<Category | null>(null)
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null)
 
-  const [showForm, setShowForm] =
-    useState(false)
+  const [showForm, setShowForm] = useState(false)
 
-  const [formError, setFormError] =
-    useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
-  const [
-    successMessage,
-    setSuccessMessage,
-  ] = useState<string | null>(null)
-
-  
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
   const params: CategoryListParams = {
     search: search || undefined,
-    isActive:
-      statusFilter === 'all'
-        ? undefined
-        : statusFilter === 'active',
+    isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
     pageNumber,
     pageSize: PAGE_SIZE,
   }
 
-  const categoriesQuery =
-    useCategories(params)
+  const categoriesQuery = useCategories(params)
 
-  const createMutation =
-    useCreateCategory()
+  const createMutation = useCreateCategory()
 
-  const updateMutation =
-    useUpdateCategory()
+  const updateMutation = useUpdateCategory()
 
-  
-
-  const isSaving =
-    createMutation.isPending ||
-    updateMutation.isPending
+  const isSaving = createMutation.isPending || updateMutation.isPending
 
   useEffect(() => {
     if (
       categoriesQuery.data &&
       pageNumber > 1 &&
-      categoriesQuery.data.items
-        .length === 0
+      categoriesQuery.data.items.length === 0
     ) {
-      setPageNumber(
-        Math.max(
-          1,
-          categoriesQuery.data
-            .totalPages,
-        ),
-      )
+      setPageNumber(Math.max(1, categoriesQuery.data.totalPages))
     }
-  }, [
-    categoriesQuery.data,
-    pageNumber,
-  ])
+  }, [categoriesQuery.data, pageNumber])
 
   function openCreateForm() {
     setEditingCategory(null)
@@ -160,15 +104,12 @@ export default function CategoriesPage() {
     setShowForm(true)
   }
 
-  function openEditForm(
-    category: Category,
-  ) {
+  function openEditForm(category: Category) {
     setEditingCategory(category)
 
     setForm({
       name: category.name,
-      description:
-        category.description ?? '',
+      description: category.description ?? '',
       isActive: category.isActive,
     })
 
@@ -190,27 +131,23 @@ export default function CategoriesPage() {
 
   function validateForm() {
     const name = form.name.trim()
-    const description =
-      form.description.trim()
+    const description = form.description.trim()
 
     if (!name) {
       return {
-        error:
-          'Tên loại sự cố không được để trống.',
+        error: 'Tên loại sự cố không được để trống.',
       }
     }
 
     if (name.length > 100) {
       return {
-        error:
-          'Tên loại sự cố không được vượt quá 100 ký tự.',
+        error: 'Tên loại sự cố không được vượt quá 100 ký tự.',
       }
     }
 
     if (description.length > 2000) {
       return {
-        error:
-          'Mô tả không được vượt quá 2000 ký tự.',
+        error: 'Mô tả không được vượt quá 2000 ký tự.',
       }
     }
 
@@ -218,30 +155,20 @@ export default function CategoriesPage() {
       error: null,
       value: {
         name,
-        description:
-          description || null,
+        description: description || null,
       },
     }
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setFormError(null)
     setSuccessMessage(null)
 
-    const validation =
-      validateForm()
+    const validation = validateForm()
 
-    if (
-      validation.error ||
-      !validation.value
-    ) {
-      setFormError(
-        validation.error ??
-          'Dữ liệu không hợp lệ.',
-      )
+    if (validation.error || !validation.value) {
+      setFormError(validation.error ?? 'Dữ liệu không hợp lệ.')
       return
     }
 
@@ -253,22 +180,16 @@ export default function CategoriesPage() {
           isActive: form.isActive,
         })
 
-        setSuccessMessage(
-          'Đã cập nhật Category.',
-        )
+        setSuccessMessage('Đã cập nhật Category.')
       } else {
-        await createMutation.mutateAsync(
-          validation.value,
-        )
+        await createMutation.mutateAsync(validation.value)
 
         setSearchInput('')
         setSearch('')
         setStatusFilter('all')
         setPageNumber(1)
 
-        setSuccessMessage(
-          'Đã tạo Category thành công.',
-        )
+        setSuccessMessage('Đã tạo Category thành công.')
       }
 
       setShowForm(false)
@@ -278,17 +199,13 @@ export default function CategoriesPage() {
       setFormError(
         getErrorMessage(
           error,
-          editingCategory
-            ? 'Không thể cập nhật Category.'
-            : 'Không thể tạo Category.',
+          editingCategory ? 'Không thể cập nhật Category.' : 'Không thể tạo Category.',
         ),
       )
     }
   }
 
-  async function handleToggleActive(
-    category: Category,
-  ) {
+  async function handleToggleActive(category: Category) {
     setFormError(null)
     setSuccessMessage(null)
 
@@ -296,30 +213,19 @@ export default function CategoriesPage() {
       await updateMutation.mutateAsync({
         id: category.id,
         name: category.name,
-        description:
-          category.description,
-        isActive:
-          !category.isActive,
+        description: category.description,
+        isActive: !category.isActive,
       })
 
       setSuccessMessage(
-        category.isActive
-          ? 'Đã vô hiệu hóa Category.'
-          : 'Đã kích hoạt Category.',
+        category.isActive ? 'Đã vô hiệu hóa Category.' : 'Đã kích hoạt Category.',
       )
     } catch (error) {
-      setFormError(
-        getErrorMessage(
-          error,
-          'Không thể thay đổi trạng thái Category.',
-        ),
-      )
+      setFormError(getErrorMessage(error, 'Không thể thay đổi trạng thái Category.'))
     }
   }
 
-
-  const page =
-    categoriesQuery.data
+  const page = categoriesQuery.data
 
   return (
     <section className="flex flex-col gap-5">
@@ -330,15 +236,11 @@ export default function CategoriesPage() {
           </h1>
 
           <p className="mt-1 text-sm text-gray-500">
-            Quản lý các loại sự cố dùng
-            khi người dân tạo báo cáo.
+            Quản lý các loại sự cố dùng khi người dân tạo báo cáo.
           </p>
         </div>
 
-        <Button
-          type="button"
-          onClick={openCreateForm}
-        >
+        <Button type="button" onClick={openCreateForm}>
           Thêm Category
         </Button>
       </div>
@@ -361,50 +263,31 @@ export default function CategoriesPage() {
           onSubmit={(event) => {
             event.preventDefault()
             setPageNumber(1)
-            setSearch(
-              searchInput.trim(),
-            )
+            setSearch(searchInput.trim())
           }}
         >
           <input
             value={searchInput}
             maxLength={100}
             placeholder="Tìm theo tên Category..."
-            onChange={(event) =>
-              setSearchInput(
-                event.target.value,
-              )
-            }
+            onChange={(event) => setSearchInput(event.target.value)}
             className="h-10 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           />
 
           <select
             value={statusFilter}
             onChange={(event) => {
-              setStatusFilter(
-                event.target.value as
-                  | 'all'
-                  | 'active'
-                  | 'inactive',
-              )
+              setStatusFilter(event.target.value as 'all' | 'active' | 'inactive')
               setPageNumber(1)
             }}
             className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
           >
-            <option value="all">
-              Tất cả trạng thái
-            </option>
-            <option value="active">
-              Đang hoạt động
-            </option>
-            <option value="inactive">
-              Ngừng hoạt động
-            </option>
+            <option value="all">Tất cả trạng thái</option>
+            <option value="active">Đang hoạt động</option>
+            <option value="inactive">Ngừng hoạt động</option>
           </select>
 
-          <Button type="submit">
-            Tìm kiếm
-          </Button>
+          <Button type="submit">Tìm kiếm</Button>
 
           <Button
             type="button"
@@ -429,15 +312,9 @@ export default function CategoriesPage() {
               : 'Tạo Category'}
           </h2>
 
-          <form
-            className="mt-4 grid max-w-3xl gap-4"
-            onSubmit={handleSubmit}
-          >
+          <form className="mt-4 grid max-w-3xl gap-4" onSubmit={handleSubmit}>
             <div className="flex flex-col gap-1">
-              <label
-                htmlFor="categoryName"
-                className="text-sm font-medium"
-              >
+              <label htmlFor="categoryName" className="text-sm font-medium">
                 Tên Category
               </label>
 
@@ -449,24 +326,18 @@ export default function CategoriesPage() {
                 onChange={(event) => {
                   setForm((current) => ({
                     ...current,
-                    name:
-                      event.target.value,
+                    name: event.target.value,
                   }))
                   setFormError(null)
                 }}
                 className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
               />
 
-              <p className="text-xs text-gray-500">
-                {form.name.length}/100
-              </p>
+              <p className="text-xs text-gray-500">{form.name.length}/100</p>
             </div>
 
             <div className="flex flex-col gap-1">
-              <label
-                htmlFor="categoryDescription"
-                className="text-sm font-medium"
-              >
+              <label htmlFor="categoryDescription" className="text-sm font-medium">
                 Mô tả
               </label>
 
@@ -479,8 +350,7 @@ export default function CategoriesPage() {
                 onChange={(event) => {
                   setForm((current) => ({
                     ...current,
-                    description:
-                      event.target.value,
+                    description: event.target.value,
                   }))
                   setFormError(null)
                 }}
@@ -502,12 +372,10 @@ export default function CategoriesPage() {
                   onChange={(event) =>
                     setForm((current) => ({
                       ...current,
-                      isActive:
-                        event.target.checked,
+                      isActive: event.target.checked,
                     }))
                   }
                 />
-
                 Category đang hoạt động
               </label>
             )}
@@ -519,14 +387,8 @@ export default function CategoriesPage() {
             )}
 
             <div className="flex flex-wrap gap-3">
-              <Button
-                type="submit"
-                loading={isSaving}
-                disabled={isSaving}
-              >
-                {editingCategory
-                  ? 'Lưu thay đổi'
-                  : 'Tạo Category'}
+              <Button type="submit" loading={isSaving} disabled={isSaving}>
+                {editingCategory ? 'Lưu thay đổi' : 'Tạo Category'}
               </Button>
 
               <Button
@@ -549,31 +411,19 @@ export default function CategoriesPage() {
       ) : categoriesQuery.isError ? (
         <Card className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center">
           <p className="font-medium text-red-600">
-            {getErrorMessage(
-              categoriesQuery.error,
-              'Không thể tải Categories.',
-            )}
+            {getErrorMessage(categoriesQuery.error, 'Không thể tải Categories.')}
           </p>
 
-          <Button
-            type="button"
-            onClick={() =>
-              categoriesQuery.refetch()
-            }
-          >
+          <Button type="button" onClick={() => categoriesQuery.refetch()}>
             Thử lại
           </Button>
         </Card>
-      ) : !page ||
-        page.items.length === 0 ? (
+      ) : !page || page.items.length === 0 ? (
         <Card className="p-10 text-center">
-          <h2 className="text-lg font-semibold">
-            Chưa có Category phù hợp
-          </h2>
+          <h2 className="text-lg font-semibold">Chưa có Category phù hợp</h2>
 
           <p className="mt-2 text-sm text-gray-500">
-            Tạo Category mới hoặc thay
-            đổi bộ lọc.
+            Tạo Category mới hoặc thay đổi bộ lọc.
           </p>
         </Card>
       ) : (
@@ -581,110 +431,69 @@ export default function CategoriesPage() {
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-900">
+                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
                   <tr>
-                    <th className="px-4 py-3">
-                      ID
-                    </th>
-                    <th className="px-4 py-3">
-                      Tên
-                    </th>
-                    <th className="px-4 py-3">
-                      Mô tả
-                    </th>
-                    <th className="px-4 py-3">
-                      Trạng thái
-                    </th>
-                    <th className="px-4 py-3">
-                      Cập nhật
-                    </th>
-                    <th className="px-4 py-3 text-right">
-                      Thao tác
-                    </th>
+                    <th className="px-4 py-3">ID</th>
+                    <th className="px-4 py-3">Tên</th>
+                    <th className="px-4 py-3">Mô tả</th>
+                    <th className="px-4 py-3">Trạng thái</th>
+                    <th className="px-4 py-3">Cập nhật</th>
+                    <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
-                  {page.items.map(
-                    (category) => (
-                      <tr
-                        key={category.id}
-                        className="align-top"
-                      >
-                        <td className="px-4 py-3 font-medium">
-                          #{category.id}
-                        </td>
+                  {page.items.map((category) => (
+                    <tr key={category.id} className="align-top">
+                      <td className="px-4 py-3 font-medium">#{category.id}</td>
 
-                        <td className="px-4 py-3 font-medium">
-                          {category.name}
-                        </td>
+                      <td className="px-4 py-3 font-medium">{category.name}</td>
 
-                        <td className="max-w-md px-4 py-3 text-gray-500">
-                          {category.description ||
-                            'Không có mô tả'}
-                        </td>
+                      <td className="max-w-md px-4 py-3 text-gray-500">
+                        {category.description || 'Không có mô tả'}
+                      </td>
 
-                        <td className="px-4 py-3">
-                          <span
-                            className={
-                              category.isActive
-                                ? 'inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800'
-                                : 'inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700'
-                            }
+                      <td className="px-4 py-3">
+                        <span
+                          className={
+                            category.isActive
+                              ? 'inline-flex rounded-full bg-green-100 px-2.5 py-1 text-xs font-medium text-green-800'
+                              : 'inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700'
+                          }
+                        >
+                          {category.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-500">
+                        {formatDate(category.updatedAt ?? category.createdAt)}
+                      </td>
+
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={updateMutation.isPending}
+                            onClick={() => openEditForm(category)}
                           >
-                            {category.isActive
-                              ? 'Đang hoạt động'
-                              : 'Ngừng hoạt động'}
-                          </span>
-                        </td>
+                            Sửa
+                          </Button>
 
-                        <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                          {formatDate(
-                            category.updatedAt ??
-                              category.createdAt,
-                          )}
-                        </td>
-
-                        <td className="px-4 py-3">
-                          <div className="flex flex-wrap justify-end gap-2">
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              disabled={updateMutation.isPending}
-                              onClick={() =>
-                                openEditForm(
-                                  category,
-                                )
-                              }
-                            >
-                              Sửa
-                            </Button>
-
-                            <Button
-                              type="button"
-                              variant="secondary"
-                              size="sm"
-                              disabled={
-                                updateMutation.isPending
-                              }
-                              onClick={() =>
-                                void handleToggleActive(
-                                  category,
-                                )
-                              }
-                            >
-                              {category.isActive
-                                ? 'Vô hiệu hóa'
-                                : 'Kích hoạt'}
-                            </Button>
-
-                            
-                          </div>
-                        </td>
-                      </tr>
-                    ),
-                  )}
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            disabled={updateMutation.isPending}
+                            onClick={() => void handleToggleActive(category)}
+                          >
+                            {category.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
                 </tbody>
               </table>
             </div>
@@ -692,13 +501,8 @@ export default function CategoriesPage() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500">
             <p>
-              Tổng cộng {page.totalItems}{' '}
-              Category · Trang{' '}
-              {page.pageNumber}/
-              {Math.max(
-                1,
-                page.totalPages,
-              )}
+              Tổng cộng {page.totalItems} Category · Trang {page.pageNumber}/
+              {Math.max(1, page.totalPages)}
             </p>
 
             <div className="flex gap-2">
@@ -706,19 +510,8 @@ export default function CategoriesPage() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                disabled={
-                  pageNumber <= 1 ||
-                  categoriesQuery.isFetching
-                }
-                onClick={() =>
-                  setPageNumber(
-                    (current) =>
-                      Math.max(
-                        1,
-                        current - 1,
-                      ),
-                  )
-                }
+                disabled={pageNumber <= 1 || categoriesQuery.isFetching}
+                onClick={() => setPageNumber((current) => Math.max(1, current - 1))}
               >
                 Trang trước
               </Button>
@@ -727,17 +520,8 @@ export default function CategoriesPage() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                disabled={
-                  pageNumber >=
-                    page.totalPages ||
-                  categoriesQuery.isFetching
-                }
-                onClick={() =>
-                  setPageNumber(
-                    (current) =>
-                      current + 1,
-                  )
-                }
+                disabled={pageNumber >= page.totalPages || categoriesQuery.isFetching}
+                onClick={() => setPageNumber((current) => current + 1)}
               >
                 Trang sau
               </Button>
@@ -745,7 +529,6 @@ export default function CategoriesPage() {
           </div>
         </>
       )}
-
     </section>
   )
 }

@@ -1,8 +1,4 @@
-import {
-  type FormEvent,
-  useEffect,
-  useState,
-} from 'react'
+import { type FormEvent, useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
@@ -17,10 +13,7 @@ import {
   useUpdateRoutingRule,
 } from './routing-rules.queries'
 
-import type {
-  RoutingRule,
-  RoutingRuleListParams,
-} from './routing-rules.types'
+import type { RoutingRule, RoutingRuleListParams } from './routing-rules.types'
 
 const PAGE_SIZE = 10
 
@@ -40,10 +33,7 @@ const EMPTY_FORM: RuleFormState = {
   isActive: true,
 }
 
-function getErrorMessage(
-  error: unknown,
-  fallback: string,
-): string {
+function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     return error.message
   }
@@ -55,9 +45,7 @@ function getErrorMessage(
   return fallback
 }
 
-function formatDate(
-  value: string | null,
-): string {
+function formatDate(value: string | null): string {
   if (!value) {
     return 'Chưa có'
   }
@@ -68,97 +56,57 @@ function formatDate(
     return value
   }
 
-  return new Intl.DateTimeFormat(
-    'vi-VN',
-    {
-      dateStyle: 'short',
-      timeStyle: 'short',
-    },
-  ).format(date)
+  return new Intl.DateTimeFormat('vi-VN', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(date)
 }
 
 export default function RoutingRulesPage() {
-  const [pageNumber, setPageNumber] =
-    useState(1)
+  const [pageNumber, setPageNumber] = useState(1)
 
-  const [searchInput, setSearchInput] =
-    useState('')
+  const [searchInput, setSearchInput] = useState('')
 
-  const [search, setSearch] =
-    useState('')
+  const [search, setSearch] = useState('')
 
-  const [statusFilter, setStatusFilter] =
-    useState<'all' | 'active' | 'inactive'>(
-      'all',
-    )
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
 
-  const [form, setForm] =
-    useState<RuleFormState>(EMPTY_FORM)
+  const [form, setForm] = useState<RuleFormState>(EMPTY_FORM)
 
-  const [editingRule, setEditingRule] =
-    useState<RoutingRule | null>(null)
+  const [editingRule, setEditingRule] = useState<RoutingRule | null>(null)
 
-  const [showForm, setShowForm] =
-    useState(false)
+  const [showForm, setShowForm] = useState(false)
 
-  const [formError, setFormError] =
-    useState<string | null>(null)
+  const [formError, setFormError] = useState<string | null>(null)
 
-  const [successMessage, setSuccessMessage] =
-    useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
-  const [deleteTarget, setDeleteTarget] =
-    useState<RoutingRule | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<RoutingRule | null>(null)
 
   const params: RoutingRuleListParams = {
     search: search || undefined,
-    isActive:
-      statusFilter === 'all'
-        ? undefined
-        : statusFilter === 'active',
+    isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
     pageNumber,
     pageSize: PAGE_SIZE,
   }
 
-  const rulesQuery =
-    useRoutingRules(params)
+  const rulesQuery = useRoutingRules(params)
 
-  const {
-    categoriesQuery,
-    areasQuery,
-    departmentsQuery,
-  } = useRoutingRuleCatalogs()
+  const { categoriesQuery, areasQuery, departmentsQuery } = useRoutingRuleCatalogs()
 
-  const createMutation =
-    useCreateRoutingRule()
+  const createMutation = useCreateRoutingRule()
 
-  const updateMutation =
-    useUpdateRoutingRule()
+  const updateMutation = useUpdateRoutingRule()
 
-  const deleteMutation =
-    useDeleteRoutingRule()
+  const deleteMutation = useDeleteRoutingRule()
 
-  const isSaving =
-    createMutation.isPending ||
-    updateMutation.isPending
+  const isSaving = createMutation.isPending || updateMutation.isPending
 
   useEffect(() => {
-    if (
-      rulesQuery.data &&
-      pageNumber > 1 &&
-      rulesQuery.data.items.length === 0
-    ) {
-      setPageNumber(
-        Math.max(
-          1,
-          rulesQuery.data.totalPages,
-        ),
-      )
+    if (rulesQuery.data && pageNumber > 1 && rulesQuery.data.items.length === 0) {
+      setPageNumber(Math.max(1, rulesQuery.data.totalPages))
     }
-  }, [
-    pageNumber,
-    rulesQuery.data,
-  ])
+  }, [pageNumber, rulesQuery.data])
 
   function openCreateForm() {
     setEditingRule(null)
@@ -168,20 +116,14 @@ export default function RoutingRulesPage() {
     setShowForm(true)
   }
 
-  function openEditForm(
-    rule: RoutingRule,
-  ) {
+  function openEditForm(rule: RoutingRule) {
     setEditingRule(rule)
 
     setForm({
-      categoryId:
-        String(rule.categoryId),
-      areaId:
-        String(rule.areaId),
-      departmentId:
-        String(rule.departmentId),
-      priorityOrder:
-        String(rule.priorityOrder),
+      categoryId: String(rule.categoryId),
+      areaId: String(rule.areaId),
+      departmentId: String(rule.departmentId),
+      priorityOrder: String(rule.priorityOrder),
       isActive: rule.isActive,
     })
 
@@ -202,55 +144,35 @@ export default function RoutingRulesPage() {
   }
 
   function validateForm() {
-    const categoryId =
-      Number(form.categoryId)
+    const categoryId = Number(form.categoryId)
 
-    const areaId =
-      Number(form.areaId)
+    const areaId = Number(form.areaId)
 
-    const departmentId =
-      Number(form.departmentId)
+    const departmentId = Number(form.departmentId)
 
-    const priorityOrder =
-      Number(form.priorityOrder)
+    const priorityOrder = Number(form.priorityOrder)
 
-    if (
-      !Number.isInteger(categoryId) ||
-      categoryId <= 0
-    ) {
+    if (!Number.isInteger(categoryId) || categoryId <= 0) {
       return {
-        error:
-          'Vui lòng chọn Category.',
+        error: 'Vui lòng chọn Category.',
       }
     }
 
-    if (
-      !Number.isInteger(areaId) ||
-      areaId <= 0
-    ) {
+    if (!Number.isInteger(areaId) || areaId <= 0) {
       return {
-        error:
-          'Vui lòng chọn Area.',
+        error: 'Vui lòng chọn Area.',
       }
     }
 
-    if (
-      !Number.isInteger(departmentId) ||
-      departmentId <= 0
-    ) {
+    if (!Number.isInteger(departmentId) || departmentId <= 0) {
       return {
-        error:
-          'Vui lòng chọn Department.',
+        error: 'Vui lòng chọn Department.',
       }
     }
 
-    if (
-      !Number.isInteger(priorityOrder) ||
-      priorityOrder <= 0
-    ) {
+    if (!Number.isInteger(priorityOrder) || priorityOrder <= 0) {
       return {
-        error:
-          'PriorityOrder phải là số nguyên dương.',
+        error: 'PriorityOrder phải là số nguyên dương.',
       }
     }
 
@@ -265,24 +187,15 @@ export default function RoutingRulesPage() {
     }
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setFormError(null)
     setSuccessMessage(null)
 
-    const validation =
-      validateForm()
+    const validation = validateForm()
 
-    if (
-      validation.error ||
-      !validation.value
-    ) {
-      setFormError(
-        validation.error ??
-        'Dữ liệu không hợp lệ.',
-      )
+    if (validation.error || !validation.value) {
+      setFormError(validation.error ?? 'Dữ liệu không hợp lệ.')
 
       return
     }
@@ -295,13 +208,9 @@ export default function RoutingRulesPage() {
           isActive: form.isActive,
         })
 
-        setSuccessMessage(
-          'Đã cập nhật Routing Rule.',
-        )
+        setSuccessMessage('Đã cập nhật Routing Rule.')
       } else {
-        await createMutation.mutateAsync(
-          validation.value,
-        )
+        await createMutation.mutateAsync(validation.value)
 
         // Sau khi tạo, bỏ toàn bộ filter và quay về trang đầu.
         // Backend sắp xếp theo PriorityOrder nên rule mới có thể
@@ -311,9 +220,7 @@ export default function RoutingRulesPage() {
         setStatusFilter('all')
         setPageNumber(1)
 
-        setSuccessMessage(
-          'Đã tạo Routing Rule. Rule mới được hiển thị ở trang đầu.',
-        )
+        setSuccessMessage('Đã tạo Routing Rule. Rule mới được hiển thị ở trang đầu.')
       }
 
       setShowForm(false)
@@ -331,9 +238,7 @@ export default function RoutingRulesPage() {
     }
   }
 
-  async function handleToggleActive(
-    rule: RoutingRule,
-  ) {
+  async function handleToggleActive(rule: RoutingRule) {
     setSuccessMessage(null)
 
     try {
@@ -341,25 +246,16 @@ export default function RoutingRulesPage() {
         id: rule.id,
         categoryId: rule.categoryId,
         areaId: rule.areaId,
-        departmentId:
-          rule.departmentId,
-        priorityOrder:
-          rule.priorityOrder,
+        departmentId: rule.departmentId,
+        priorityOrder: rule.priorityOrder,
         isActive: !rule.isActive,
       })
 
       setSuccessMessage(
-        rule.isActive
-          ? 'Đã vô hiệu hóa Routing Rule.'
-          : 'Đã kích hoạt Routing Rule.',
+        rule.isActive ? 'Đã vô hiệu hóa Routing Rule.' : 'Đã kích hoạt Routing Rule.',
       )
     } catch (error) {
-      setFormError(
-        getErrorMessage(
-          error,
-          'Không thể thay đổi trạng thái Routing Rule.',
-        ),
-      )
+      setFormError(getErrorMessage(error, 'Không thể thay đổi trạng thái Routing Rule.'))
     }
   }
 
@@ -372,38 +268,24 @@ export default function RoutingRulesPage() {
     setSuccessMessage(null)
 
     try {
-      await deleteMutation.mutateAsync(
-        deleteTarget.id,
-      )
+      await deleteMutation.mutateAsync(deleteTarget.id)
 
       setDeleteTarget(null)
-      setSuccessMessage(
-        'Đã xóa hoặc ngừng hoạt động Routing Rule.',
-      )
+      setSuccessMessage('Đã xóa hoặc ngừng hoạt động Routing Rule.')
     } catch (error) {
       setDeleteTarget(null)
 
-      setFormError(
-        getErrorMessage(
-          error,
-          'Không thể xóa Routing Rule.',
-        ),
-      )
+      setFormError(getErrorMessage(error, 'Không thể xóa Routing Rule.'))
     }
   }
 
   const catalogLoading =
-    categoriesQuery.isPending ||
-    areasQuery.isPending ||
-    departmentsQuery.isPending
+    categoriesQuery.isPending || areasQuery.isPending || departmentsQuery.isPending
 
   const catalogError =
-    categoriesQuery.isError ||
-    areasQuery.isError ||
-    departmentsQuery.isError
+    categoriesQuery.isError || areasQuery.isError || departmentsQuery.isError
 
-  const page =
-    rulesQuery.data
+  const page = rulesQuery.data
 
   return (
     <section className="flex flex-col gap-5">
@@ -414,16 +296,12 @@ export default function RoutingRulesPage() {
           </h1>
 
           <p className="mt-1 text-sm text-gray-500">
-            Cấu hình Category, Area,
-            Department và PriorityOrder dùng
-            cho định tuyến tự động.
+            Cấu hình Category, Area, Department và PriorityOrder dùng cho định tuyến tự
+            động.
           </p>
         </div>
 
-        <Button
-          type="button"
-          onClick={openCreateForm}
-        >
+        <Button type="button" onClick={openCreateForm}>
           Thêm Routing Rule
         </Button>
       </div>
@@ -446,53 +324,34 @@ export default function RoutingRulesPage() {
           onSubmit={(event) => {
             event.preventDefault()
             setPageNumber(1)
-            setSearch(
-              searchInput.trim(),
-            )
+            setSearch(searchInput.trim())
           }}
         >
           <input
             value={searchInput}
             maxLength={150}
             placeholder="Tìm theo Category, Area hoặc Department..."
-            onChange={(event) =>
-              setSearchInput(
-                event.target.value,
-              )
-            }
+            onChange={(event) => setSearchInput(event.target.value)}
             className="h-10 flex-1 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           />
 
           <select
             value={statusFilter}
             onChange={(event) => {
-              setStatusFilter(
-                event.target.value as
-                | 'all'
-                | 'active'
-                | 'inactive',
-              )
+              setStatusFilter(event.target.value as 'all' | 'active' | 'inactive')
 
               setPageNumber(1)
             }}
             className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           >
-            <option value="all">
-              Tất cả trạng thái
-            </option>
+            <option value="all">Tất cả trạng thái</option>
 
-            <option value="active">
-              Đang hoạt động
-            </option>
+            <option value="active">Đang hoạt động</option>
 
-            <option value="inactive">
-              Ngừng hoạt động
-            </option>
+            <option value="inactive">Ngừng hoạt động</option>
           </select>
 
-          <Button type="submit">
-            Tìm kiếm
-          </Button>
+          <Button type="submit">Tìm kiếm</Button>
 
           <Button
             type="button"
@@ -523,8 +382,7 @@ export default function RoutingRulesPage() {
             </div>
           ) : catalogError ? (
             <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
-              Không thể tải Category, Area
-              hoặc Department đang hoạt động.
+              Không thể tải Category, Area hoặc Department đang hoạt động.
             </div>
           ) : (
             <form
@@ -532,10 +390,7 @@ export default function RoutingRulesPage() {
               onSubmit={handleSubmit}
             >
               <div className="flex flex-col gap-1">
-                <label
-                  htmlFor="routingCategory"
-                  className="text-sm font-medium"
-                >
+                <label htmlFor="routingCategory" className="text-sm font-medium">
                   Category
                 </label>
 
@@ -546,36 +401,25 @@ export default function RoutingRulesPage() {
                   onChange={(event) => {
                     setForm((current) => ({
                       ...current,
-                      categoryId:
-                        event.target.value,
+                      categoryId: event.target.value,
                     }))
 
                     setFormError(null)
                   }}
                   className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
                 >
-                  <option value="">
-                    Chọn Category
-                  </option>
+                  <option value="">Chọn Category</option>
 
-                  {categoriesQuery.data?.map(
-                    (category) => (
-                      <option
-                        key={category.id}
-                        value={category.id}
-                      >
-                        {category.name}
-                      </option>
-                    ),
-                  )}
+                  {categoriesQuery.data?.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="flex flex-col gap-1">
-                <label
-                  htmlFor="routingArea"
-                  className="text-sm font-medium"
-                >
+                <label htmlFor="routingArea" className="text-sm font-medium">
                   Area
                 </label>
 
@@ -586,36 +430,25 @@ export default function RoutingRulesPage() {
                   onChange={(event) => {
                     setForm((current) => ({
                       ...current,
-                      areaId:
-                        event.target.value,
+                      areaId: event.target.value,
                     }))
 
                     setFormError(null)
                   }}
                   className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
                 >
-                  <option value="">
-                    Chọn Area
-                  </option>
+                  <option value="">Chọn Area</option>
 
-                  {areasQuery.data?.map(
-                    (area) => (
-                      <option
-                        key={area.id}
-                        value={area.id}
-                      >
-                        {area.name}
-                      </option>
-                    ),
-                  )}
+                  {areasQuery.data?.map((area) => (
+                    <option key={area.id} value={area.id}>
+                      {area.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="flex flex-col gap-1">
-                <label
-                  htmlFor="routingDepartment"
-                  className="text-sm font-medium"
-                >
+                <label htmlFor="routingDepartment" className="text-sm font-medium">
                   Department
                 </label>
 
@@ -626,36 +459,25 @@ export default function RoutingRulesPage() {
                   onChange={(event) => {
                     setForm((current) => ({
                       ...current,
-                      departmentId:
-                        event.target.value,
+                      departmentId: event.target.value,
                     }))
 
                     setFormError(null)
                   }}
                   className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
                 >
-                  <option value="">
-                    Chọn Department
-                  </option>
+                  <option value="">Chọn Department</option>
 
-                  {departmentsQuery.data?.map(
-                    (department) => (
-                      <option
-                        key={department.id}
-                        value={department.id}
-                      >
-                        {department.name}
-                      </option>
-                    ),
-                  )}
+                  {departmentsQuery.data?.map((department) => (
+                    <option key={department.id} value={department.id}>
+                      {department.name}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div className="flex flex-col gap-1">
-                <label
-                  htmlFor="priorityOrder"
-                  className="text-sm font-medium"
-                >
+                <label htmlFor="priorityOrder" className="text-sm font-medium">
                   PriorityOrder
                 </label>
 
@@ -669,8 +491,7 @@ export default function RoutingRulesPage() {
                   onChange={(event) => {
                     setForm((current) => ({
                       ...current,
-                      priorityOrder:
-                        event.target.value,
+                      priorityOrder: event.target.value,
                     }))
 
                     setFormError(null)
@@ -688,12 +509,10 @@ export default function RoutingRulesPage() {
                     onChange={(event) =>
                       setForm((current) => ({
                         ...current,
-                        isActive:
-                          event.target.checked,
+                        isActive: event.target.checked,
                       }))
                     }
                   />
-
                   Routing Rule đang hoạt động
                 </label>
               )}
@@ -708,15 +527,9 @@ export default function RoutingRulesPage() {
                 <Button
                   type="submit"
                   loading={isSaving}
-                  disabled={
-                    isSaving ||
-                    catalogLoading ||
-                    catalogError
-                  }
+                  disabled={isSaving || catalogLoading || catalogError}
                 >
-                  {editingRule
-                    ? 'Lưu thay đổi'
-                    : 'Tạo Routing Rule'}
+                  {editingRule ? 'Lưu thay đổi' : 'Tạo Routing Rule'}
                 </Button>
 
                 <Button
@@ -740,98 +553,56 @@ export default function RoutingRulesPage() {
       ) : rulesQuery.isError ? (
         <Card className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center">
           <p className="font-medium text-red-600">
-            {getErrorMessage(
-              rulesQuery.error,
-              'Không thể tải Routing Rules.',
-            )}
+            {getErrorMessage(rulesQuery.error, 'Không thể tải Routing Rules.')}
           </p>
 
-          <Button
-            type="button"
-            onClick={() =>
-              rulesQuery.refetch()
-            }
-          >
+          <Button type="button" onClick={() => rulesQuery.refetch()}>
             Thử lại
           </Button>
         </Card>
-      ) : !page ||
-        page.items.length === 0 ? (
+      ) : !page || page.items.length === 0 ? (
         <Card className="p-10 text-center">
-          <h2 className="text-lg font-semibold">
-            Chưa có Routing Rule phù hợp
-          </h2>
+          <h2 className="text-lg font-semibold">Chưa có Routing Rule phù hợp</h2>
 
-          <p className="mt-2 text-sm text-gray-500">
-            Tạo rule mới hoặc thay đổi bộ lọc.
-          </p>
+          <p className="mt-2 text-sm text-gray-500">Tạo rule mới hoặc thay đổi bộ lọc.</p>
         </Card>
       ) : (
         <>
           <Card className="overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500 dark:bg-gray-900">
+                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
                   <tr>
-                    <th className="px-4 py-3">
-                      ID
-                    </th>
+                    <th className="px-4 py-3">ID</th>
 
-                    <th className="px-4 py-3">
-                      Category
-                    </th>
+                    <th className="px-4 py-3">Category</th>
 
-                    <th className="px-4 py-3">
-                      Area
-                    </th>
+                    <th className="px-4 py-3">Area</th>
 
-                    <th className="px-4 py-3">
-                      Department
-                    </th>
+                    <th className="px-4 py-3">Department</th>
 
-                    <th className="px-4 py-3">
-                      Priority
-                    </th>
+                    <th className="px-4 py-3">Priority</th>
 
-                    <th className="px-4 py-3">
-                      Trạng thái
-                    </th>
+                    <th className="px-4 py-3">Trạng thái</th>
 
-                    <th className="px-4 py-3">
-                      Cập nhật
-                    </th>
+                    <th className="px-4 py-3">Cập nhật</th>
 
-                    <th className="px-4 py-3 text-right">
-                      Thao tác
-                    </th>
+                    <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
                 </thead>
 
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
                   {page.items.map((rule) => (
-                    <tr
-                      key={rule.id}
-                      className="align-top"
-                    >
-                      <td className="px-4 py-3 font-medium">
-                        #{rule.id}
-                      </td>
+                    <tr key={rule.id} className="align-top">
+                      <td className="px-4 py-3 font-medium">#{rule.id}</td>
 
-                      <td className="px-4 py-3">
-                        {rule.categoryName}
-                      </td>
+                      <td className="px-4 py-3">{rule.categoryName}</td>
 
-                      <td className="px-4 py-3">
-                        {rule.areaName}
-                      </td>
+                      <td className="px-4 py-3">{rule.areaName}</td>
 
-                      <td className="px-4 py-3">
-                        {rule.departmentName}
-                      </td>
+                      <td className="px-4 py-3">{rule.departmentName}</td>
 
-                      <td className="px-4 py-3">
-                        {rule.priorityOrder}
-                      </td>
+                      <td className="px-4 py-3">{rule.priorityOrder}</td>
 
                       <td className="px-4 py-3">
                         <span
@@ -841,17 +612,12 @@ export default function RoutingRulesPage() {
                               : 'inline-flex rounded-full bg-gray-100 px-2.5 py-1 text-xs font-medium text-gray-700'
                           }
                         >
-                          {rule.isActive
-                            ? 'Đang hoạt động'
-                            : 'Ngừng hoạt động'}
+                          {rule.isActive ? 'Đang hoạt động' : 'Ngừng hoạt động'}
                         </span>
                       </td>
 
-                      <td className="whitespace-nowrap px-4 py-3 text-gray-500">
-                        {formatDate(
-                          rule.updatedAt ??
-                          rule.createdAt,
-                        )}
+                      <td className="px-4 py-3 whitespace-nowrap text-gray-500">
+                        {formatDate(rule.updatedAt ?? rule.createdAt)}
                       </td>
 
                       <td className="px-4 py-3">
@@ -861,12 +627,9 @@ export default function RoutingRulesPage() {
                             variant="secondary"
                             size="sm"
                             disabled={
-                              updateMutation.isPending ||
-                              deleteMutation.isPending
+                              updateMutation.isPending || deleteMutation.isPending
                             }
-                            onClick={() =>
-                              openEditForm(rule)
-                            }
+                            onClick={() => openEditForm(rule)}
                           >
                             Sửa
                           </Button>
@@ -876,30 +639,20 @@ export default function RoutingRulesPage() {
                             variant="secondary"
                             size="sm"
                             disabled={
-                              updateMutation.isPending ||
-                              deleteMutation.isPending
+                              updateMutation.isPending || deleteMutation.isPending
                             }
-                            onClick={() =>
-                              void handleToggleActive(
-                                rule,
-                              )
-                            }
+                            onClick={() => void handleToggleActive(rule)}
                           >
-                            {rule.isActive
-                              ? 'Vô hiệu hóa'
-                              : 'Kích hoạt'}
+                            {rule.isActive ? 'Vô hiệu hóa' : 'Kích hoạt'}
                           </Button>
 
                           <Button
                             type="button"
                             size="sm"
                             disabled={
-                              updateMutation.isPending ||
-                              deleteMutation.isPending
+                              updateMutation.isPending || deleteMutation.isPending
                             }
-                            onClick={() =>
-                              setDeleteTarget(rule)
-                            }
+                            onClick={() => setDeleteTarget(rule)}
                           >
                             Xóa
                           </Button>
@@ -914,8 +667,7 @@ export default function RoutingRulesPage() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500">
             <p>
-              Tổng cộng {page.totalItems} rule ·
-              Trang {page.pageNumber}/
+              Tổng cộng {page.totalItems} rule · Trang {page.pageNumber}/
               {Math.max(1, page.totalPages)}
             </p>
 
@@ -924,18 +676,8 @@ export default function RoutingRulesPage() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                disabled={
-                  pageNumber <= 1 ||
-                  rulesQuery.isFetching
-                }
-                onClick={() =>
-                  setPageNumber((current) =>
-                    Math.max(
-                      1,
-                      current - 1,
-                    ),
-                  )
-                }
+                disabled={pageNumber <= 1 || rulesQuery.isFetching}
+                onClick={() => setPageNumber((current) => Math.max(1, current - 1))}
               >
                 Trang trước
               </Button>
@@ -944,17 +686,8 @@ export default function RoutingRulesPage() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                disabled={
-                  pageNumber >=
-                  page.totalPages ||
-                  rulesQuery.isFetching
-                }
-                onClick={() =>
-                  setPageNumber(
-                    (current) =>
-                      current + 1,
-                  )
-                }
+                disabled={pageNumber >= page.totalPages || rulesQuery.isFetching}
+                onClick={() => setPageNumber((current) => current + 1)}
               >
                 Trang sau
               </Button>
@@ -970,35 +703,25 @@ export default function RoutingRulesPage() {
           </h2>
 
           <p className="mt-2 text-sm text-gray-600 dark:text-gray-300">
-            Bạn có chắc muốn xóa rule #
-            {deleteTarget.id}:{' '}
+            Bạn có chắc muốn xóa rule #{deleteTarget.id}:{' '}
             <strong>
-              {deleteTarget.categoryName} –{' '}
-              {deleteTarget.areaName} –{' '}
+              {deleteTarget.categoryName} – {deleteTarget.areaName} –{' '}
               {deleteTarget.departmentName}
             </strong>
             ?
           </p>
 
           <p className="mt-2 text-sm text-red-600">
-            Backend hiện mô tả DELETE là
-            “ngừng hoạt động quy tắc định
-            tuyến”. Kết quả cuối cùng phụ thuộc
-            handler backend.
+            Backend hiện mô tả DELETE là “ngừng hoạt động quy tắc định tuyến”. Kết quả
+            cuối cùng phụ thuộc handler backend.
           </p>
 
           <div className="mt-4 flex flex-wrap gap-3">
             <Button
               type="button"
-              loading={
-                deleteMutation.isPending
-              }
-              disabled={
-                deleteMutation.isPending
-              }
-              onClick={() =>
-                void handleDelete()
-              }
+              loading={deleteMutation.isPending}
+              disabled={deleteMutation.isPending}
+              onClick={() => void handleDelete()}
             >
               Xác nhận xóa
             </Button>
@@ -1006,12 +729,8 @@ export default function RoutingRulesPage() {
             <Button
               type="button"
               variant="secondary"
-              disabled={
-                deleteMutation.isPending
-              }
-              onClick={() =>
-                setDeleteTarget(null)
-              }
+              disabled={deleteMutation.isPending}
+              onClick={() => setDeleteTarget(null)}
             >
               Hủy
             </Button>

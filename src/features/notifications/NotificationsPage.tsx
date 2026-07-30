@@ -14,19 +14,13 @@ import {
   useUnreadNotificationCount,
 } from './notifications.queries'
 
-import type {
-  NotificationItem,
-  NotificationType,
-} from './notifications.types'
+import type { NotificationItem, NotificationType } from './notifications.types'
 
 const PAGE_SIZE = 20
 
 type ReadFilter = 'all' | 'unread' | 'read'
 
-function getErrorMessage(
-  error: unknown,
-  fallback: string,
-): string {
+function getErrorMessage(error: unknown, fallback: string): string {
   if (error instanceof ApiError) {
     return error.message
   }
@@ -85,55 +79,33 @@ function getReportPath(
 }
 
 export default function NotificationsPage() {
-  const role = useAuthStore(
-    (state) => state.user?.role,
-  )
+  const role = useAuthStore((state) => state.user?.role)
 
-  const [pageNumber, setPageNumber] =
-    useState(1)
-  const [readFilter, setReadFilter] =
-    useState<ReadFilter>('all')
-  const [message, setMessage] =
-    useState<string | null>(null)
-  const [actionError, setActionError] =
-    useState<string | null>(null)
+  const [pageNumber, setPageNumber] = useState(1)
+  const [readFilter, setReadFilter] = useState<ReadFilter>('all')
+  const [message, setMessage] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   const notificationsQuery = useNotifications({
-    isRead:
-      readFilter === 'all'
-        ? undefined
-        : readFilter === 'read',
+    isRead: readFilter === 'all' ? undefined : readFilter === 'read',
     pageNumber,
     pageSize: PAGE_SIZE,
   })
 
-  const unreadCountQuery =
-    useUnreadNotificationCount()
-  const markReadMutation =
-    useMarkNotificationAsRead()
-  const markAllMutation =
-    useMarkAllNotificationsAsRead()
+  const unreadCountQuery = useUnreadNotificationCount()
+  const markReadMutation = useMarkNotificationAsRead()
+  const markAllMutation = useMarkAllNotificationsAsRead()
 
   const page = notificationsQuery.data
-  const isMutating =
-    markReadMutation.isPending ||
-    markAllMutation.isPending
+  const isMutating = markReadMutation.isPending || markAllMutation.isPending
 
   useEffect(() => {
-    if (
-      page &&
-      pageNumber > 1 &&
-      page.items.length === 0
-    ) {
-      setPageNumber(
-        Math.max(1, page.totalPages),
-      )
+    if (page && pageNumber > 1 && page.items.length === 0) {
+      setPageNumber(Math.max(1, page.totalPages))
     }
   }, [page, pageNumber])
 
-  async function handleMarkRead(
-    notification: NotificationItem,
-  ) {
+  async function handleMarkRead(notification: NotificationItem) {
     if (notification.isRead) {
       return
     }
@@ -142,17 +114,10 @@ export default function NotificationsPage() {
     setActionError(null)
 
     try {
-      await markReadMutation.mutateAsync(
-        notification.id,
-      )
+      await markReadMutation.mutateAsync(notification.id)
       setMessage('Đã đánh dấu thông báo là đã đọc.')
     } catch (error) {
-      setActionError(
-        getErrorMessage(
-          error,
-          'Không thể đánh dấu thông báo là đã đọc.',
-        ),
-      )
+      setActionError(getErrorMessage(error, 'Không thể đánh dấu thông báo là đã đọc.'))
     }
   }
 
@@ -161,8 +126,7 @@ export default function NotificationsPage() {
     setActionError(null)
 
     try {
-      const result =
-        await markAllMutation.mutateAsync()
+      const result = await markAllMutation.mutateAsync()
 
       setMessage(
         result.updatedCount > 0
@@ -171,10 +135,7 @@ export default function NotificationsPage() {
       )
     } catch (error) {
       setActionError(
-        getErrorMessage(
-          error,
-          'Không thể đánh dấu tất cả thông báo là đã đọc.',
-        ),
+        getErrorMessage(error, 'Không thể đánh dấu tất cả thông báo là đã đọc.'),
       )
     }
   }
@@ -209,10 +170,7 @@ export default function NotificationsPage() {
           </Button>
           <Button
             type="button"
-            disabled={
-              isMutating ||
-              (unreadCountQuery.data ?? 0) === 0
-            }
+            disabled={isMutating || (unreadCountQuery.data ?? 0) === 0}
             loading={markAllMutation.isPending}
             onClick={() => void handleMarkAllRead()}
           >
@@ -223,20 +181,12 @@ export default function NotificationsPage() {
 
       <div className="grid gap-3 sm:grid-cols-2">
         <Card className="p-4">
-          <p className="text-sm text-gray-500">
-            Chưa đọc
-          </p>
-          <p className="mt-1 text-2xl font-semibold">
-            {unreadCountQuery.data ?? 0}
-          </p>
+          <p className="text-sm text-gray-500">Chưa đọc</p>
+          <p className="mt-1 text-2xl font-semibold">{unreadCountQuery.data ?? 0}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-gray-500">
-            Tổng trong bộ lọc
-          </p>
-          <p className="mt-1 text-2xl font-semibold">
-            {page?.totalItems ?? 0}
-          </p>
+          <p className="text-sm text-gray-500">Tổng trong bộ lọc</p>
+          <p className="mt-1 text-2xl font-semibold">{page?.totalItems ?? 0}</p>
         </Card>
       </div>
 
@@ -258,9 +208,7 @@ export default function NotificationsPage() {
           <select
             value={readFilter}
             onChange={(event) => {
-              setReadFilter(
-                event.target.value as ReadFilter,
-              )
+              setReadFilter(event.target.value as ReadFilter)
               setPageNumber(1)
             }}
             className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
@@ -279,25 +227,15 @@ export default function NotificationsPage() {
       ) : notificationsQuery.isError ? (
         <Card className="flex min-h-64 flex-col items-center justify-center gap-3 p-8 text-center">
           <p className="font-medium text-red-600">
-            {getErrorMessage(
-              notificationsQuery.error,
-              'Không thể tải thông báo.',
-            )}
+            {getErrorMessage(notificationsQuery.error, 'Không thể tải thông báo.')}
           </p>
-          <Button
-            type="button"
-            onClick={() =>
-              notificationsQuery.refetch()
-            }
-          >
+          <Button type="button" onClick={() => notificationsQuery.refetch()}>
             Thử lại
           </Button>
         </Card>
       ) : !page || page.items.length === 0 ? (
         <Card className="p-10 text-center">
-          <h2 className="text-lg font-semibold">
-            Chưa có thông báo
-          </h2>
+          <h2 className="text-lg font-semibold">Chưa có thông báo</h2>
           <p className="mt-2 text-sm text-gray-500">
             Các thông báo mới sẽ xuất hiện tại đây.
           </p>
@@ -328,7 +266,7 @@ export default function NotificationsPage() {
                       </span>
                     </div>
 
-                    <p className="mt-2 whitespace-pre-wrap text-sm text-gray-600 dark:text-gray-300">
+                    <p className="mt-2 text-sm whitespace-pre-wrap text-gray-600 dark:text-gray-300">
                       {notification.message}
                     </p>
 
@@ -340,13 +278,8 @@ export default function NotificationsPage() {
                   <div className="flex flex-wrap gap-2">
                     {notification.reportId && (
                       <Link
-                        to={getReportPath(
-                          role,
-                          notification.reportId,
-                        )}
-                        onClick={() =>
-                          void handleMarkRead(notification)
-                        }
+                        to={getReportPath(role, notification.reportId)}
+                        onClick={() => void handleMarkRead(notification)}
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 px-3 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                       >
                         Mở báo cáo
@@ -361,12 +294,9 @@ export default function NotificationsPage() {
                         disabled={isMutating}
                         loading={
                           markReadMutation.isPending &&
-                          markReadMutation.variables ===
-                            notification.id
+                          markReadMutation.variables === notification.id
                         }
-                        onClick={() =>
-                          void handleMarkRead(notification)
-                        }
+                        onClick={() => void handleMarkRead(notification)}
                       >
                         Đánh dấu đã đọc
                       </Button>
@@ -379,23 +309,16 @@ export default function NotificationsPage() {
 
           <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500">
             <p>
-              Tổng cộng {page.totalItems} thông báo · Trang{' '}
-              {page.pageNumber}/{Math.max(1, page.totalPages)}
+              Tổng cộng {page.totalItems} thông báo · Trang {page.pageNumber}/
+              {Math.max(1, page.totalPages)}
             </p>
             <div className="flex gap-2">
               <Button
                 type="button"
                 variant="secondary"
                 size="sm"
-                disabled={
-                  pageNumber <= 1 ||
-                  notificationsQuery.isFetching
-                }
-                onClick={() =>
-                  setPageNumber((current) =>
-                    Math.max(1, current - 1),
-                  )
-                }
+                disabled={pageNumber <= 1 || notificationsQuery.isFetching}
+                onClick={() => setPageNumber((current) => Math.max(1, current - 1))}
               >
                 Trang trước
               </Button>
@@ -403,13 +326,8 @@ export default function NotificationsPage() {
                 type="button"
                 variant="secondary"
                 size="sm"
-                disabled={
-                  pageNumber >= page.totalPages ||
-                  notificationsQuery.isFetching
-                }
-                onClick={() =>
-                  setPageNumber((current) => current + 1)
-                }
+                disabled={pageNumber >= page.totalPages || notificationsQuery.isFetching}
+                onClick={() => setPageNumber((current) => current + 1)}
               >
                 Trang sau
               </Button>

@@ -8,11 +8,14 @@ import {
 import { adminReportsApi } from './admin-reports.api'
 
 import type {
+  AdminReportsParams,
   AssignReportInput,
   AssignStaffInput,
   ManualAssignmentQueueParams,
   RejectReportInput,
   CloseReportInput,
+  DismissComplaintInput,
+  ReassignReportInput,
   ReopenReportInput,
 } from './admin-reports.types'
 
@@ -20,49 +23,38 @@ export const adminReportKeys = {
   all: ['admin', 'reports'] as const,
 
   manualAssignmentQueues: () =>
-    [
-      ...adminReportKeys.all,
-      'manual-assignment-queue',
-    ] as const,
+    [...adminReportKeys.all, 'manual-assignment-queue'] as const,
 
-  manualAssignmentQueue: (
-    params: ManualAssignmentQueueParams,
-  ) =>
-    [
-      ...adminReportKeys.manualAssignmentQueues(),
-      params,
-    ] as const,
+  manualAssignmentQueue: (params: ManualAssignmentQueueParams) =>
+    [...adminReportKeys.manualAssignmentQueues(), params] as const,
 
-  detail: (id: string) =>
-    [
-      ...adminReportKeys.all,
-      'detail',
-      id,
-    ] as const,
+  lists: () => [...adminReportKeys.all, 'list'] as const,
 
-  departments: () =>
-    ['admin', 'departments', 'active'] as const,
+  list: (params: AdminReportsParams) => [...adminReportKeys.lists(), params] as const,
+
+  detail: (id: string) => [...adminReportKeys.all, 'detail', id] as const,
+
+  timeline: (id: string) => [...adminReportKeys.all, 'timeline', id] as const,
+
+  departments: () => ['admin', 'departments', 'active'] as const,
 
   staffByDepartment: (departmentId: number) =>
-    [
-      'admin',
-      'staff',
-      'department',
-      departmentId,
-    ] as const,
+    ['admin', 'staff', 'department', departmentId] as const,
 }
 
-export function useManualAssignmentQueue(
-  params: ManualAssignmentQueueParams,
-) {
+export function useAdminReports(params: AdminReportsParams) {
   return useQuery({
-    queryKey:
-      adminReportKeys.manualAssignmentQueue(params),
+    queryKey: adminReportKeys.list(params),
+    queryFn: () => adminReportsApi.getReports(params),
+    placeholderData: keepPreviousData,
+  })
+}
 
-    queryFn: () =>
-      adminReportsApi.getManualAssignmentQueue(
-        params,
-      ),
+export function useManualAssignmentQueue(params: ManualAssignmentQueueParams) {
+  return useQuery({
+    queryKey: adminReportKeys.manualAssignmentQueue(params),
+
+    queryFn: () => adminReportsApi.getManualAssignmentQueue(params),
 
     placeholderData: keepPreviousData,
 
@@ -72,15 +64,20 @@ export function useManualAssignmentQueue(
   })
 }
 
-export function useAdminReportDetail(
-  id: string,
-) {
+export function useAdminReportDetail(id: string) {
   return useQuery({
     queryKey: adminReportKeys.detail(id),
 
-    queryFn: () =>
-      adminReportsApi.getById(id),
+    queryFn: () => adminReportsApi.getById(id),
 
+    enabled: id.trim().length > 0,
+  })
+}
+
+export function useAdminReportTimeline(id: string) {
+  return useQuery({
+    queryKey: adminReportKeys.timeline(id),
+    queryFn: () => adminReportsApi.getTimeline(id),
     enabled: id.trim().length > 0,
   })
 }
@@ -89,29 +86,18 @@ export function useActiveDepartments() {
   return useQuery({
     queryKey: adminReportKeys.departments(),
 
-    queryFn:
-      adminReportsApi.getActiveDepartments,
+    queryFn: adminReportsApi.getActiveDepartments,
 
     staleTime: 5 * 60 * 1000,
   })
 }
-export function useActiveStaffByDepartment(
-  departmentId: number | null,
-) {
+export function useActiveStaffByDepartment(departmentId: number | null) {
   return useQuery({
-    queryKey:
-      adminReportKeys.staffByDepartment(
-        departmentId ?? 0,
-      ),
+    queryKey: adminReportKeys.staffByDepartment(departmentId ?? 0),
 
-    queryFn: () =>
-      adminReportsApi.getActiveStaffByDepartment(
-        departmentId!,
-      ),
+    queryFn: () => adminReportsApi.getActiveStaffByDepartment(departmentId!),
 
-    enabled:
-      departmentId !== null &&
-      departmentId > 0,
+    enabled: departmentId !== null && departmentId > 0,
 
     staleTime: 60 * 1000,
   })
@@ -121,19 +107,12 @@ export function useAssignDepartment() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (
-      input: AssignReportInput,
-    ) =>
-      adminReportsApi.assignDepartment(input),
+    mutationFn: (input: AssignReportInput) => adminReportsApi.assignDepartment(input),
 
     onSuccess: (result) => {
       queryClient.setQueryData(
         adminReportKeys.detail(result.reportId),
-        (
-          current:
-            | Record<string, unknown>
-            | undefined,
-        ) => {
+        (current: Record<string, unknown> | undefined) => {
           if (!current) {
             return current
           }
@@ -143,20 +122,15 @@ export function useAssignDepartment() {
 
             status: result.status,
 
-            departmentId:
-              result.departmentId,
+            departmentId: result.departmentId,
 
-            departmentName:
-              result.departmentName,
+            departmentName: result.departmentName,
 
-            assignedStaffId:
-              result.assignedStaffId,
+            assignedStaffId: result.assignedStaffId,
 
-            assignedStaffName:
-              result.assignedStaffName,
+            assignedStaffName: result.assignedStaffName,
 
-            requiresManualAssignment:
-              result.requiresManualAssignment,
+            requiresManualAssignment: result.requiresManualAssignment,
 
             updatedAt: result.updatedAt,
           }
@@ -164,9 +138,7 @@ export function useAssignDepartment() {
       )
 
       void queryClient.invalidateQueries({
-        queryKey:
-          adminReportKeys
-            .manualAssignmentQueues(),
+        queryKey: adminReportKeys.all,
       })
     },
   })
@@ -176,19 +148,12 @@ export function useAssignStaff() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (
-      input: AssignStaffInput,
-    ) =>
-      adminReportsApi.assignStaff(input),
+    mutationFn: (input: AssignStaffInput) => adminReportsApi.assignStaff(input),
 
     onSuccess: (result) => {
       queryClient.setQueryData(
         adminReportKeys.detail(result.reportId),
-        (
-          current:
-            | Record<string, unknown>
-            | undefined,
-        ) => {
+        (current: Record<string, unknown> | undefined) => {
           if (!current) {
             return current
           }
@@ -198,23 +163,53 @@ export function useAssignStaff() {
 
             status: result.status,
 
-            departmentId:
-              result.departmentId,
+            departmentId: result.departmentId,
 
-            departmentName:
-              result.departmentName,
+            departmentName: result.departmentName,
 
-            assignedStaffId:
-              result.assignedStaffId,
+            assignedStaffId: result.assignedStaffId,
 
-            assignedStaffName:
-              result.assignedStaffName,
+            assignedStaffName: result.assignedStaffName,
 
-            requiresManualAssignment:
-              result.requiresManualAssignment,
+            requiresManualAssignment: result.requiresManualAssignment,
 
             priority: result.priority,
 
+            updatedAt: result.updatedAt,
+          }
+        },
+      )
+
+      void queryClient.invalidateQueries({
+        queryKey: adminReportKeys.all,
+      })
+    },
+  })
+}
+
+export function useReassignReport() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: ReassignReportInput) => adminReportsApi.reassignReport(input),
+
+    onSuccess: (result) => {
+      queryClient.setQueryData(
+        adminReportKeys.detail(result.reportId),
+        (current: Record<string, unknown> | undefined) => {
+          if (!current) {
+            return current
+          }
+
+          return {
+            ...current,
+            status: result.status,
+            departmentId: result.departmentId,
+            departmentName: result.departmentName,
+            assignedStaffId: result.assignedStaffId,
+            assignedStaffName: result.assignedStaffName,
+            priority: result.priority,
+            requiresManualAssignment: result.requiresManualAssignment,
             updatedAt: result.updatedAt,
           }
         },
@@ -230,19 +225,12 @@ export function useRejectReport() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (
-      input: RejectReportInput,
-    ) =>
-      adminReportsApi.rejectReport(input),
+    mutationFn: (input: RejectReportInput) => adminReportsApi.rejectReport(input),
 
     onSuccess: (result) => {
       queryClient.setQueryData(
         adminReportKeys.detail(result.reportId),
-        (
-          current:
-            | Record<string, unknown>
-            | undefined,
-        ) => {
+        (current: Record<string, unknown> | undefined) => {
           if (!current) {
             return current
           }
@@ -252,20 +240,15 @@ export function useRejectReport() {
 
             status: result.status,
 
-            departmentId:
-              result.departmentId,
+            departmentId: result.departmentId,
 
-            departmentName:
-              result.departmentName,
+            departmentName: result.departmentName,
 
-            assignedStaffId:
-              result.assignedStaffId,
+            assignedStaffId: result.assignedStaffId,
 
-            assignedStaffName:
-              result.assignedStaffName,
+            assignedStaffName: result.assignedStaffName,
 
-            requiresManualAssignment:
-              result.requiresManualAssignment,
+            requiresManualAssignment: result.requiresManualAssignment,
 
             updatedAt: result.updatedAt,
           }
@@ -282,21 +265,12 @@ export function useCloseAdminReport() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (
-      input: CloseReportInput,
-    ) =>
-      adminReportsApi.closeReport(input),
+    mutationFn: (input: CloseReportInput) => adminReportsApi.closeReport(input),
 
     onSuccess: (result) => {
       queryClient.setQueryData(
-        adminReportKeys.detail(
-          result.reportId,
-        ),
-        (
-          current:
-            | Record<string, unknown>
-            | undefined,
-        ) => {
+        adminReportKeys.detail(result.reportId),
+        (current: Record<string, unknown> | undefined) => {
           if (!current) {
             return current
           }
@@ -323,21 +297,12 @@ export function useReopenReport() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: (
-      input: ReopenReportInput,
-    ) =>
-      adminReportsApi.reopenReport(input),
+    mutationFn: (input: ReopenReportInput) => adminReportsApi.reopenReport(input),
 
     onSuccess: (result) => {
       queryClient.setQueryData(
-        adminReportKeys.detail(
-          result.reportId,
-        ),
-        (
-          current:
-            | Record<string, unknown>
-            | undefined,
-        ) => {
+        adminReportKeys.detail(result.reportId),
+        (current: Record<string, unknown> | undefined) => {
           if (!current) {
             return current
           }
@@ -347,9 +312,39 @@ export function useReopenReport() {
             status: result.status,
             reopenedAt: result.reopenedAt,
             dueAt: result.dueAt,
-            complaintSubmittedAt:
-              result.complaintSubmittedAt,
+            complaintSubmittedAt: result.complaintSubmittedAt,
             updatedAt: result.reopenedAt,
+          }
+        },
+      )
+
+      void queryClient.invalidateQueries({
+        queryKey: adminReportKeys.all,
+      })
+    },
+  })
+}
+
+export function useDismissComplaint() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: DismissComplaintInput) => adminReportsApi.dismissComplaint(input),
+
+    onSuccess: (result) => {
+      queryClient.setQueryData(
+        adminReportKeys.detail(result.reportId),
+        (current: Record<string, unknown> | undefined) => {
+          if (!current) {
+            return current
+          }
+
+          return {
+            ...current,
+            status: result.status,
+            complaintSubmittedAt: result.complaintSubmittedAt,
+            closedAt: result.closedAt,
+            updatedAt: result.closedAt ?? current.updatedAt,
           }
         },
       )
