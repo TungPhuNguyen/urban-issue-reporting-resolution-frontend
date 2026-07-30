@@ -9,11 +9,13 @@ export const staffReportKeys = {
   list: () => [...staffReportKeys.all, 'list'] as const,
 
   detail: (reportId: string) => [...staffReportKeys.all, 'detail', reportId] as const,
+
+  timeline: (reportId: string) => [...staffReportKeys.all, 'timeline', reportId] as const,
 }
 
 interface AcceptStaffReportInput {
   priority: ReportPriority
-  note: string
+  note?: string
 }
 
 interface StartProcessingInput {
@@ -53,7 +55,7 @@ export function useStaffReport(reportId: string) {
 
 export function useStaffReportTimeline(reportId: string) {
   return useQuery({
-    queryKey: ['staff', 'reports', reportId, 'timeline'],
+    queryKey: staffReportKeys.timeline(reportId),
     queryFn: () => staffReportApi.getTimeline(reportId),
     enabled: Boolean(reportId),
   })
@@ -73,6 +75,9 @@ export function useAcceptStaffReport(reportId: string) {
         }),
         queryClient.invalidateQueries({
           queryKey: staffReportKeys.list(),
+        }),
+        queryClient.invalidateQueries({
+          queryKey: staffReportKeys.timeline(reportId),
         }),
       ])
     },

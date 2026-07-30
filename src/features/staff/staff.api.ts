@@ -46,13 +46,15 @@ export const staffReportApi = {
   async acceptReport(
     reportId: string,
     priority: ReportPriority,
-    note: string,
+    note?: string,
   ): Promise<StaffReportActionResult> {
+    const trimmedNote = note?.trim()
+
     const response = await http.post<StaffReportActionResult>(
       `/staff/reports/${reportId}/accept`,
       {
         priority,
-        note,
+        ...(trimmedNote ? { note: trimmedNote } : {}),
       },
     )
 
