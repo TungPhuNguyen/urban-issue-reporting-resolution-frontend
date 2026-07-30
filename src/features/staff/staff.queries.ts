@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  type QueryClient,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import { staffReportApi } from './staff.api'
 import type { ReportPriority } from './staff.types'
 import type { GetStaffReportsParams } from './staff.api'
@@ -35,6 +40,20 @@ interface ResolveReportInput {
   images: File[]
 }
 
+async function invalidateStaffReportWorkflow(queryClient: QueryClient, reportId: string) {
+  await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: staffReportKeys.detail(reportId),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: staffReportKeys.list(),
+    }),
+    queryClient.invalidateQueries({
+      queryKey: staffReportKeys.timeline(reportId),
+    }),
+  ])
+}
+
 export function useStaffReports(params: GetStaffReportsParams) {
   return useQuery({
     queryKey: [...staffReportKeys.list(), params],
@@ -68,19 +87,7 @@ export function useAcceptStaffReport(reportId: string) {
     mutationFn: ({ priority, note }: AcceptStaffReportInput) =>
       staffReportApi.acceptReport(reportId, priority, note),
 
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.detail(reportId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.list(),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.timeline(reportId),
-        }),
-      ])
-    },
+    onSuccess: () => invalidateStaffReportWorkflow(queryClient, reportId),
   })
 }
 
@@ -91,16 +98,7 @@ export function useStartProcessingReport(reportId: string) {
     mutationFn: ({ note }: StartProcessingInput) =>
       staffReportApi.startProcessing(reportId, note),
 
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.detail(reportId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.list(),
-        }),
-      ])
-    },
+    onSuccess: () => invalidateStaffReportWorkflow(queryClient, reportId),
   })
 }
 
@@ -111,16 +109,7 @@ export function useAddProgressNote(reportId: string) {
     mutationFn: ({ note }: ProgressNoteInput) =>
       staffReportApi.addProgressNote(reportId, note),
 
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.detail(reportId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.list(),
-        }),
-      ])
-    },
+    onSuccess: () => invalidateStaffReportWorkflow(queryClient, reportId),
   })
 }
 
@@ -131,16 +120,7 @@ export function useUploadProgressImages(reportId: string) {
     mutationFn: ({ files }: UploadProgressImagesInput) =>
       staffReportApi.uploadProgressImages(reportId, files),
 
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.detail(reportId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.list(),
-        }),
-      ])
-    },
+    onSuccess: () => invalidateStaffReportWorkflow(queryClient, reportId),
   })
 }
 
@@ -151,15 +131,6 @@ export function useResolveReport(reportId: string) {
     mutationFn: ({ note, images }: ResolveReportInput) =>
       staffReportApi.resolveReport(reportId, note, images),
 
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.detail(reportId),
-        }),
-        queryClient.invalidateQueries({
-          queryKey: staffReportKeys.list(),
-        }),
-      ])
-    },
+    onSuccess: () => invalidateStaffReportWorkflow(queryClient, reportId),
   })
 }

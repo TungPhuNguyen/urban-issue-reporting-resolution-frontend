@@ -8,6 +8,7 @@ import type {
   ReportPriority,
   ReportStatus,
   StaffReportTimeline,
+  StaffProgressUpdate,
 } from './staff.types'
 
 export interface GetStaffReportsParams {
@@ -78,11 +79,11 @@ export const staffReportApi = {
   async addProgressNote(
     reportId: string,
     note: string,
-  ): Promise<StaffReportActionResult> {
-    const response = await http.post<StaffReportActionResult>(
+  ): Promise<StaffProgressUpdate> {
+    const response = await http.post<StaffProgressUpdate>(
       `/staff/reports/${reportId}/progress-notes`,
       {
-        note,
+        note: note.trim(),
       },
     )
 
@@ -92,14 +93,14 @@ export const staffReportApi = {
   async uploadProgressImages(
     reportId: string,
     files: File[],
-  ): Promise<StaffReportActionResult> {
+  ): Promise<StaffProgressUpdate> {
     const formData = new FormData()
 
     files.forEach((file) => {
       formData.append('Images', file)
     })
 
-    const response = await http.post<StaffReportActionResult>(
+    const response = await http.post<StaffProgressUpdate>(
       `/staff/reports/${reportId}/progress-images`,
       formData,
     )
@@ -114,7 +115,7 @@ export const staffReportApi = {
   ): Promise<StaffReportActionResult> {
     const formData = new FormData()
 
-    formData.append('Note', note)
+    formData.append('Note', note.trim())
 
     images.forEach((image) => {
       formData.append('Images', image)
