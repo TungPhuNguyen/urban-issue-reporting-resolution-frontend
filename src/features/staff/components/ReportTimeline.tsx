@@ -81,7 +81,7 @@ export function ReportTimeline({ reportId }: ReportTimelineProps) {
                   {item.newStatus}
                 </span>
 
-                {item.oldStatus !== item.newStatus && (
+                {item.oldStatus && item.oldStatus !== item.newStatus && (
                   <span className="text-sm text-gray-500 dark:text-gray-400">
                     {item.oldStatus} → {item.newStatus}
                   </span>

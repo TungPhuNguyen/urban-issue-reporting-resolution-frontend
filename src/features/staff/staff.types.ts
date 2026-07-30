@@ -135,14 +135,12 @@ export interface StaffReportActionResult {
   dueAt: string | null
 
   updatedAt: string | null
-
-  imageUrls: string[]
 }
 
 export interface StaffReportTimelineItem {
   id: number
 
-  oldStatus: ReportStatus
+  oldStatus: ReportStatus | null
   newStatus: ReportStatus
 
   note: string | null

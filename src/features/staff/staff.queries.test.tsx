@@ -49,7 +49,6 @@ describe('useAcceptStaffReport - UC-19', () => {
             slaStartedAt: '2026-07-30T08:00:00Z',
             dueAt: '2026-07-31T08:00:00Z',
             updatedAt: '2026-07-30T08:00:00Z',
-            imageUrls: [],
         })
 
         function Wrapper({ children }: { children: ReactNode }) {
@@ -212,7 +211,6 @@ describe('Staff workflow cache refresh - UC-24 to UC-28', () => {
             slaStartedAt: '2026-07-30T08:00:00Z',
             dueAt: '2026-07-31T08:00:00Z',
             updatedAt: '2026-07-30T11:00:00Z',
-            imageUrls: [],
         })
 
         const { result } = renderHook(() => useResolveReport(reportId), {
