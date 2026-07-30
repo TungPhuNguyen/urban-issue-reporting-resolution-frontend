@@ -6,14 +6,8 @@ import CitizenLayout from '@/components/layout/CitizenLayout'
 import PublicLayout from '@/components/layout/PublicLayout'
 import StaffLayout from '@/components/layout/StaffLayout'
 
-import AdminDashboardPage from '@/features/admin/DashboardPage'
 import ProtectedRoute from '@/features/auth/ProtectedRoute'
 import RoleRoute from '@/features/auth/RoleRoute'
-import CitizenReportsPage from '@/features/citizen/ReportsPage'
-import CreateReportPage from '@/features/citizen/reports/CreateReportPage'
-import ReportDetailPage from '@/features/citizen/reports/ReportDetailPage'
-import StaffReportsPage from '@/features/staff/ReportsPage'
-import StaffReportDetailPage from '@/features/staff/ReportDetailPage'
 
 import ForbiddenPage from '@/pages/ForbiddenPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -31,6 +25,30 @@ const LoginPage = lazy(() =>
 )
 
 const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
+
+const AdminDashboardPage = lazy(
+  () => import('@/features/admin/DashboardPage'),
+)
+
+const CitizenReportsPage = lazy(
+  () => import('@/features/citizen/ReportsPage'),
+)
+
+const CreateReportPage = lazy(
+  () => import('@/features/citizen/reports/CreateReportPage'),
+)
+
+const ReportDetailPage = lazy(
+  () => import('@/features/citizen/reports/ReportDetailPage'),
+)
+
+const StaffReportsPage = lazy(
+  () => import('@/features/staff/ReportsPage'),
+)
+
+const StaffReportDetailPage = lazy(
+  () => import('@/features/staff/ReportDetailPage'),
+)
 
 export const router = createBrowserRouter([
   {
