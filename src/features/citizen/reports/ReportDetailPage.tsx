@@ -16,6 +16,10 @@ import {
   useCitizenReportDetail,
   useCitizenReportTimeline,
 } from './citizen-report.queries'
+import {
+  resolveApiOrigin,
+  resolveImageUrl,
+} from './report-image-url'
 
 interface ReportDetailLocationState {
   created?: boolean
@@ -41,24 +45,6 @@ function DetailItem({
       </div>
     </div>
   )
-}
-
-function resolveImageUrl(
-  imageUrl: string,
-  apiOrigin: string,
-): string {
-  if (
-    imageUrl.startsWith('http://') ||
-    imageUrl.startsWith('https://')
-  ) {
-    return imageUrl
-  }
-
-  const normalizedPath = imageUrl.startsWith('/')
-    ? imageUrl
-    : `/${imageUrl}`
-
-  return `${apiOrigin}${normalizedPath}`
 }
 
 function formatDateTime(
@@ -139,7 +125,10 @@ export default function ReportDetailPage() {
   const { reportId = '' } = useParams()
   const location = useLocation()
 
-  const apiOrigin = new URL(env.apiBaseUrl).origin
+  const apiOrigin = resolveApiOrigin(
+    env.apiBaseUrl,
+    window.location.origin,
+  )
 
   const locationState =
     location.state as ReportDetailLocationState | null
@@ -429,6 +418,24 @@ export default function ReportDetailPage() {
 
             <p className="mt-2 whitespace-pre-wrap text-sm text-blue-800 dark:text-blue-400">
               {report.reopenReason}
+            </p>
+          </div>
+        )}
+
+        {report.hasSubmittedComplaint && (
+          <div className="mt-6 rounded-lg border border-orange-200 bg-orange-50 p-4 dark:border-orange-900 dark:bg-orange-950/40">
+            <h2 className="font-semibold text-orange-900 dark:text-orange-300">
+              Yêu cầu xử lý thêm đã gửi
+            </h2>
+
+            <p className="mt-1 text-xs text-orange-700 dark:text-orange-400">
+              Thời gian gửi:{' '}
+              {formatDateTime(report.complaintSubmittedAt)}
+            </p>
+
+            <p className="mt-3 whitespace-pre-wrap text-sm text-orange-800 dark:text-orange-300">
+              {report.complaintReason ??
+                'Không có nội dung yêu cầu.'}
             </p>
           </div>
         )}

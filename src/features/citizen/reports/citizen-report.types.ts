@@ -120,6 +120,9 @@ export interface CitizenReportDetail {
   rejectedReason: string | null
   reopenedAt: string | null
   reopenReason: string | null
+  hasSubmittedComplaint: boolean
+  complaintSubmittedAt: string | null
+  complaintReason: string | null
 }
 
 export interface ReportTimelineItem {
