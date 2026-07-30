@@ -8,7 +8,7 @@ export const publicCatalogKeys = {
   categories: () =>
     [...publicCatalogKeys.all, 'categories'] as const,
 
-  areas: (parentAreaId?: number | null) =>
+  areas: (parentAreaId: number | null = null) =>
     [
       ...publicCatalogKeys.all,
       'areas',
@@ -25,7 +25,7 @@ export function usePublicCategories() {
 }
 
 export function usePublicAreas(
-  parentAreaId?: number | null,
+  parentAreaId: number | null = null,
   enabled = true,
 ) {
   return useQuery({
