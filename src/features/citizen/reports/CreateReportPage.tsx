@@ -13,7 +13,12 @@ import { ImageUploader } from '@/features/reports/components/ImageUploader'
 import { LocationPicker } from '@/features/reports/components/LocationPicker'
 import type { LatLng } from '@/features/reports/report-form.types'
 
+import { DuplicateReportsDialog } from './DuplicateReportsDialog'
 import { citizenReportApi } from './citizen-report.api'
+import type {
+  CheckDuplicateReportsResult,
+  CreateReportRequest,
+} from './citizen-report.types'
 
 interface AreaSelection {
   parentAreaId: number | null
@@ -29,6 +34,11 @@ interface FormErrors {
   location?: string
   images?: string
 }
+
+type SubmitStage =
+  | 'idle'
+  | 'checking'
+  | 'creating'
 
 const inputClass =
   'mt-1 w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none transition focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-gray-100'
@@ -71,8 +81,18 @@ export default function CreateReportPage() {
   const [submitError, setSubmitError] =
     useState('')
 
-  const [submitting, setSubmitting] =
-    useState(false)
+  const [submitStage, setSubmitStage] =
+    useState<SubmitStage>('idle')
+
+  const [duplicateResult, setDuplicateResult] =
+    useState<CheckDuplicateReportsResult | null>(
+      null,
+    )
+
+  const [pendingReport, setPendingReport] =
+    useState<CreateReportRequest | null>(null)
+
+  const submitting = submitStage !== 'idle'
 
   function clearFieldError(
     field: keyof FormErrors,
@@ -143,6 +163,25 @@ export default function CreateReportPage() {
     return Object.keys(errors).length === 0
   }
 
+  async function createReport(
+    payload: CreateReportRequest,
+  ) {
+    const result =
+      await citizenReportApi.createReport(
+        payload,
+      )
+
+    navigate(
+      `/citizen/reports/${result.id}`,
+      {
+        replace: true,
+        state: {
+          created: true,
+        },
+      },
+    )
+  }
+
   async function handleSubmit(
     event: FormEvent<HTMLFormElement>,
   ) {
@@ -165,37 +204,74 @@ export default function CreateReportPage() {
       return
     }
 
-    setSubmitting(true)
+    const payload: CreateReportRequest = {
+      categoryId,
+      areaId: selectedArea.areaId,
+      description: description.trim(),
+      addressText:
+        addressText.trim() || undefined,
+      latitude: location.latitude,
+      longitude: location.longitude,
+      images,
+    }
+
+    setSubmitStage('checking')
 
     try {
-      const result =
-        await citizenReportApi.createReport({
+      const duplicateCheck =
+        await citizenReportApi.checkDuplicates({
           categoryId,
-          areaId: selectedArea.areaId,
-          description: description.trim(),
-          addressText:
-            addressText.trim() || undefined,
           latitude: location.latitude,
           longitude: location.longitude,
-          images,
         })
 
-      navigate(
-        `/citizen/reports/${result.id}`,
-        {
-          replace: true,
-          state: {
-            created: true,
-          },
-        },
-      )
+      if (
+        duplicateCheck.hasPossibleDuplicates &&
+        duplicateCheck.reports.length > 0
+      ) {
+        setPendingReport(payload)
+        setDuplicateResult(duplicateCheck)
+        return
+      }
+
+      setSubmitStage('creating')
+      await createReport(payload)
     } catch (error) {
       setSubmitError(
         getErrorMessage(error),
       )
     } finally {
-      setSubmitting(false)
+      setSubmitStage('idle')
     }
+  }
+
+  async function handleConfirmCreate() {
+    if (!pendingReport || submitting) {
+      return
+    }
+
+    setSubmitError('')
+    setSubmitStage('creating')
+
+    try {
+      await createReport(pendingReport)
+    } catch (error) {
+      setSubmitError(
+        getErrorMessage(error),
+      )
+    } finally {
+      setSubmitStage('idle')
+    }
+  }
+
+  function handleDismissDuplicates() {
+    if (submitting) {
+      return
+    }
+
+    setDuplicateResult(null)
+    setPendingReport(null)
+    setSubmitError('')
   }
 
   return (
@@ -455,12 +531,26 @@ export default function CreateReportPage() {
             disabled={submitting}
             className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {submitting
-              ? 'Đang gửi phản ánh...'
-              : 'Gửi phản ánh'}
+            {submitStage === 'checking'
+              ? 'Đang kiểm tra trùng...'
+              : submitStage === 'creating'
+                ? 'Đang gửi phản ánh...'
+                : 'Gửi phản ánh'}
           </button>
         </div>
       </form>
+
+      {duplicateResult && (
+        <DuplicateReportsDialog
+          result={duplicateResult}
+          isCreating={
+            submitStage === 'creating'
+          }
+          error={submitError || undefined}
+          onCancel={handleDismissDuplicates}
+          onConfirm={handleConfirmCreate}
+        />
+      )}
     </div>
   )
 }

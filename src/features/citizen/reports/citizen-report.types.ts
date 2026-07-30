@@ -30,6 +30,30 @@ export interface CreateReportRequest {
   images: File[]
 }
 
+export interface CheckDuplicateReportsRequest {
+  categoryId: number
+  latitude: number
+  longitude: number
+}
+
+export interface DuplicateReport {
+  id: string
+  description: string
+  latitude: number
+  longitude: number
+  distanceInMeters: number
+  status: ReportStatus
+  upvoteCount: number
+  thumbnailUrl: string | null
+  createdAt: string
+}
+
+export interface CheckDuplicateReportsResult {
+  hasPossibleDuplicates: boolean
+  searchRadiusInMeters: number
+  reports: DuplicateReport[]
+}
+
 export interface CreateReportResult {
   id: string
   status: ReportStatus

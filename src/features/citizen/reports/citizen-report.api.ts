@@ -1,6 +1,8 @@
 import { http } from '@/lib/api/http'
 
 import type {
+  CheckDuplicateReportsRequest,
+  CheckDuplicateReportsResult,
   CitizenReportDetail,
   CitizenReportsResponse,
   CreateReportRequest,
@@ -17,6 +19,18 @@ export interface GetCitizenReportsParams {
 }
 
 export const citizenReportApi = {
+  async checkDuplicates(
+    payload: CheckDuplicateReportsRequest,
+  ): Promise<CheckDuplicateReportsResult> {
+    const response =
+      await http.post<CheckDuplicateReportsResult>(
+        '/citizen/reports/check-duplicates',
+        payload,
+      )
+
+    return response.data
+  },
+
   async createReport(
     payload: CreateReportRequest,
   ): Promise<CreateReportResult> {
