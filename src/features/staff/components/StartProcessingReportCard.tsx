@@ -5,9 +5,7 @@ interface StartProcessingReportCardProps {
   reportId: string
 }
 
-export function StartProcessingReportCard({
-  reportId,
-}: StartProcessingReportCardProps) {
+export function StartProcessingReportCard({ reportId }: StartProcessingReportCardProps) {
   const startProcessing = useStartProcessingReport(reportId)
 
   return (
@@ -30,9 +28,7 @@ export function StartProcessingReportCard({
         }}
         className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {startProcessing.isPending
-          ? 'Đang bắt đầu...'
-          : 'Bắt đầu xử lý'}
+        {startProcessing.isPending ? 'Đang bắt đầu...' : 'Bắt đầu xử lý'}
       </button>
 
       {startProcessing.isError && (

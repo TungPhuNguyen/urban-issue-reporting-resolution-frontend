@@ -1,6 +1,6 @@
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
-import { getImageUrl } from '@/lib/utils/image'
+import { getImageUrl } from '../image'
 
 import { useStaffReportTimeline } from '../staff.queries'
 

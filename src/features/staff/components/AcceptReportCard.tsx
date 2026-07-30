@@ -56,9 +56,7 @@ export function AcceptReportCard({ reportId }: AcceptReportCardProps) {
             value={priority}
             required
             disabled={acceptReport.isPending}
-            onChange={(event) =>
-              setPriority(event.target.value as ReportPriority | '')
-            }
+            onChange={(event) => setPriority(event.target.value as ReportPriority | '')}
             className="w-full rounded-lg border border-gray-300 p-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-800"
           >
             <option value="">-- Chọn mức ưu tiên --</option>
@@ -101,9 +99,7 @@ export function AcceptReportCard({ reportId }: AcceptReportCardProps) {
           disabled={acceptReport.isPending || priority === ''}
           className="mt-4 rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {acceptReport.isPending
-            ? 'Đang tiếp nhận...'
-            : 'Tiếp nhận báo cáo'}
+          {acceptReport.isPending ? 'Đang tiếp nhận...' : 'Tiếp nhận báo cáo'}
         </button>
       </form>
 

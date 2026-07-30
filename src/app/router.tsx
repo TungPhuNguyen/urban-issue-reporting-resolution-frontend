@@ -26,29 +26,17 @@ const LoginPage = lazy(() =>
 
 const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
 
-const AdminDashboardPage = lazy(
-  () => import('@/features/admin/DashboardPage'),
-)
+const AdminDashboardPage = lazy(() => import('@/features/admin/DashboardPage'))
 
-const CitizenReportsPage = lazy(
-  () => import('@/features/citizen/ReportsPage'),
-)
+const CitizenReportsPage = lazy(() => import('@/features/citizen/ReportsPage'))
 
-const CreateReportPage = lazy(
-  () => import('@/features/citizen/reports/CreateReportPage'),
-)
+const CreateReportPage = lazy(() => import('@/features/citizen/reports/CreateReportPage'))
 
-const ReportDetailPage = lazy(
-  () => import('@/features/citizen/reports/ReportDetailPage'),
-)
+const ReportDetailPage = lazy(() => import('@/features/citizen/reports/ReportDetailPage'))
 
-const StaffReportsPage = lazy(
-  () => import('@/features/staff/ReportsPage'),
-)
+const StaffReportsPage = lazy(() => import('@/features/staff/ReportsPage'))
 
-const StaffReportDetailPage = lazy(
-  () => import('@/features/staff/ReportDetailPage'),
-)
+const StaffReportDetailPage = lazy(() => import('@/features/staff/ReportDetailPage'))
 
 export const router = createBrowserRouter([
   {

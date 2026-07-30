@@ -76,10 +76,7 @@ export const staffReportApi = {
     return response.data
   },
 
-  async addProgressNote(
-    reportId: string,
-    note: string,
-  ): Promise<StaffProgressUpdate> {
+  async addProgressNote(reportId: string, note: string): Promise<StaffProgressUpdate> {
     const response = await http.post<StaffProgressUpdate>(
       `/staff/reports/${reportId}/progress-notes`,
       {

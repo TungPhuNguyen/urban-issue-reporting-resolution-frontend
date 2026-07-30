@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
-import { getImageUrl } from '@/lib/utils/image'
+import { getImageUrl } from './image'
 
 import { AcceptReportCard } from './components/AcceptReportCard'
 import { ProgressUpdateCard } from './components/ProgressUpdateCard'
