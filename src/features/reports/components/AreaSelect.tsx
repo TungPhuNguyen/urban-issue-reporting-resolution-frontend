@@ -4,7 +4,7 @@ interface AreaSelectProps {
   id?: string
   value: number | null
   onChange: (areaId: number | null) => void
-  parentAreaId?: number
+  parentAreaId?: number | null
   enabled?: boolean
   disabled?: boolean
   error?: string
@@ -17,7 +17,7 @@ export function AreaSelect({
   id = 'areaId',
   value,
   onChange,
-  parentAreaId,
+  parentAreaId = null,
   enabled = true,
   disabled = false,
   error,

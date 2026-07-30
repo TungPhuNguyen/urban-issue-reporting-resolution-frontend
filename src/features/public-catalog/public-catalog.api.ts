@@ -14,18 +14,21 @@ export const publicCatalogApi = {
   },
 
   async getAreas(
-    parentAreaId?: number,
+    parentAreaId: number | null,
   ): Promise<Area[]> {
     const response = await http.get<Area[]>(
       '/public/areas',
       {
         params:
-          parentAreaId !== undefined
+          parentAreaId !== null
             ? { parentAreaId }
             : undefined,
       },
     )
 
-    return response.data
+    return response.data.filter(
+      (area) =>
+        area.parentAreaId === parentAreaId,
+    )
   },
 }

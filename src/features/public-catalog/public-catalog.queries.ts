@@ -8,7 +8,7 @@ export const publicCatalogKeys = {
   categories: () =>
     [...publicCatalogKeys.all, 'categories'] as const,
 
-  areas: (parentAreaId?: number) =>
+  areas: (parentAreaId?: number | null) =>
     [
       ...publicCatalogKeys.all,
       'areas',
@@ -25,13 +25,13 @@ export function usePublicCategories() {
 }
 
 export function usePublicAreas(
-  parentAreaId?: number,
+  parentAreaId?: number | null,
   enabled = true,
 ) {
   return useQuery({
     queryKey: publicCatalogKeys.areas(parentAreaId),
     queryFn: () =>
-      publicCatalogApi.getAreas(parentAreaId),
+      publicCatalogApi.getAreas(parentAreaId ?? null),
     staleTime: 5 * 60 * 1000,
     enabled,
   })
