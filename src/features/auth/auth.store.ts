@@ -4,10 +4,7 @@ import { persist } from 'zustand/middleware'
 import { tokenStorage } from '@/lib/api/token-storage'
 
 import { authApi } from './auth.api'
-import type {
-  AuthUser,
-  LoginRequest,
-} from './auth.types'
+import type { AuthUser, LoginRequest } from './auth.types'
 
 import { queryClient } from '@/app/query-client'
 
@@ -52,10 +49,7 @@ export const useAuthStore = create<AuthState>()(
             departmentId: response.departmentId,
           }
 
-          tokenStorage.set(
-            response.accessToken,
-            response.refreshToken,
-          )
+          tokenStorage.set(response.accessToken, response.refreshToken)
 
           set({
             user,

@@ -8,8 +8,7 @@ export const REPORT_STATUS = {
   Rejected: 'Rejected',
 } as const
 
-export type ReportStatus =
-  (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]
+export type ReportStatus = (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]
 
 export const REPORT_PRIORITY = {
   Low: 'Low',
@@ -17,8 +16,7 @@ export const REPORT_PRIORITY = {
   High: 'High',
 } as const
 
-export type ReportPriority =
-  (typeof REPORT_PRIORITY)[keyof typeof REPORT_PRIORITY]
+export type ReportPriority = (typeof REPORT_PRIORITY)[keyof typeof REPORT_PRIORITY]
 
 export interface CreateReportRequest {
   categoryId: number
@@ -28,6 +26,30 @@ export interface CreateReportRequest {
   latitude: number
   longitude: number
   images: File[]
+}
+
+export interface CheckDuplicateReportsRequest {
+  categoryId: number
+  latitude: number
+  longitude: number
+}
+
+export interface DuplicateReport {
+  id: string
+  description: string
+  latitude: number
+  longitude: number
+  distanceInMeters: number
+  status: ReportStatus
+  upvoteCount: number
+  thumbnailUrl: string | null
+  createdAt: string
+}
+
+export interface CheckDuplicateReportsResult {
+  hasPossibleDuplicates: boolean
+  searchRadiusInMeters: number
+  reports: DuplicateReport[]
 }
 
 export interface CreateReportResult {
@@ -97,8 +119,8 @@ export interface CitizenReportDetail {
   reopenedAt: string | null
   reopenReason: string | null
   hasSubmittedComplaint: boolean
-complaintSubmittedAt: string | null
-complaintReason: string | null
+  complaintSubmittedAt: string | null
+  complaintReason: string | null
 }
 
 export interface ReportTimelineItem {
@@ -106,6 +128,8 @@ export interface ReportTimelineItem {
   oldStatus: ReportStatus | null
   newStatus: ReportStatus
   note: string | null
+  updatedByUserId: string | null
+  updatedByUserName: string | null
   createdAt: string
   imageUrls: string[]
 }
@@ -118,6 +142,7 @@ export interface ReportTimeline {
 
 export type CitizenReportsResponse =
   PagedResult<CitizenReportSummary>
+  
 export interface SubmitComplaintInput {
   reportId: string
   reason: string
@@ -136,3 +161,4 @@ export interface CloseCitizenReportInput {
   reportId: string
   note?: string
 }
+

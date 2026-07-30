@@ -6,16 +6,11 @@ import CitizenLayout from '@/components/layout/CitizenLayout'
 import PublicLayout from '@/components/layout/PublicLayout'
 import StaffLayout from '@/components/layout/StaffLayout'
 
-import AdminDashboardPage from '@/features/admin/DashboardPage'
 import AdminReportDetailPage from '@/features/admin/reports/AdminReportDetailPage'
 import ManualAssignmentQueuePage from '@/features/admin/reports/ManualAssignmentQueuePage'
 import ProtectedRoute from '@/features/auth/ProtectedRoute'
 import RoleRoute from '@/features/auth/RoleRoute'
-import CitizenReportsPage from '@/features/citizen/ReportsPage'
-import CreateReportPage from '@/features/citizen/reports/CreateReportPage'
-import ReportDetailPage from '@/features/citizen/reports/ReportDetailPage'
-import StaffReportsPage from '@/features/staff/ReportsPage'
-import StaffReportDetailPage from '@/features/staff/reports/StaffReportDetailPage'
+
 import RoutingRulesPage from '@/features/admin/routing-rules/RoutingRulesPage'
 import SlaConfigsPage from '@/features/admin/sla-configs/SlaConfigsPage'
 import CategoriesPage from '@/features/admin/categories/CategoriesPage'
@@ -24,8 +19,6 @@ import DepartmentsPage from '@/features/admin/departments/DepartmentsPage'
 import NotificationsPage from '@/features/notifications/NotificationsPage'
 
 import OverdueReportsPage from '@/features/overdue-reports/OverdueReportsPage'
-
-
 
 import ForbiddenPage from '@/pages/ForbiddenPage'
 import { NotFoundPage } from '@/pages/NotFoundPage'
@@ -44,9 +37,19 @@ const LoginPage = lazy(() =>
   ),
 )
 
-const RegisterPage = lazy(
-  () => import('@/features/auth/RegisterPage'),
-)
+const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
+
+const AdminDashboardPage = lazy(() => import('@/features/admin/DashboardPage'))
+
+const CitizenReportsPage = lazy(() => import('@/features/citizen/ReportsPage'))
+
+const CreateReportPage = lazy(() => import('@/features/citizen/reports/CreateReportPage'))
+
+const ReportDetailPage = lazy(() => import('@/features/citizen/reports/ReportDetailPage'))
+
+const StaffReportsPage = lazy(() => import('@/features/staff/ReportsPage'))
+
+const StaffReportDetailPage = lazy(() => import('@/features/staff/ReportDetailPage'))
 
 export const router = createBrowserRouter([
   {
@@ -80,12 +83,7 @@ export const router = createBrowserRouter([
 
     children: [
       {
-        element: (
-          <RoleRoute
-            allowedRoles={['Citizen']}
-          />
-        ),
-
+        element: <RoleRoute allowedRoles={['Citizen']} />,
         children: [
           {
             path: 'citizen',
