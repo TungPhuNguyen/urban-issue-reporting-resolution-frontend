@@ -81,6 +81,9 @@ export function useCitizenReports(
       citizenReportApi.getMyReports(params),
 
     enabled: Boolean(userId),
+
+    placeholderData: (previousData) =>
+      previousData,
   })
 }
 
