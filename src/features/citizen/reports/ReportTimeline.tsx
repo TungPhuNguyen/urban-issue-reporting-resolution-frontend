@@ -1,33 +1,29 @@
 import { Spinner } from '@/components/ui/Spinner'
 
 import { ReportStatusBadge } from './ReportStatusBadge'
+import { resolveImageUrl } from './report-image-url'
 import type {
   ReportTimeline as ReportTimelineData,
+  ReportTimelineItem,
 } from './citizen-report.types'
 
 interface ReportTimelineProps {
   timeline: ReportTimelineData | undefined
   isLoading: boolean
+  isFetching: boolean
   error: unknown
   apiOrigin: string
+  onRetry: () => void
 }
 
-function resolveImageUrl(
-  imageUrl: string,
-  apiOrigin: string,
-): string {
-  if (
-    imageUrl.startsWith('http://') ||
-    imageUrl.startsWith('https://')
-  ) {
-    return imageUrl
+function getUpdatedByLabel(item: ReportTimelineItem): string {
+  const updatedByUserName = item.updatedByUserName?.trim()
+
+  if (updatedByUserName) {
+    return updatedByUserName
   }
 
-  const normalizedPath = imageUrl.startsWith('/')
-    ? imageUrl
-    : `/${imageUrl}`
-
-  return `${apiOrigin}${normalizedPath}`
+  return item.updatedByUserId ? 'Người dùng không xác định' : 'Hệ thống'
 }
 
 function formatDateTime(value: string): string {
@@ -43,8 +39,10 @@ function formatDateTime(value: string): string {
 export function ReportTimeline({
   timeline,
   isLoading,
+  isFetching,
   error,
   apiOrigin,
+  onRetry,
 }: ReportTimelineProps) {
   if (isLoading) {
     return (
@@ -70,6 +68,15 @@ export function ReportTimeline({
         <p className="mt-3 text-sm text-red-600 dark:text-red-400">
           Không thể tải tiến trình xử lý.
         </p>
+
+        <button
+          type="button"
+          disabled={isFetching}
+          onClick={onRetry}
+          className="mt-3 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+        >
+          {isFetching ? 'Đang tải lại...' : 'Thử lại'}
+        </button>
       </section>
     )
   }
@@ -98,9 +105,7 @@ export function ReportTimeline({
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
           <span>Trạng thái hiện tại:</span>
 
-          <ReportStatusBadge
-            status={timeline.currentStatus}
-          />
+          <ReportStatusBadge status={timeline.currentStatus} />
         </div>
       </div>
 
@@ -116,9 +121,7 @@ export function ReportTimeline({
                   {index + 1}
                 </span>
 
-                <ReportStatusBadge
-                  status={item.newStatus}
-                />
+                <ReportStatusBadge status={item.newStatus} />
               </div>
 
               <time className="text-xs text-gray-500 dark:text-gray-400">
@@ -128,45 +131,43 @@ export function ReportTimeline({
 
             {item.oldStatus && (
               <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                Trạng thái được cập nhật từ{' '}
-                <strong>{item.oldStatus}</strong> sang{' '}
+                Trạng thái được cập nhật từ <strong>{item.oldStatus}</strong> sang{' '}
                 <strong>{item.newStatus}</strong>.
               </p>
             )}
 
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              {`Người cập nhật: ${getUpdatedByLabel(item)}`}
+            </p>
+
             {item.note && (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-300">
+              <p className="mt-3 text-sm leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
                 {item.note}
               </p>
             )}
 
             {item.imageUrls.length > 0 && (
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {item.imageUrls.map(
-                  (imageUrl, imageIndex) => {
-                    const resolvedUrl = resolveImageUrl(
-                      imageUrl,
-                      apiOrigin,
-                    )
+                {item.imageUrls.map((imageUrl, imageIndex) => {
+                  const resolvedUrl = resolveImageUrl(imageUrl, apiOrigin)
 
-                    return (
-                      <a
-                        key={`${imageUrl}-${imageIndex}`}
-                        href={resolvedUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="overflow-hidden rounded-lg bg-black/5 dark:bg-white/5"
-                      >
-                        <img
-                          src={resolvedUrl}
-                          alt={`Ảnh tiến trình ${imageIndex + 1}`}
-                          className="h-48 w-full object-cover transition-transform hover:scale-105"
-                          loading="lazy"
-                        />
-                      </a>
-                    )
-                  },
-                )}
+                  return (
+                    <a
+                      key={`${imageUrl}-${imageIndex}`}
+                      href={resolvedUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="overflow-hidden rounded-lg bg-black/5 dark:bg-white/5"
+                    >
+                      <img
+                        src={resolvedUrl}
+                        alt={`Ảnh tiến trình ${imageIndex + 1}`}
+                        className="h-48 w-full object-cover transition-transform hover:scale-105"
+                        loading="lazy"
+                      />
+                    </a>
+                  )
+                })}
               </div>
             )}
           </article>
