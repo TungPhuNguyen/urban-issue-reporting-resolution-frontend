@@ -1,10 +1,14 @@
-import type { ReactNode } from 'react'
+import {
+  type ReactNode,
+  useState,
+} from 'react'
 import {
   Link,
   useLocation,
   useParams,
 } from 'react-router-dom'
 
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { env } from '@/config/env'
@@ -15,6 +19,8 @@ import { ReportTimeline } from './ReportTimeline'
 import {
   useCitizenReportDetail,
   useCitizenReportTimeline,
+  useCloseCitizenReport,
+  useSubmitComplaint,
 } from './citizen-report.queries'
 
 interface ReportDetailLocationState {
@@ -139,6 +145,32 @@ export default function ReportDetailPage() {
   const { reportId = '' } = useParams()
   const location = useLocation()
 
+  const [closeNote, setCloseNote] =
+    useState('')
+
+  const [closeError, setCloseError] =
+    useState<string | null>(null)
+
+  const [closeSuccess, setCloseSuccess] =
+    useState<string | null>(null)
+
+  const [showCloseConfirm, setShowCloseConfirm] =
+    useState(false)
+
+  const [complaintReason, setComplaintReason] =
+    useState('')
+
+  const [complaintError, setComplaintError] =
+    useState<string | null>(null)
+
+  const [complaintSuccess, setComplaintSuccess] =
+    useState<string | null>(null)
+
+  const [
+    showComplaintConfirm,
+    setShowComplaintConfirm,
+  ] = useState(false)
+
   const apiOrigin = new URL(env.apiBaseUrl).origin
 
   const locationState =
@@ -160,6 +192,12 @@ export default function ReportDetailPage() {
     isLoading: isTimelineLoading,
     error: timelineError,
   } = useCitizenReportTimeline(reportId)
+
+  const closeMutation =
+    useCloseCitizenReport()
+
+  const complaintMutation =
+    useSubmitComplaint()
 
   if (!reportId) {
     return (
@@ -223,6 +261,99 @@ export default function ReportDetailPage() {
   const isAutomaticallyAssigned =
     !report.requiresManualAssignment &&
     report.departmentId !== null
+
+  const canClose =
+    report.status === 'Resolved' &&
+    !report.complaintSubmittedAt
+
+  const canSubmitComplaint =
+    report.status === 'Resolved' &&
+    !report.hasSubmittedComplaint &&
+    !report.complaintSubmittedAt
+
+  async function handleCloseReport() {
+    setCloseError(null)
+    setCloseSuccess(null)
+
+    const normalizedNote =
+      closeNote.trim()
+
+    if (normalizedNote.length > 1000) {
+      setCloseError(
+        'Ghi chú không được vượt quá 1000 ký tự.',
+      )
+
+      return
+    }
+
+    try {
+      await closeMutation.mutateAsync({
+        reportId,
+        note: normalizedNote || undefined,
+      })
+
+      setShowCloseConfirm(false)
+      setCloseSuccess(
+        'Đã đóng báo cáo thành công.',
+      )
+
+      await refetch()
+    } catch (closeRequestError) {
+      setShowCloseConfirm(false)
+
+      setCloseError(
+        closeRequestError instanceof ApiError
+          ? closeRequestError.message
+          : 'Không thể đóng báo cáo.',
+      )
+    }
+  }
+
+  async function handleSubmitComplaint() {
+    setComplaintError(null)
+    setComplaintSuccess(null)
+
+    const normalizedReason =
+      complaintReason.trim()
+
+    if (normalizedReason.length < 10) {
+      setComplaintError(
+        'Lý do yêu cầu mở lại phải có ít nhất 10 ký tự.',
+      )
+
+      return
+    }
+
+    if (normalizedReason.length > 2000) {
+      setComplaintError(
+        'Lý do yêu cầu mở lại không được vượt quá 2000 ký tự.',
+      )
+
+      return
+    }
+
+    try {
+      await complaintMutation.mutateAsync({
+        reportId,
+        reason: normalizedReason,
+      })
+
+      setShowComplaintConfirm(false)
+      setComplaintSuccess(
+        'Đã gửi yêu cầu mở lại báo cáo.',
+      )
+
+      await refetch()
+    } catch (complaintRequestError) {
+      setShowComplaintConfirm(false)
+
+      setComplaintError(
+        complaintRequestError instanceof ApiError
+          ? complaintRequestError.message
+          : 'Không thể gửi yêu cầu mở lại.',
+      )
+    }
+  }
 
   return (
     <section className="mx-auto flex max-w-5xl flex-col gap-5">
@@ -468,6 +599,257 @@ export default function ReportDetailPage() {
                     </a>
                   )
                 },
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Xác nhận kết quả xử lý
+          </h2>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Đóng báo cáo khi bạn xác nhận sự cố đã
+            được xử lý hoàn tất.
+          </p>
+
+          {report.status === 'Closed' ? (
+            <div className="mt-4 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">
+              Báo cáo đã được đóng
+              {report.closedAt
+                ? ` vào ${formatDateTime(report.closedAt)}`
+                : ''}
+              .
+            </div>
+          ) : report.complaintSubmittedAt ? (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
+              Không thể đóng báo cáo khi yêu cầu mở
+              lại đang chờ Admin xem xét.
+            </div>
+          ) : !canClose ? (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
+              Chỉ có thể đóng báo cáo ở trạng thái
+              Resolved.
+            </div>
+          ) : (
+            <div className="mt-4 flex max-w-2xl flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="closeNote"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Ghi chú xác nhận
+                </label>
+
+                <textarea
+                  id="closeNote"
+                  value={closeNote}
+                  rows={4}
+                  maxLength={1000}
+                  disabled={closeMutation.isPending}
+                  placeholder="Ghi chú xác nhận, không bắt buộc."
+                  onChange={(event) => {
+                    setCloseNote(event.target.value)
+                    setCloseError(null)
+                    setCloseSuccess(null)
+                  }}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-green-500 focus:ring-2 focus:ring-green-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                />
+
+                <p className="text-right text-xs text-gray-500">
+                  {closeNote.length}/1000
+                </p>
+              </div>
+
+              {closeError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {closeError}
+                </div>
+              )}
+
+              {closeSuccess && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+                  {closeSuccess}
+                </div>
+              )}
+
+              {!showCloseConfirm ? (
+                <div>
+                  <Button
+                    type="button"
+                    disabled={closeMutation.isPending}
+                    onClick={() => {
+                      setCloseError(null)
+                      setShowCloseConfirm(true)
+                    }}
+                  >
+                    Đóng báo cáo
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-4">
+                  <p className="text-sm font-medium text-green-900">
+                    Bạn xác nhận vấn đề đã được xử lý
+                    hoàn tất?
+                  </p>
+
+                  <p className="mt-1 text-sm text-green-800">
+                    Báo cáo sẽ chuyển sang trạng thái
+                    Closed.
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Button
+                      type="button"
+                      loading={closeMutation.isPending}
+                      disabled={closeMutation.isPending}
+                      onClick={handleCloseReport}
+                    >
+                      Xác nhận đóng
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={closeMutation.isPending}
+                      onClick={() =>
+                        setShowCloseConfirm(false)
+                      }
+                    >
+                      Hủy
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
+            Yêu cầu mở lại báo cáo
+          </h2>
+
+          <p className="mt-1 text-sm text-gray-500">
+            Gửi yêu cầu khi vấn đề chưa được xử lý
+            hoàn toàn hoặc đã tái diễn.
+          </p>
+
+          {report.complaintSubmittedAt ? (
+            <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300">
+              Yêu cầu mở lại đã được gửi và đang chờ
+              Admin xem xét.
+            </div>
+          ) : report.hasSubmittedComplaint ? (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
+              Báo cáo này đã từng được gửi yêu cầu
+              mở lại.
+            </div>
+          ) : !canSubmitComplaint ? (
+            <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
+              Chỉ có thể yêu cầu mở lại báo cáo ở
+              trạng thái Resolved.
+            </div>
+          ) : (
+            <div className="mt-4 flex max-w-2xl flex-col gap-4">
+              <div className="flex flex-col gap-1">
+                <label
+                  htmlFor="complaintReason"
+                  className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Lý do yêu cầu mở lại
+                </label>
+
+                <textarea
+                  id="complaintReason"
+                  value={complaintReason}
+                  rows={4}
+                  maxLength={2000}
+                  disabled={complaintMutation.isPending}
+                  placeholder="Mô tả lý do cần mở lại báo cáo, tối thiểu 10 ký tự."
+                  onChange={(event) => {
+                    setComplaintReason(
+                      event.target.value,
+                    )
+                    setComplaintError(null)
+                    setComplaintSuccess(null)
+                  }}
+                  className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-500/30 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+                />
+
+                <p className="text-right text-xs text-gray-500">
+                  {complaintReason.length}/2000
+                </p>
+              </div>
+
+              {complaintError && (
+                <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                  {complaintError}
+                </div>
+              )}
+
+              {complaintSuccess && (
+                <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-800">
+                  {complaintSuccess}
+                </div>
+              )}
+
+              {!showComplaintConfirm ? (
+                <div>
+                  <Button
+                    type="button"
+                    disabled={
+                      complaintMutation.isPending ||
+                      complaintReason.trim().length < 10
+                    }
+                    onClick={() => {
+                      setComplaintError(null)
+                      setShowComplaintConfirm(true)
+                    }}
+                  >
+                    Gửi yêu cầu mở lại
+                  </Button>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+                  <p className="text-sm font-medium text-blue-900">
+                    Xác nhận gửi yêu cầu mở lại?
+                  </p>
+
+                  <p className="mt-1 text-sm text-blue-800">
+                    Admin sẽ xem xét lý do trước khi
+                    quyết định mở lại báo cáo.
+                  </p>
+
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Button
+                      type="button"
+                      loading={
+                        complaintMutation.isPending
+                      }
+                      disabled={
+                        complaintMutation.isPending
+                      }
+                      onClick={handleSubmitComplaint}
+                    >
+                      Xác nhận gửi
+                    </Button>
+
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={
+                        complaintMutation.isPending
+                      }
+                      onClick={() =>
+                        setShowComplaintConfirm(false)
+                      }
+                    >
+                      Hủy
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
           )}

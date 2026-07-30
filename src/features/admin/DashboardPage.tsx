@@ -1,13 +1,351 @@
-export default function AdminDashboardPage() {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold">
-        Trang quản trị
-      </h1>
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-      <p className="mt-2 text-gray-600">
-        Thống kê và các chức năng quản trị hệ thống sẽ được hiển thị tại đây.
-      </p>
-    </div>
+import { Button } from '@/components/ui/Button'
+import { Card } from '@/components/ui/Card'
+import { Spinner } from '@/components/ui/Spinner'
+import { ApiError } from '@/lib/api/http'
+
+import { useAdminDashboard } from './dashboard/dashboard.queries'
+import type {
+  DashboardDateRange,
+  ReportsByAreaItem,
+  ReportsByCategoryItem,
+  ReportsByStatusItem,
+} from './dashboard/dashboard.types'
+
+const STATUS_LABELS: Record<string, string> = {
+  New: 'Mới',
+  Assigned: 'Đã phân công',
+  Accepted: 'Đã tiếp nhận',
+  InProgress: 'Đang xử lý',
+  Resolved: 'Đã xử lý',
+  Closed: 'Đã đóng',
+  Rejected: 'Bị từ chối',
+}
+
+function toInputDate(date: Date): string {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function defaultRange(): DashboardDateRange {
+  const toDate = new Date()
+  const fromDate = new Date()
+  fromDate.setDate(fromDate.getDate() - 29)
+
+  return {
+    fromDate: toInputDate(fromDate),
+    toDate: toInputDate(toDate),
+  }
+}
+
+function formatNumber(value: number): string {
+  return new Intl.NumberFormat('vi-VN').format(value)
+}
+
+function errorMessage(error: unknown): string {
+  if (error instanceof ApiError || error instanceof Error) {
+    return error.message
+  }
+
+  return 'Không thể tải dữ liệu dashboard.'
+}
+
+interface BreakdownCardProps {
+  title: string
+  emptyMessage: string
+  items: Array<{
+    key: string | number
+    label: string
+    count: number
+    percentage: number
+  }>
+}
+
+function BreakdownCard({
+  title,
+  emptyMessage,
+  items,
+}: BreakdownCardProps) {
+  return (
+    <Card className="p-5">
+      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+        {title}
+      </h2>
+
+      {items.length === 0 ? (
+        <p className="mt-5 text-sm text-gray-500">
+          {emptyMessage}
+        </p>
+      ) : (
+        <div className="mt-5 space-y-4">
+          {items.map((item) => (
+            <div key={item.key}>
+              <div className="mb-1.5 flex items-center justify-between gap-3 text-sm">
+                <span className="truncate font-medium text-gray-700 dark:text-gray-200">
+                  {item.label}
+                </span>
+                <span className="shrink-0 text-gray-500">
+                  {formatNumber(item.count)} · {item.percentage.toFixed(1)}%
+                </span>
+              </div>
+
+              <div className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
+                <div
+                  className="h-full rounded-full bg-brand-600"
+                  style={{
+                    width: `${Math.min(100, Math.max(0, item.percentage))}%`,
+                  }}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  )
+}
+
+export default function AdminDashboardPage() {
+  const navigate = useNavigate()
+  const initialRange = useMemo(defaultRange, [])
+  const [draftRange, setDraftRange] = useState(initialRange)
+  const [appliedRange, setAppliedRange] = useState(initialRange)
+  const [validationError, setValidationError] = useState<string | null>(null)
+
+  const dashboardQuery = useAdminDashboard(appliedRange)
+  const data = dashboardQuery.data
+
+  function applyRange() {
+    if (!draftRange.fromDate || !draftRange.toDate) {
+      setValidationError('Vui lòng chọn đầy đủ ngày bắt đầu và ngày kết thúc.')
+      return
+    }
+
+    if (draftRange.fromDate > draftRange.toDate) {
+      setValidationError('Ngày bắt đầu không được sau ngày kết thúc.')
+      return
+    }
+
+    setValidationError(null)
+    setAppliedRange({ ...draftRange })
+  }
+
+  const statusItems = (data?.reportsByStatus ?? []).map(
+    (item: ReportsByStatusItem) => ({
+      key: item.status,
+      label: STATUS_LABELS[item.status] ?? item.status,
+      count: item.reportCount,
+      percentage: item.percentage,
+    }),
+  )
+
+  const categoryItems = (data?.reportsByCategory ?? [])
+    .slice(0, 8)
+    .map((item: ReportsByCategoryItem) => ({
+      key: item.categoryId,
+      label: item.categoryName,
+      count: item.reportCount,
+      percentage: item.percentage,
+    }))
+
+  const areaItems = (data?.reportsByArea ?? [])
+    .slice(0, 8)
+    .map((item: ReportsByAreaItem) => ({
+      key: item.areaId,
+      label: item.areaName,
+      count: item.reportCount,
+      percentage: item.percentage,
+    }))
+
+  return (
+    <section className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+            Dashboard quản trị
+          </h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Tổng quan báo cáo sự cố trên toàn hệ thống.
+          </p>
+        </div>
+
+        <Button
+          type="button"
+          variant="secondary"
+          loading={dashboardQuery.isFetching}
+          onClick={() => void dashboardQuery.refetch()}
+        >
+          Làm mới
+        </Button>
+      </div>
+
+      <Card className="p-5">
+        <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-200">
+            Từ ngày
+            <input
+              type="date"
+              value={draftRange.fromDate}
+              max={draftRange.toDate || undefined}
+              onChange={(event) =>
+                setDraftRange((current) => ({
+                  ...current,
+                  fromDate: event.target.value,
+                }))
+              }
+              className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-950"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-200">
+            Đến ngày
+            <input
+              type="date"
+              value={draftRange.toDate}
+              min={draftRange.fromDate || undefined}
+              onChange={(event) =>
+                setDraftRange((current) => ({
+                  ...current,
+                  toDate: event.target.value,
+                }))
+              }
+              className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-950"
+            />
+          </label>
+
+          <Button type="button" onClick={applyRange}>
+            Áp dụng
+          </Button>
+        </div>
+
+        {validationError && (
+          <p className="mt-3 text-sm text-red-600">
+            {validationError}
+          </p>
+        )}
+      </Card>
+
+      {dashboardQuery.isPending ? (
+        <Card className="min-h-72">
+          <Spinner label="Đang tải dashboard..." />
+        </Card>
+      ) : dashboardQuery.isError ? (
+        <Card className="flex min-h-72 flex-col items-center justify-center gap-3 p-8 text-center">
+          <p className="font-medium text-red-600">
+            {errorMessage(dashboardQuery.error)}
+          </p>
+          <Button type="button" onClick={() => void dashboardQuery.refetch()}>
+            Thử lại
+          </Button>
+        </Card>
+      ) : data ? (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Card className="p-5">
+              <p className="text-sm text-gray-500">Tổng báo cáo</p>
+              <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {formatNumber(data.summary.totalReports)}
+              </p>
+            </Card>
+
+            <Card className="p-5">
+              <p className="text-sm text-gray-500">Đã xử lý / đóng</p>
+              <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {formatNumber(
+                  data.summary.resolvedReports + data.summary.closedReports,
+                )}
+              </p>
+              <p className="mt-1 text-xs text-gray-500">
+                Tỷ lệ {data.summary.resolutionRate.toFixed(2)}%
+              </p>
+            </Card>
+
+            <Card className="p-5">
+              <p className="text-sm text-gray-500">Đang quá hạn</p>
+              <p className="mt-2 text-3xl font-bold text-red-600">
+                {formatNumber(data.summary.activeOverdueReports)}
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="mt-2 px-0"
+                onClick={() => navigate('/admin/overdue-reports')}
+              >
+                Xem danh sách
+              </Button>
+            </Card>
+
+            <Card className="p-5">
+              <p className="text-sm text-gray-500">Đã Escalate</p>
+              <p className="mt-2 text-3xl font-bold text-orange-600">
+                {formatNumber(data.summary.escalatedReports)}
+              </p>
+            </Card>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <Card className="p-4">
+              <p className="text-sm text-gray-500">Chờ phân công thủ công</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {formatNumber(data.summary.requiresManualAssignmentReports)}
+              </p>
+              <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                className="mt-2 px-0"
+                onClick={() => navigate('/admin/reports/manual-assignment')}
+              >
+                Xử lý ngay
+              </Button>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-sm text-gray-500">Khiếu nại chờ xử lý</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {formatNumber(data.summary.pendingComplaintReports)}
+              </p>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-sm text-gray-500">Đang xử lý</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {formatNumber(data.summary.inProgressReports)}
+              </p>
+            </Card>
+
+            <Card className="p-4">
+              <p className="text-sm text-gray-500">Bị từ chối</p>
+              <p className="mt-1 text-2xl font-semibold">
+                {formatNumber(data.summary.rejectedReports)}
+              </p>
+            </Card>
+          </div>
+
+          <div className="grid gap-5 xl:grid-cols-3">
+            <BreakdownCard
+              title="Theo trạng thái"
+              emptyMessage="Không có dữ liệu trạng thái trong khoảng thời gian này."
+              items={statusItems}
+            />
+            <BreakdownCard
+              title="Theo loại sự cố"
+              emptyMessage="Không có dữ liệu loại sự cố trong khoảng thời gian này."
+              items={categoryItems}
+            />
+            <BreakdownCard
+              title="Theo khu vực"
+              emptyMessage="Không có dữ liệu khu vực trong khoảng thời gian này."
+              items={areaItems}
+            />
+          </div>
+        </>
+      ) : null}
+    </section>
   )
 }

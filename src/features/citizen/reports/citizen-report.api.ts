@@ -7,6 +7,9 @@ import type {
   CreateReportResult,
   ReportStatus,
   ReportTimeline,
+  SubmitComplaintInput,
+  PostResolutionActionResult,
+  CloseCitizenReportInput,
 } from './citizen-report.types'
 
 export interface GetCitizenReportsParams {
@@ -98,6 +101,34 @@ export const citizenReportApi = {
     const response =
       await http.get<ReportTimeline>(
         `/citizen/reports/${reportId}/timeline`,
+      )
+
+    return response.data
+  },
+  submitComplaint: async ({
+    reportId,
+    reason,
+  }: SubmitComplaintInput): Promise<PostResolutionActionResult> => {
+    const response =
+      await http.post<PostResolutionActionResult>(
+        `/citizen/reports/${reportId}/complaints`,
+        {
+          reason: reason.trim(),
+        },
+      )
+
+    return response.data
+  },
+  closeReport: async ({
+    reportId,
+    note,
+  }: CloseCitizenReportInput): Promise<PostResolutionActionResult> => {
+    const response =
+      await http.post<PostResolutionActionResult>(
+        `/citizen/reports/${reportId}/close`,
+        {
+          note: note?.trim() || null,
+        },
       )
 
     return response.data

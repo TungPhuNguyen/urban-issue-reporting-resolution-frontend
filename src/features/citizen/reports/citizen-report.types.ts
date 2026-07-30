@@ -96,6 +96,9 @@ export interface CitizenReportDetail {
   rejectedReason: string | null
   reopenedAt: string | null
   reopenReason: string | null
+  hasSubmittedComplaint: boolean
+complaintSubmittedAt: string | null
+complaintReason: string | null
 }
 
 export interface ReportTimelineItem {
@@ -115,3 +118,21 @@ export interface ReportTimeline {
 
 export type CitizenReportsResponse =
   PagedResult<CitizenReportSummary>
+export interface SubmitComplaintInput {
+  reportId: string
+  reason: string
+}
+
+export interface PostResolutionActionResult {
+  reportId: string
+  status: ReportStatus
+  complaintSubmittedAt: string | null
+  complaintDeadline: string | null
+  closedAt: string | null
+  reopenedAt: string | null
+  dueAt: string | null
+}
+export interface CloseCitizenReportInput {
+  reportId: string
+  note?: string
+}

@@ -5,6 +5,14 @@ const staffMenuItems = [
     label: 'Danh sách báo cáo',
     path: '/staff/reports',
   },
+  {
+    label: 'Báo cáo quá hạn',
+    path: '/staff/overdue-reports',
+  },
+  {
+    label: 'Thông báo',
+    path: '/staff/notifications',
+  },
 ]
 
 export default function StaffLayout() {

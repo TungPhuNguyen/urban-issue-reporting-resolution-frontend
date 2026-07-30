@@ -1,4 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 import { useAuthStore } from '@/features/auth/auth.store'
 import { ApiError } from '@/lib/api/http'
@@ -7,6 +11,11 @@ import {
   citizenReportApi,
   type GetCitizenReportsParams,
 } from './citizen-report.api'
+
+import type {
+  CloseCitizenReportInput,
+  SubmitComplaintInput,
+} from './citizen-report.types'
 
 export const citizenReportKeys = {
   all: ['citizen-reports'] as const,
@@ -53,7 +62,8 @@ function shouldRetry(
 ): boolean {
   if (
     error instanceof ApiError &&
-    (error.status === 403 || error.status === 404)
+    (error.status === 403 ||
+      error.status === 404)
   ) {
     return false
   }
@@ -98,7 +108,9 @@ export function useCitizenReportDetail(
     ),
 
     queryFn: () =>
-      citizenReportApi.getReportDetail(reportId),
+      citizenReportApi.getReportDetail(
+        reportId,
+      ),
 
     enabled: Boolean(userId && reportId),
 
@@ -120,10 +132,47 @@ export function useCitizenReportTimeline(
     ),
 
     queryFn: () =>
-      citizenReportApi.getReportTimeline(reportId),
+      citizenReportApi.getReportTimeline(
+        reportId,
+      ),
 
     enabled: Boolean(userId && reportId),
 
     retry: shouldRetry,
+  })
+}
+
+export function useSubmitComplaint() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (
+      input: SubmitComplaintInput,
+    ) =>
+      citizenReportApi.submitComplaint(
+        input,
+      ),
+
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: citizenReportKeys.all,
+      })
+    },
+  })
+}
+export function useCloseCitizenReport() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (
+      input: CloseCitizenReportInput,
+    ) =>
+      citizenReportApi.closeReport(input),
+
+    onSuccess: () => {
+      void queryClient.invalidateQueries({
+        queryKey: citizenReportKeys.all,
+      })
+    },
   })
 }
