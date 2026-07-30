@@ -1,8 +1,4 @@
-import {
-  fireEvent,
-  render,
-  screen,
-} from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ReportTimeline } from './ReportTimeline'
@@ -17,8 +13,7 @@ const timeline: ReportTimelineData = {
       oldStatus: 'InProgress',
       newStatus: 'Resolved',
       note: 'Đã hoàn thành xử lý.',
-      updatedByUserId:
-        '7a99a75b-927c-4f3e-bbe5-e7268dcf2765',
+      updatedByUserId: '7a99a75b-927c-4f3e-bbe5-e7268dcf2765',
       updatedByUserName: 'Nguyễn Văn An',
       createdAt: '2026-07-30T08:00:00Z',
       imageUrls: ['/uploads/progress/resolved.jpg'],
@@ -49,17 +44,11 @@ describe('ReportTimeline', () => {
       />,
     )
 
-    expect(
-      screen.getByText('Người cập nhật: Nguyễn Văn An'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Người cập nhật: Nguyễn Văn An')).toBeInTheDocument()
 
-    expect(
-      screen.getByText('Người cập nhật: Hệ thống'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Người cập nhật: Hệ thống')).toBeInTheDocument()
 
-    expect(
-      screen.getByAltText('Ảnh tiến trình 1'),
-    ).toHaveAttribute(
+    expect(screen.getByAltText('Ảnh tiến trình 1')).toHaveAttribute(
       'src',
       'https://urban-issue.example/uploads/progress/resolved.jpg',
     )

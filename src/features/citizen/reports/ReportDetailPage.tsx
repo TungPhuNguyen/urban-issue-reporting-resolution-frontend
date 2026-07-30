@@ -1,9 +1,5 @@
 import type { ReactNode } from 'react'
-import {
-  Link,
-  useLocation,
-  useParams,
-} from 'react-router-dom'
+import { Link, useLocation, useParams } from 'react-router-dom'
 
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
@@ -16,10 +12,7 @@ import {
   useCitizenReportDetail,
   useCitizenReportTimeline,
 } from './citizen-report.queries'
-import {
-  resolveApiOrigin,
-  resolveImageUrl,
-} from './report-image-url'
+import { resolveApiOrigin, resolveImageUrl } from './report-image-url'
 
 interface ReportDetailLocationState {
   created?: boolean
@@ -30,26 +23,17 @@ interface DetailItemProps {
   value: ReactNode
 }
 
-function DetailItem({
-  label,
-  value,
-}: DetailItemProps) {
+function DetailItem({ label, value }: DetailItemProps) {
   return (
     <div>
-      <p className="text-gray-500 dark:text-gray-400">
-        {label}
-      </p>
+      <p className="text-gray-500 dark:text-gray-400">{label}</p>
 
-      <div className="mt-1 font-medium text-gray-900 dark:text-gray-100">
-        {value}
-      </div>
+      <div className="mt-1 font-medium text-gray-900 dark:text-gray-100">{value}</div>
     </div>
   )
 }
 
-function formatDateTime(
-  value: string | null | undefined,
-): string {
+function formatDateTime(value: string | null | undefined): string {
   if (!value) {
     return 'Chưa cập nhật'
   }
@@ -63,9 +47,7 @@ function formatDateTime(
   return date.toLocaleString('vi-VN')
 }
 
-function getPriorityLabel(
-  priority: string | null | undefined,
-): string {
+function getPriorityLabel(priority: string | null | undefined): string {
   switch (priority) {
     case 'High':
       return 'Cao'
@@ -92,9 +74,7 @@ function ErrorCard({
 }) {
   return (
     <Card className="p-8 text-center">
-      <p className="font-medium text-red-600 dark:text-red-400">
-        {message}
-      </p>
+      <p className="font-medium text-red-600 dark:text-red-400">{message}</p>
 
       <div className="mt-5 flex flex-wrap justify-center gap-3">
         {onRetry && (
@@ -104,9 +84,7 @@ function ErrorCard({
             onClick={onRetry}
             className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
           >
-            {isRetrying
-              ? 'Đang tải lại...'
-              : 'Thử lại'}
+            {isRetrying ? 'Đang tải lại...' : 'Thử lại'}
           </button>
         )}
 
@@ -125,16 +103,11 @@ export default function ReportDetailPage() {
   const { reportId = '' } = useParams()
   const location = useLocation()
 
-  const apiOrigin = resolveApiOrigin(
-    env.apiBaseUrl,
-    window.location.origin,
-  )
+  const apiOrigin = resolveApiOrigin(env.apiBaseUrl, window.location.origin)
 
-  const locationState =
-    location.state as ReportDetailLocationState | null
+  const locationState = location.state as ReportDetailLocationState | null
 
-  const createdSuccessfully =
-    locationState?.created === true
+  const createdSuccessfully = locationState?.created === true
 
   const {
     data: report,
@@ -153,9 +126,7 @@ export default function ReportDetailPage() {
   } = useCitizenReportTimeline(reportId)
 
   if (!reportId) {
-    return (
-      <ErrorCard message="Mã phản ánh không hợp lệ." />
-    )
+    return <ErrorCard message="Mã phản ánh không hợp lệ." />
   }
 
   if (isLoading) {
@@ -174,17 +145,12 @@ export default function ReportDetailPage() {
     }
 
     if (error.status === 403) {
-      return (
-        <ErrorCard message="Bạn không có quyền xem phản ánh này." />
-      )
+      return <ErrorCard message="Bạn không có quyền xem phản ánh này." />
     }
 
     return (
       <ErrorCard
-        message={
-          error.message ||
-          'Không thể tải thông tin phản ánh.'
-        }
+        message={error.message || 'Không thể tải thông tin phản ánh.'}
         isRetrying={isFetching}
         onRetry={() => {
           void refetch()
@@ -206,14 +172,11 @@ export default function ReportDetailPage() {
   }
 
   if (!report) {
-    return (
-      <ErrorCard message="Không có dữ liệu phản ánh." />
-    )
+    return <ErrorCard message="Không có dữ liệu phản ánh." />
   }
 
   const isAutomaticallyAssigned =
-    !report.requiresManualAssignment &&
-    report.departmentId !== null
+    !report.requiresManualAssignment && report.departmentId !== null
 
   return (
     <section className="mx-auto flex max-w-5xl flex-col gap-5">
@@ -235,11 +198,11 @@ export default function ReportDetailPage() {
 
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">
+            <p className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
               Mã phản ánh
             </p>
 
-            <p className="mt-1 break-all text-sm text-gray-600 dark:text-gray-400">
+            <p className="mt-1 text-sm break-all text-gray-600 dark:text-gray-400">
               {report.id}
             </p>
 
@@ -263,9 +226,8 @@ export default function ReportDetailPage() {
               </h2>
 
               <p className="mt-1 text-sm text-yellow-800 dark:text-yellow-400">
-                Hiện chưa tìm thấy quy tắc phân công phù
-                hợp. Phản ánh đang chờ quản trị viên phân
-                công thủ công.
+                Hiện chưa tìm thấy quy tắc phân công phù hợp. Phản ánh đang chờ quản trị
+                viên phân công thủ công.
               </p>
             </div>
           ) : isAutomaticallyAssigned ? (
@@ -276,11 +238,7 @@ export default function ReportDetailPage() {
 
               <p className="mt-1 text-sm text-green-800 dark:text-green-400">
                 Phản ánh đã được hệ thống chuyển đến{' '}
-                <strong>
-                  {report.departmentName ??
-                    'đơn vị xử lý phù hợp'}
-                </strong>
-                .
+                <strong>{report.departmentName ?? 'đơn vị xử lý phù hợp'}</strong>.
               </p>
             </div>
           ) : (
@@ -297,64 +255,37 @@ export default function ReportDetailPage() {
             Mô tả sự cố
           </h2>
 
-          <p className="mt-2 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-300">
+          <p className="mt-2 text-sm leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
             {report.description}
           </p>
         </div>
 
         <div className="mt-6 grid gap-5 border-t border-gray-200 pt-5 text-sm sm:grid-cols-2 lg:grid-cols-3 dark:border-gray-800">
-          <DetailItem
-            label="Danh mục"
-            value={report.categoryName}
-          />
+          <DetailItem label="Danh mục" value={report.categoryName} />
 
-          <DetailItem
-            label="Khu vực"
-            value={report.areaName}
-          />
+          <DetailItem label="Khu vực" value={report.areaName} />
 
           <DetailItem
             label="Đơn vị xử lý"
-            value={
-              report.departmentName ??
-              'Chưa được phân công'
-            }
+            value={report.departmentName ?? 'Chưa được phân công'}
           />
 
-          <DetailItem
-            label="Mức ưu tiên"
-            value={getPriorityLabel(report.priority)}
-          />
+          <DetailItem label="Mức ưu tiên" value={getPriorityLabel(report.priority)} />
 
-          <DetailItem
-            label="Lượt ủng hộ"
-            value={report.upvoteCount}
-          />
+          <DetailItem label="Lượt ủng hộ" value={report.upvoteCount} />
 
-          <DetailItem
-            label="Ngày gửi"
-            value={formatDateTime(report.createdAt)}
-          />
+          <DetailItem label="Ngày gửi" value={formatDateTime(report.createdAt)} />
 
           <DetailItem
             label="Cập nhật gần nhất"
             value={formatDateTime(report.updatedAt)}
           />
 
-          <DetailItem
-            label="Vĩ độ"
-            value={report.latitude}
-          />
+          <DetailItem label="Vĩ độ" value={report.latitude} />
 
-          <DetailItem
-            label="Kinh độ"
-            value={report.longitude}
-          />
+          <DetailItem label="Kinh độ" value={report.longitude} />
 
-          <DetailItem
-            label="Bắt đầu SLA"
-            value={formatDateTime(report.slaStartedAt)}
-          />
+          <DetailItem label="Bắt đầu SLA" value={formatDateTime(report.slaStartedAt)} />
 
           <DetailItem
             label="Số giờ SLA"
@@ -365,38 +296,20 @@ export default function ReportDetailPage() {
             }
           />
 
-          <DetailItem
-            label="Thời hạn xử lý"
-            value={formatDateTime(report.dueAt)}
-          />
+          <DetailItem label="Thời hạn xử lý" value={formatDateTime(report.dueAt)} />
 
-          <DetailItem
-            label="Ngày tiếp nhận"
-            value={formatDateTime(report.acceptedAt)}
-          />
+          <DetailItem label="Ngày tiếp nhận" value={formatDateTime(report.acceptedAt)} />
 
-          <DetailItem
-            label="Ngày hoàn thành"
-            value={formatDateTime(report.resolvedAt)}
-          />
+          <DetailItem label="Ngày hoàn thành" value={formatDateTime(report.resolvedAt)} />
 
-          <DetailItem
-            label="Ngày đóng"
-            value={formatDateTime(report.closedAt)}
-          />
+          <DetailItem label="Ngày đóng" value={formatDateTime(report.closedAt)} />
 
           {report.rejectedAt && (
-            <DetailItem
-              label="Ngày từ chối"
-              value={formatDateTime(report.rejectedAt)}
-            />
+            <DetailItem label="Ngày từ chối" value={formatDateTime(report.rejectedAt)} />
           )}
 
           {report.reopenedAt && (
-            <DetailItem
-              label="Ngày mở lại"
-              value={formatDateTime(report.reopenedAt)}
-            />
+            <DetailItem label="Ngày mở lại" value={formatDateTime(report.reopenedAt)} />
           )}
         </div>
 
@@ -406,7 +319,7 @@ export default function ReportDetailPage() {
               Lý do từ chối
             </h2>
 
-            <p className="mt-2 whitespace-pre-wrap text-sm text-red-800 dark:text-red-400">
+            <p className="mt-2 text-sm whitespace-pre-wrap text-red-800 dark:text-red-400">
               {report.rejectedReason}
             </p>
           </div>
@@ -418,7 +331,7 @@ export default function ReportDetailPage() {
               Lý do mở lại
             </h2>
 
-            <p className="mt-2 whitespace-pre-wrap text-sm text-blue-800 dark:text-blue-400">
+            <p className="mt-2 text-sm whitespace-pre-wrap text-blue-800 dark:text-blue-400">
               {report.reopenReason}
             </p>
           </div>
@@ -431,13 +344,11 @@ export default function ReportDetailPage() {
             </h2>
 
             <p className="mt-1 text-xs text-orange-700 dark:text-orange-400">
-              Thời gian gửi:{' '}
-              {formatDateTime(report.complaintSubmittedAt)}
+              Thời gian gửi: {formatDateTime(report.complaintSubmittedAt)}
             </p>
 
-            <p className="mt-3 whitespace-pre-wrap text-sm text-orange-800 dark:text-orange-300">
-              {report.complaintReason ??
-                'Không có nội dung yêu cầu.'}
+            <p className="mt-3 text-sm whitespace-pre-wrap text-orange-800 dark:text-orange-300">
+              {report.complaintReason ?? 'Không có nội dung yêu cầu.'}
             </p>
           </div>
         )}
@@ -453,31 +364,26 @@ export default function ReportDetailPage() {
             </p>
           ) : (
             <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {report.imageUrls.map(
-                (imageUrl, index) => {
-                  const resolvedUrl = resolveImageUrl(
-                    imageUrl,
-                    apiOrigin,
-                  )
+              {report.imageUrls.map((imageUrl, index) => {
+                const resolvedUrl = resolveImageUrl(imageUrl, apiOrigin)
 
-                  return (
-                    <a
-                      key={`${imageUrl}-${index}`}
-                      href={resolvedUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="group overflow-hidden rounded-lg bg-black/5 dark:bg-white/5"
-                    >
-                      <img
-                        src={resolvedUrl}
-                        alt={`Hình ảnh sự cố ${index + 1}`}
-                        className="h-64 w-full object-cover transition-transform group-hover:scale-105"
-                        loading="lazy"
-                      />
-                    </a>
-                  )
-                },
-              )}
+                return (
+                  <a
+                    key={`${imageUrl}-${index}`}
+                    href={resolvedUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group overflow-hidden rounded-lg bg-black/5 dark:bg-white/5"
+                  >
+                    <img
+                      src={resolvedUrl}
+                      alt={`Hình ảnh sự cố ${index + 1}`}
+                      className="h-64 w-full object-cover transition-transform group-hover:scale-105"
+                      loading="lazy"
+                    />
+                  </a>
+                )
+              })}
             </div>
           )}
         </div>

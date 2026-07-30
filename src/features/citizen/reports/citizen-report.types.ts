@@ -8,8 +8,7 @@ export const REPORT_STATUS = {
   Rejected: 'Rejected',
 } as const
 
-export type ReportStatus =
-  (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]
+export type ReportStatus = (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]
 
 export const REPORT_PRIORITY = {
   Low: 'Low',
@@ -17,8 +16,7 @@ export const REPORT_PRIORITY = {
   High: 'High',
 } as const
 
-export type ReportPriority =
-  (typeof REPORT_PRIORITY)[keyof typeof REPORT_PRIORITY]
+export type ReportPriority = (typeof REPORT_PRIORITY)[keyof typeof REPORT_PRIORITY]
 
 export interface CreateReportRequest {
   categoryId: number
@@ -142,5 +140,4 @@ export interface ReportTimeline {
   items: ReportTimelineItem[]
 }
 
-export type CitizenReportsResponse =
-  PagedResult<CitizenReportSummary>
+export type CitizenReportsResponse = PagedResult<CitizenReportSummary>

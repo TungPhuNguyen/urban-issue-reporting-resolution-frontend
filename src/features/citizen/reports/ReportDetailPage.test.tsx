@@ -1,28 +1,13 @@
 import { render, screen } from '@testing-library/react'
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-} from 'react-router-dom'
-import {
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from 'vitest'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import ReportDetailPage from './ReportDetailPage'
-import {
-  resolveApiOrigin,
-  resolveImageUrl,
-} from './report-image-url'
+import { resolveApiOrigin, resolveImageUrl } from './report-image-url'
 
 const useCitizenReportDetailMock = vi.hoisted(() => vi.fn())
 
-const useCitizenReportTimelineMock = vi.hoisted(() =>
-  vi.fn(),
-)
+const useCitizenReportTimelineMock = vi.hoisted(() => vi.fn())
 
 vi.mock('./citizen-report.queries', () => ({
   useCitizenReportDetail: useCitizenReportDetailMock,
@@ -56,8 +41,7 @@ const report = {
   closedAt: null,
   hasSubmittedComplaint: true,
   complaintSubmittedAt: '2026-07-30T09:00:00Z',
-  complaintReason:
-    'Vị trí này vẫn chưa được xử lý hoàn toàn.',
+  complaintReason: 'Vị trí này vẫn chưa được xử lý hoàn toàn.',
   rejectedAt: null,
   rejectedReason: null,
   reopenedAt: null,
@@ -90,41 +74,24 @@ describe('ReportDetailPage', () => {
 
   it('displays submitted complaint information', () => {
     render(
-      <MemoryRouter
-        initialEntries={[`/citizen/reports/${report.id}`]}
-      >
+      <MemoryRouter initialEntries={[`/citizen/reports/${report.id}`]}>
         <Routes>
-          <Route
-            path="/citizen/reports/:reportId"
-            element={<ReportDetailPage />}
-          />
+          <Route path="/citizen/reports/:reportId" element={<ReportDetailPage />} />
         </Routes>
       </MemoryRouter>,
     )
 
-    expect(
-      screen.getByText('Yêu cầu xử lý thêm đã gửi'),
-    ).toBeInTheDocument()
+    expect(screen.getByText('Yêu cầu xử lý thêm đã gửi')).toBeInTheDocument()
 
-    expect(
-      screen.getByText(report.complaintReason),
-    ).toBeInTheDocument()
+    expect(screen.getByText(report.complaintReason)).toBeInTheDocument()
   })
 
   it('resolves a relative API base URL and image URL', () => {
-    const apiOrigin = resolveApiOrigin(
-      '/api',
-      'https://urban-issue.example',
-    )
+    const apiOrigin = resolveApiOrigin('/api', 'https://urban-issue.example')
 
     expect(apiOrigin).toBe('https://urban-issue.example')
 
-    expect(
-      resolveImageUrl(
-        '/uploads/reports/report.jpg',
-        apiOrigin,
-      ),
-    ).toBe(
+    expect(resolveImageUrl('/uploads/reports/report.jpg', apiOrigin)).toBe(
       'https://urban-issue.example/uploads/reports/report.jpg',
     )
   })

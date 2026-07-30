@@ -16,18 +16,14 @@ interface ReportTimelineProps {
   onRetry: () => void
 }
 
-function getUpdatedByLabel(
-  item: ReportTimelineItem,
-): string {
+function getUpdatedByLabel(item: ReportTimelineItem): string {
   const updatedByUserName = item.updatedByUserName?.trim()
 
   if (updatedByUserName) {
     return updatedByUserName
   }
 
-  return item.updatedByUserId
-    ? 'Người dùng không xác định'
-    : 'Hệ thống'
+  return item.updatedByUserId ? 'Người dùng không xác định' : 'Hệ thống'
 }
 
 function formatDateTime(value: string): string {
@@ -109,9 +105,7 @@ export function ReportTimeline({
         <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
           <span>Trạng thái hiện tại:</span>
 
-          <ReportStatusBadge
-            status={timeline.currentStatus}
-          />
+          <ReportStatusBadge status={timeline.currentStatus} />
         </div>
       </div>
 
@@ -127,9 +121,7 @@ export function ReportTimeline({
                   {index + 1}
                 </span>
 
-                <ReportStatusBadge
-                  status={item.newStatus}
-                />
+                <ReportStatusBadge status={item.newStatus} />
               </div>
 
               <time className="text-xs text-gray-500 dark:text-gray-400">
@@ -139,8 +131,7 @@ export function ReportTimeline({
 
             {item.oldStatus && (
               <p className="mt-3 text-xs text-gray-500 dark:text-gray-400">
-                Trạng thái được cập nhật từ{' '}
-                <strong>{item.oldStatus}</strong> sang{' '}
+                Trạng thái được cập nhật từ <strong>{item.oldStatus}</strong> sang{' '}
                 <strong>{item.newStatus}</strong>.
               </p>
             )}
@@ -150,38 +141,33 @@ export function ReportTimeline({
             </p>
 
             {item.note && (
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-300">
+              <p className="mt-3 text-sm leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
                 {item.note}
               </p>
             )}
 
             {item.imageUrls.length > 0 && (
               <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {item.imageUrls.map(
-                  (imageUrl, imageIndex) => {
-                    const resolvedUrl = resolveImageUrl(
-                      imageUrl,
-                      apiOrigin,
-                    )
+                {item.imageUrls.map((imageUrl, imageIndex) => {
+                  const resolvedUrl = resolveImageUrl(imageUrl, apiOrigin)
 
-                    return (
-                      <a
-                        key={`${imageUrl}-${imageIndex}`}
-                        href={resolvedUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="overflow-hidden rounded-lg bg-black/5 dark:bg-white/5"
-                      >
-                        <img
-                          src={resolvedUrl}
-                          alt={`Ảnh tiến trình ${imageIndex + 1}`}
-                          className="h-48 w-full object-cover transition-transform hover:scale-105"
-                          loading="lazy"
-                        />
-                      </a>
-                    )
-                  },
-                )}
+                  return (
+                    <a
+                      key={`${imageUrl}-${imageIndex}`}
+                      href={resolvedUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="overflow-hidden rounded-lg bg-black/5 dark:bg-white/5"
+                    >
+                      <img
+                        src={resolvedUrl}
+                        alt={`Ảnh tiến trình ${imageIndex + 1}`}
+                        className="h-48 w-full object-cover transition-transform hover:scale-105"
+                        loading="lazy"
+                      />
+                    </a>
+                  )
+                })}
               </div>
             )}
           </article>

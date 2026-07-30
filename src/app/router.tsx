@@ -29,9 +29,7 @@ const LoginPage = lazy(() =>
   })),
 )
 
-const RegisterPage = lazy(
-  () => import('@/features/auth/RegisterPage'),
-)
+const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
 
 export const router = createBrowserRouter([
   {
@@ -60,9 +58,7 @@ export const router = createBrowserRouter([
     element: <ProtectedRoute />,
     children: [
       {
-        element: (
-          <RoleRoute allowedRoles={['Citizen']} />
-        ),
+        element: <RoleRoute allowedRoles={['Citizen']} />,
         children: [
           {
             path: 'citizen',
