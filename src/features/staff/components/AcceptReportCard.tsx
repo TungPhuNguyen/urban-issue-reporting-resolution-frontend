@@ -32,7 +32,7 @@ export function AcceptReportCard({ reportId }: AcceptReportCardProps) {
         <select
           id="priority"
           value={priority}
-          onChange={(e) => setPriority(Number(e.target.value) as ReportPriority)}
+          onChange={(e) => setPriority(e.target.value as ReportPriority | '')}
           className="w-full rounded-lg border border-gray-300 p-2 dark:border-gray-600 dark:bg-gray-800"
         >
           <option value="">-- Chọn mức ưu tiên --</option>
@@ -46,8 +46,10 @@ export function AcceptReportCard({ reportId }: AcceptReportCardProps) {
         type="button"
         disabled={acceptReport.isPending || priority === ''}
         onClick={() => {
+          if (priority === '') return
+
           acceptReport.mutate({
-            priority: priority as ReportPriority,
+            priority,
             note: 'Đã tiếp nhận báo cáo để xử lý.',
           })
         }}

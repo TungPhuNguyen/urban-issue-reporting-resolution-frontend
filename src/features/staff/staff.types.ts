@@ -11,9 +11,9 @@ export const REPORT_STATUS = {
 export type ReportStatus = (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]
 
 export const REPORT_PRIORITY = {
-  Low: 1,
-  Medium: 2,
-  High: 3,
+  Low: 'Low',
+  Medium: 'Medium',
+  High: 'High',
 } as const
 
 export type ReportPriority = (typeof REPORT_PRIORITY)[keyof typeof REPORT_PRIORITY]
