@@ -130,6 +130,8 @@ export interface ReportTimelineItem {
   oldStatus: ReportStatus | null
   newStatus: ReportStatus
   note: string | null
+  updatedByUserId: string | null
+  updatedByUserName: string | null
   createdAt: string
   imageUrls: string[]
 }

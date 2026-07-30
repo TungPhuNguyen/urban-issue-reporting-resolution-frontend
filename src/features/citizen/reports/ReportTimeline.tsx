@@ -1,33 +1,33 @@
 import { Spinner } from '@/components/ui/Spinner'
 
 import { ReportStatusBadge } from './ReportStatusBadge'
+import { resolveImageUrl } from './report-image-url'
 import type {
   ReportTimeline as ReportTimelineData,
+  ReportTimelineItem,
 } from './citizen-report.types'
 
 interface ReportTimelineProps {
   timeline: ReportTimelineData | undefined
   isLoading: boolean
+  isFetching: boolean
   error: unknown
   apiOrigin: string
+  onRetry: () => void
 }
 
-function resolveImageUrl(
-  imageUrl: string,
-  apiOrigin: string,
+function getUpdatedByLabel(
+  item: ReportTimelineItem,
 ): string {
-  if (
-    imageUrl.startsWith('http://') ||
-    imageUrl.startsWith('https://')
-  ) {
-    return imageUrl
+  const updatedByUserName = item.updatedByUserName?.trim()
+
+  if (updatedByUserName) {
+    return updatedByUserName
   }
 
-  const normalizedPath = imageUrl.startsWith('/')
-    ? imageUrl
-    : `/${imageUrl}`
-
-  return `${apiOrigin}${normalizedPath}`
+  return item.updatedByUserId
+    ? 'Người dùng không xác định'
+    : 'Hệ thống'
 }
 
 function formatDateTime(value: string): string {
@@ -43,8 +43,10 @@ function formatDateTime(value: string): string {
 export function ReportTimeline({
   timeline,
   isLoading,
+  isFetching,
   error,
   apiOrigin,
+  onRetry,
 }: ReportTimelineProps) {
   if (isLoading) {
     return (
@@ -70,6 +72,15 @@ export function ReportTimeline({
         <p className="mt-3 text-sm text-red-600 dark:text-red-400">
           Không thể tải tiến trình xử lý.
         </p>
+
+        <button
+          type="button"
+          disabled={isFetching}
+          onClick={onRetry}
+          className="mt-3 rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
+        >
+          {isFetching ? 'Đang tải lại...' : 'Thử lại'}
+        </button>
       </section>
     )
   }
@@ -133,6 +144,10 @@ export function ReportTimeline({
                 <strong>{item.newStatus}</strong>.
               </p>
             )}
+
+            <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+              {`Người cập nhật: ${getUpdatedByLabel(item)}`}
+            </p>
 
             {item.note && (
               <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-gray-700 dark:text-gray-300">

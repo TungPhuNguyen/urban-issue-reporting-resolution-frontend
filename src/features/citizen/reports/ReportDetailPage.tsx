@@ -147,7 +147,9 @@ export default function ReportDetailPage() {
   const {
     data: timeline,
     isLoading: isTimelineLoading,
+    isFetching: isTimelineFetching,
     error: timelineError,
+    refetch: refetchTimeline,
   } = useCitizenReportTimeline(reportId)
 
   if (!reportId) {
@@ -483,8 +485,12 @@ export default function ReportDetailPage() {
         <ReportTimeline
           timeline={timeline}
           isLoading={isTimelineLoading}
+          isFetching={isTimelineFetching}
           error={timelineError}
           apiOrigin={apiOrigin}
+          onRetry={() => {
+            void refetchTimeline()
+          }}
         />
       </Card>
     </section>
