@@ -70,7 +70,7 @@ function renderPage() {
   )
 }
 
-describe('StaffReportDetailPage - UC-18', () => {
+describe('StaffReportDetailPage - UC-18, UC-21 and UC-22', () => {
   beforeEach(() => {
     useStaffReportMock.mockReset()
     useStaffReportMock.mockReturnValue({
@@ -113,6 +113,17 @@ describe('StaffReportDetailPage - UC-18', () => {
     expect(screen.getByText('Công dân yêu cầu xử lý thêm')).toBeInTheDocument()
     expect(screen.getByText(report.complaintReason)).toBeInTheDocument()
     expect(screen.getByText('24 giờ')).toBeInTheDocument()
+  })
+
+  it('shows the SLA start and immutable due time returned after acceptance', () => {
+    renderPage()
+
+    expect(screen.getByText('Bắt đầu SLA').parentElement).toHaveTextContent(
+      new Date(report.slaStartedAt).toLocaleString('vi-VN'),
+    )
+    expect(screen.getByText('Hạn xử lý').parentElement).toHaveTextContent(
+      new Date(report.dueAt).toLocaleString('vi-VN'),
+    )
   })
 
   it('shows clear empty states when optional detail data is unavailable', () => {

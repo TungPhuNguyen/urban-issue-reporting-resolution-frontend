@@ -11,7 +11,7 @@ vi.mock('../staff.queries', () => ({
   useAcceptStaffReport: useAcceptStaffReportMock,
 }))
 
-describe('AcceptReportCard - UC-19', () => {
+describe('AcceptReportCard - UC-19 and UC-20', () => {
   beforeEach(() => {
     mutateMock.mockReset()
     useAcceptStaffReportMock.mockReset()
@@ -22,6 +22,16 @@ describe('AcceptReportCard - UC-19', () => {
       isSuccess: false,
       error: null,
     })
+  })
+
+  it('offers the three priority values required by the backend', () => {
+    render(<AcceptReportCard reportId="report-20" />)
+
+    const priority = screen.getByLabelText('Mức ưu tiên')
+
+    expect(priority).toContainHTML('<option value="Low">Thấp</option>')
+    expect(priority).toContainHTML('<option value="Medium">Trung bình</option>')
+    expect(priority).toContainHTML('<option value="High">Cao</option>')
   })
 
   it('requires a priority and sends the selected priority with a trimmed note', async () => {
