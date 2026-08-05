@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
+import { getPriorityLabel, getStatusLabel } from '@/components/ui/report-labels'
 import { useDebounce } from '@/hooks/useDebounce'
 
 import { useStaffReports } from './staff.queries'
@@ -16,26 +17,20 @@ import { ReportCard } from '@/components/reports/ReportCard'
 
 const PAGE_SIZE = 10
 
-const statusOptions: {
-  value: ReportStatus
-  label: string
-}[] = [
-  { value: REPORT_STATUS.Assigned, label: 'Đã phân công' },
-  { value: REPORT_STATUS.Accepted, label: 'Đã tiếp nhận' },
-  { value: REPORT_STATUS.InProgress, label: 'Đang xử lý' },
-  { value: REPORT_STATUS.Resolved, label: 'Đã giải quyết' },
-  { value: REPORT_STATUS.Reopened, label: 'Đã mở lại' },
-  { value: REPORT_STATUS.Closed, label: 'Đã đóng' },
-  { value: REPORT_STATUS.Rejected, label: 'Đã từ chối' },
+const statusOptions: ReportStatus[] = [
+  REPORT_STATUS.Assigned,
+  REPORT_STATUS.Accepted,
+  REPORT_STATUS.InProgress,
+  REPORT_STATUS.Resolved,
+  REPORT_STATUS.Reopened,
+  REPORT_STATUS.Closed,
+  REPORT_STATUS.Rejected,
 ]
 
-const priorityOptions: {
-  value: ReportPriority
-  label: string
-}[] = [
-  { value: REPORT_PRIORITY.Low, label: 'Thấp' },
-  { value: REPORT_PRIORITY.Medium, label: 'Trung bình' },
-  { value: REPORT_PRIORITY.High, label: 'Cao' },
+const priorityOptions: ReportPriority[] = [
+  REPORT_PRIORITY.Low,
+  REPORT_PRIORITY.Medium,
+  REPORT_PRIORITY.High,
 ]
 
 export default function StaffReportsPage() {
@@ -111,8 +106,8 @@ export default function StaffReportsPage() {
               <option value="">Tất cả trạng thái</option>
 
               {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+                <option key={option} value={option}>
+                  {getStatusLabel(option)}
                 </option>
               ))}
             </select>
@@ -138,8 +133,8 @@ export default function StaffReportsPage() {
               <option value="">Tất cả mức ưu tiên</option>
 
               {priorityOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+                <option key={option} value={option}>
+                  {getPriorityLabel(option)}
                 </option>
               ))}
             </select>

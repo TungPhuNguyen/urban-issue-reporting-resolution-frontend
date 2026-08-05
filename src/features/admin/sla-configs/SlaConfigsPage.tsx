@@ -3,6 +3,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+import { getPriorityLabel } from '@/components/ui/report-labels'
 import { ApiError } from '@/lib/api/http'
 
 import { useSlaConfigs, useUpdateSlaConfig } from './sla-configs.queries'
@@ -37,19 +38,6 @@ function formatDate(value: string | null): string {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(date)
-}
-
-function getPriorityLabel(priority: ReportPriority): string {
-  switch (priority) {
-    case 'High':
-      return 'Cao'
-
-    case 'Medium':
-      return 'Trung bình'
-
-    case 'Low':
-      return 'Thấp'
-  }
 }
 
 export default function SlaConfigsPage() {
@@ -194,11 +182,11 @@ export default function SlaConfigsPage() {
           >
             <option value="">Tất cả mức ưu tiên</option>
 
-            <option value="Low">Thấp</option>
+            <option value="Low">{getPriorityLabel('Low')}</option>
 
-            <option value="Medium">Trung bình</option>
+            <option value="Medium">{getPriorityLabel('Medium')}</option>
 
-            <option value="High">Cao</option>
+            <option value="High">{getPriorityLabel('High')}</option>
           </select>
 
           <Button type="submit">Tìm kiếm</Button>

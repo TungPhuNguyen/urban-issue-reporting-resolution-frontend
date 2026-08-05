@@ -66,6 +66,18 @@ describe('CitizenReportsPage', () => {
     })
   })
 
+  it('uses the shared Vietnamese status labels in the filter', () => {
+    render(
+      <MemoryRouter>
+        <CitizenReportsPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('option', { name: 'Mới tiếp nhận' })).toHaveValue('New')
+    expect(screen.getByRole('option', { name: 'Đã xử lý' })).toHaveValue('Resolved')
+    expect(screen.getByRole('option', { name: 'Từ chối' })).toHaveValue('Rejected')
+  })
+
   it('searches after the debounce delay', () => {
     vi.useFakeTimers()
 

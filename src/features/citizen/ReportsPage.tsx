@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
+import { getStatusLabel } from '@/components/ui/report-labels'
 import { useDebounce } from '@/hooks/useDebounce'
 
 import { ReportCard } from '@/components/reports/ReportCard'
@@ -12,36 +13,15 @@ import { REPORT_STATUS, type ReportStatus } from './reports/citizen-report.types
 
 const PAGE_SIZE = 10
 
-const statusOptions: {
-  value: ReportStatus
-  label: string
-}[] = [
-  { value: REPORT_STATUS.New, label: 'Mới' },
-  {
-    value: REPORT_STATUS.Assigned,
-    label: 'Đã phân công',
-  },
-  {
-    value: REPORT_STATUS.Accepted,
-    label: 'Đã tiếp nhận',
-  },
-  {
-    value: REPORT_STATUS.InProgress,
-    label: 'Đang xử lý',
-  },
-  {
-    value: REPORT_STATUS.Resolved,
-    label: 'Đã giải quyết',
-  },
-  {
-    value: REPORT_STATUS.Reopened,
-    label: 'Đã mở lại',
-  },
-  { value: REPORT_STATUS.Closed, label: 'Đã đóng' },
-  {
-    value: REPORT_STATUS.Rejected,
-    label: 'Đã từ chối',
-  },
+const statusOptions: ReportStatus[] = [
+  REPORT_STATUS.New,
+  REPORT_STATUS.Assigned,
+  REPORT_STATUS.Accepted,
+  REPORT_STATUS.InProgress,
+  REPORT_STATUS.Resolved,
+  REPORT_STATUS.Reopened,
+  REPORT_STATUS.Closed,
+  REPORT_STATUS.Rejected,
 ]
 
 export default function CitizenReportsPage() {
@@ -123,8 +103,8 @@ export default function CitizenReportsPage() {
               <option value="">Tất cả trạng thái</option>
 
               {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+                <option key={option} value={option}>
+                  {getStatusLabel(option)}
                 </option>
               ))}
             </select>
