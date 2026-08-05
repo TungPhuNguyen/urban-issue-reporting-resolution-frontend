@@ -105,7 +105,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
           onCloseRef.current()
@@ -120,12 +120,12 @@ export function Modal({
         aria-describedby={description ? descriptionId : undefined}
         tabIndex={-1}
         className={clsx(
-          'flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-xl',
+          'modal flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-xl',
           'dark:bg-gray-900',
           className,
         )}
       >
-        <div className="flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+        <div className="modal__header flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-4 dark:border-gray-800">
           <div>
             <h2
               id={titleId}
@@ -154,10 +154,10 @@ export function Modal({
           </button>
         </div>
 
-        <div className="overflow-y-auto px-6 py-5">{children}</div>
+        <div className="modal__body overflow-y-auto px-6 py-5">{children}</div>
 
         {footer && (
-          <div className="flex justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+          <div className="modal__footer flex justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
             {footer}
           </div>
         )}

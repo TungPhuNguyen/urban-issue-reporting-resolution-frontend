@@ -61,7 +61,7 @@ export default function StaffReportsPage() {
   }
 
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-6">
+    <section className="reports-page mx-auto flex max-w-5xl flex-col gap-6">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
           Báo cáo cần xử lý
@@ -72,7 +72,7 @@ export default function StaffReportsPage() {
         </p>
       </div>
 
-      <Card className="p-4">
+      <Card className="filter-bar filter-bar--wrap p-4">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_180px_180px_auto] md:items-end">
           <Input
             label="Tìm kiếm"

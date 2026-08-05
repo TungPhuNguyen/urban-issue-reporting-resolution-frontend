@@ -267,7 +267,7 @@ export default function ReportDetailPage() {
   }
 
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-5">
+    <section className="report-detail-page mx-auto flex max-w-5xl flex-col gap-5">
       <div>
         <Link
           to="/citizen/reports"

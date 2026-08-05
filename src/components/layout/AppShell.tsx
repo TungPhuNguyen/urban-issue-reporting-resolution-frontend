@@ -1,9 +1,19 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
-import { LogOut, Menu, X, type LucideIcon } from 'lucide-react'
+import {
+  Bell,
+  ChevronDown,
+  CircleUserRound,
+  LogOut,
+  Menu,
+  Settings2,
+  ShieldCheck,
+  X,
+  type LucideIcon,
+} from 'lucide-react'
 import { clsx } from 'clsx'
+import { Link, NavLink, Outlet } from 'react-router-dom'
 
-import { Button } from '@/components/ui/Button'
+import { CivicPulseLogo } from '@/components/ui/CivicPulseLogo'
 import type { UserRole } from '@/features/auth/auth.types'
 
 export interface AppShellMenuItem {
@@ -11,6 +21,7 @@ export interface AppShellMenuItem {
   path: string
   icon?: LucideIcon
   end?: boolean
+  accent?: boolean
 }
 
 interface AppShellProps {
@@ -39,30 +50,30 @@ const FOCUSABLE_ELEMENTS = [
 function SidebarContent({
   title,
   role,
-  userName,
   menuItems,
   isLoggingOut,
   onLogout,
   closeButton,
   onNavigate,
 }: SidebarContentProps) {
-  const userInitial = userName.trim().charAt(0).toUpperCase() || '?'
-
   return (
     <>
-      <div className="flex h-16 items-center justify-between border-b border-gray-200 px-5 dark:border-gray-800">
-        <div>
-          <p className="font-bold text-gray-900 dark:text-white">Urban Issue</p>
-          <p className="text-xs text-gray-500 dark:text-gray-400">{title}</p>
-        </div>
-
+      <div className="sidebar__top">
+        <CivicPulseLogo />
         {closeButton}
       </div>
 
-      <nav
-        aria-label={`${role} navigation`}
-        className="flex-1 space-y-1 overflow-y-auto p-4"
-      >
+      <div className="sidebar__role">
+        <span className="sidebar__role-icon">
+          <ShieldCheck aria-hidden="true" size={18} />
+        </span>
+        <div>
+          <small>Không gian làm việc</small>
+          <strong>{title}</strong>
+        </div>
+      </div>
+
+      <nav aria-label={`${role} navigation`} className="sidebar__nav">
         {menuItems.map((item) => {
           const Icon = item.icon
 
@@ -73,47 +84,25 @@ function SidebarContent({
               end={item.end}
               onClick={onNavigate}
               className={({ isActive }) =>
-                clsx(
-                  'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium',
-                  'transition-colors',
-                  isActive
-                    ? 'bg-brand-50 text-brand-700 dark:bg-brand-500/10 dark:text-brand-100'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white',
-                )
+                clsx(isActive && 'active bg-brand-50', item.accent && 'accent')
               }
             >
-              {Icon && <Icon aria-hidden="true" className="h-5 w-5 shrink-0" />}
+              {Icon && <Icon aria-hidden="true" size={19} />}
               <span>{item.label}</span>
             </NavLink>
           )
         })}
       </nav>
 
-      <div className="border-t border-gray-200 p-4 dark:border-gray-800">
-        <div className="mb-3 flex items-center gap-3">
-          <div className="bg-brand-100 text-brand-700 dark:bg-brand-500/20 dark:text-brand-100 flex h-10 w-10 shrink-0 items-center justify-center rounded-full font-semibold">
-            {userInitial}
-          </div>
-
-          <div className="min-w-0">
-            <p className="truncate text-sm font-medium text-gray-900 dark:text-white">
-              {userName}
-            </p>
-            <p className="text-xs text-gray-500 dark:text-gray-400">{role}</p>
-          </div>
-        </div>
-
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={isLoggingOut}
-          onClick={() => void onLogout()}
-          className="w-full justify-start text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-950/30"
-        >
-          <LogOut aria-hidden="true" className="h-4 w-4" />
-          {isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}
-        </Button>
+      <div className="sidebar__footer">
+        <button type="button" disabled>
+          <Settings2 aria-hidden="true" size={18} />
+          <span>Hồ sơ &amp; cài đặt</span>
+        </button>
+        <button type="button" disabled={isLoggingOut} onClick={() => void onLogout()}>
+          <LogOut aria-hidden="true" size={18} />
+          <span>{isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}</span>
+        </button>
       </div>
     </>
   )
@@ -121,53 +110,43 @@ function SidebarContent({
 
 export function AppShell(props: AppShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isProfileOpen, setIsProfileOpen] = useState(false)
   const mobileMenuId = useId()
   const mobileMenuRef = useRef<HTMLElement>(null)
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
+  const userInitial = props.userName.trim().charAt(0).toUpperCase() || '?'
+  const notificationsPath = `/${props.role.toLowerCase()}/notifications`
 
   useEffect(() => {
-    if (!isMobileMenuOpen) {
-      return
-    }
+    if (!isMobileMenuOpen) return
 
     const previousOverflow = document.body.style.overflow
     const menuTrigger = menuTriggerRef.current
     document.body.style.overflow = 'hidden'
 
     const menu = mobileMenuRef.current
-    const focusableElements = menu
-      ? Array.from(menu.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS))
-      : []
+    const closeButton = menu?.querySelector<HTMLElement>('button[aria-label="Đóng menu"]')
+    closeButton?.focus()
 
-    ;(focusableElements[0] ?? menu)?.focus()
-
-    function handleKeyDown(event: KeyboardEvent) {
+    const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault()
         setIsMobileMenuOpen(false)
-
         return
       }
 
-      if (event.key !== 'Tab' || !mobileMenuRef.current) {
-        return
-      }
+      if (event.key !== 'Tab' || !mobileMenuRef.current) return
 
       const currentFocusableElements = Array.from(
         mobileMenuRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS),
       )
+      const firstElement = currentFocusableElements[0]
+      const lastElement = currentFocusableElements.at(-1)
 
-      if (currentFocusableElements.length === 0) {
+      if (!firstElement || !lastElement) {
         event.preventDefault()
         mobileMenuRef.current.focus()
-
-        return
-      }
-
-      const firstElement = currentFocusableElements[0]!
-      const lastElement = currentFocusableElements.at(-1)!
-
-      if (event.shiftKey && document.activeElement === firstElement) {
+      } else if (event.shiftKey && document.activeElement === firstElement) {
         event.preventDefault()
         lastElement.focus()
       } else if (!event.shiftKey && document.activeElement === lastElement) {
@@ -186,19 +165,19 @@ export function AppShell(props: AppShellProps) {
   }, [isMobileMenuOpen])
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-64 flex-col border-r border-gray-200 bg-white lg:flex dark:border-gray-800 dark:bg-gray-900">
+    <div className="app-shell">
+      <aside className="sidebar hidden lg:flex">
         <SidebarContent {...props} />
       </aside>
 
       {isMobileMenuOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div
-            aria-hidden="true"
+        <>
+          <button
+            className="sidebar-overlay block lg:hidden"
+            type="button"
+            aria-label="Đóng menu bằng lớp nền"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="absolute inset-0 bg-black/50"
           />
-
           <aside
             ref={mobileMenuRef}
             id={mobileMenuId}
@@ -206,7 +185,7 @@ export function AppShell(props: AppShellProps) {
             aria-modal="true"
             aria-label="Menu điều hướng"
             tabIndex={-1}
-            className="relative flex h-full w-72 max-w-[85vw] flex-col bg-white shadow-xl dark:bg-gray-900"
+            className="sidebar sidebar--open fixed lg:hidden"
           >
             <SidebarContent
               {...props}
@@ -216,39 +195,75 @@ export function AppShell(props: AppShellProps) {
                   type="button"
                   aria-label="Đóng menu"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="rounded-lg p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  className="icon-button sidebar__close"
                 >
-                  <X aria-hidden="true" className="h-5 w-5" />
+                  <X aria-hidden="true" size={20} />
                 </button>
               }
             />
           </aside>
-        </div>
+        </>
       )}
 
-      <div className="lg:pl-64">
-        <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-gray-200 bg-white/95 px-4 backdrop-blur lg:px-6 dark:border-gray-800 dark:bg-gray-900/95">
-          <button
-            ref={menuTriggerRef}
-            type="button"
-            aria-label="Mở menu"
-            aria-controls={mobileMenuId}
-            aria-expanded={isMobileMenuOpen}
-            onClick={() => setIsMobileMenuOpen(true)}
-            className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden dark:text-gray-300 dark:hover:bg-gray-800"
-          >
-            <Menu aria-hidden="true" className="h-5 w-5" />
-          </button>
+      <div className="app-main">
+        <header className="app-header">
+          <div className="app-header__left">
+            <button
+              ref={menuTriggerRef}
+              type="button"
+              aria-label="Mở menu"
+              aria-controls={mobileMenuId}
+              aria-expanded={isMobileMenuOpen}
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="icon-button app-header__menu"
+            >
+              <Menu aria-hidden="true" size={21} />
+            </button>
+            <div className="app-header__crumb">
+              <small>Civic Pulse</small>
+              <strong>{props.title}</strong>
+            </div>
+          </div>
 
-          <div>
-            <h1 className="font-semibold text-gray-900 dark:text-white">{props.title}</h1>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Urban Issue Reporting System
-            </p>
+          <div className="app-header__actions">
+            <Link
+              className="notification-button"
+              to={notificationsPath}
+              aria-label="Thông báo"
+            >
+              <Bell aria-hidden="true" size={20} />
+            </Link>
+
+            <div className="profile-menu">
+              <button
+                type="button"
+                className="profile-menu__trigger"
+                onClick={() => setIsProfileOpen((value) => !value)}
+                aria-expanded={isProfileOpen}
+              >
+                <span className="avatar">{userInitial}</span>
+                <span className="profile-menu__identity">
+                  <strong>{props.userName}</strong>
+                  <small>{props.role}</small>
+                </span>
+                <ChevronDown aria-hidden="true" size={16} />
+              </button>
+
+              {isProfileOpen && (
+                <div className="profile-menu__dropdown">
+                  <span>
+                    <CircleUserRound aria-hidden="true" size={17} /> {props.role}
+                  </span>
+                  <button type="button" onClick={() => void props.onLogout()}>
+                    <LogOut aria-hidden="true" size={17} /> Đăng xuất
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
-        <main className="p-4 sm:p-6">
+        <main className="app-content">
           <Outlet />
         </main>
       </div>

@@ -107,8 +107,8 @@ export default function OverdueReportsPage() {
   }
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="reports-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Báo cáo quá hạn SLA
@@ -146,7 +146,7 @@ export default function OverdueReportsPage() {
         </Card>
       </div>
 
-      <Card className="p-5">
+      <Card className="filter-bar filter-bar--wrap p-5">
         <form
           className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"
           onSubmit={submitSearch}

@@ -85,8 +85,8 @@ export default function AuditLogsPage() {
   const totalPages = Math.max(page?.totalPages ?? 0, 1)
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="audit-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Nhật ký hệ thống
@@ -105,7 +105,7 @@ export default function AuditLogsPage() {
         </Button>
       </div>
 
-      <Card className="p-5">
+      <Card className="filter-bar filter-bar--wrap p-5">
         <form className="grid gap-3 md:grid-cols-2 xl:grid-cols-5" onSubmit={submit}>
           <input
             value={draft.action}

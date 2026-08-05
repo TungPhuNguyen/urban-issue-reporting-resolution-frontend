@@ -111,7 +111,7 @@ export default function StaffReportDetailPage() {
   const slaState = getSlaState(report.status, report.dueAt)
 
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-6">
+    <section className="report-detail-page mx-auto flex max-w-5xl flex-col gap-6">
       <div>
         <Link
           to="/staff/reports"

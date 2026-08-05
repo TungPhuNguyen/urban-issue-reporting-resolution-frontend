@@ -217,7 +217,7 @@ export default function CreateReportPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="create-report-page mx-auto max-w-4xl">
       <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Tạo phản ánh mới</h1>

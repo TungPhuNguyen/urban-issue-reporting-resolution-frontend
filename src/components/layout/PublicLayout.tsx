@@ -1,54 +1,129 @@
-import { MapPinned } from 'lucide-react'
-import { Link, Outlet } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { ArrowUpRight, Menu, X } from 'lucide-react'
+import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
+
+import { Button } from '@/components/ui/Button'
+import { CivicPulseLogo } from '@/components/ui/CivicPulseLogo'
+import { useAuthStore } from '@/features/auth/auth.store'
+
+const roleHome = {
+  Admin: '/admin/dashboard',
+  Staff: '/staff/reports',
+  Citizen: '/citizen/reports',
+} as const
 
 export default function PublicLayout() {
-  return (
-    <div className="flex min-h-screen flex-col bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-      <header className="sticky top-0 z-20 border-b border-gray-200 bg-white/95 backdrop-blur dark:border-gray-800 dark:bg-gray-900/95">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6">
-          <Link
-            to="/"
-            aria-label="Urban Issue - Trang chủ"
-            className="flex min-w-0 items-center gap-3"
-          >
-            <span className="bg-brand-600 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white">
-              <MapPinned aria-hidden="true" className="h-5 w-5" />
-            </span>
+  const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const [scrolled, setScrolled] = useState(false)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const user = useAuthStore((state) => state.user)
+  const isAuthPage = location.pathname === '/login' || location.pathname === '/register'
 
-            <span className="min-w-0">
-              <span className="block truncate font-bold text-gray-900 dark:text-white">
-                Urban Issue
-              </span>
-              <span className="hidden text-xs text-gray-500 sm:block dark:text-gray-400">
-                Hệ thống phản ánh sự cố đô thị
-              </span>
-            </span>
-          </Link>
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20)
+    handleScroll()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => setMenuOpen(false), [location.pathname])
+
+  if (isAuthPage) {
+    return <Outlet />
+  }
+
+  const home = user ? roleHome[user.role] : '/citizen/reports'
+
+  return (
+    <div className="landing-page min-h-screen">
+      <header className={`public-header ${scrolled ? 'public-header--scrolled' : ''}`}>
+        <div className="public-header__inner container">
+          <CivicPulseLogo ariaLabel="Urban Issue - Trang chủ" />
 
           <nav
             aria-label="Điều hướng công khai"
-            className="flex items-center gap-2 sm:gap-3"
+            className={`public-nav ${menuOpen ? 'public-nav--open' : ''}`}
           >
-            <Link
-              to="/login"
-              className="focus-visible:ring-brand-500 rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-2 focus-visible:outline-none dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
-            >
-              Đăng nhập
-            </Link>
-
-            <Link
-              to="/register"
-              className="bg-brand-600 hover:bg-brand-700 focus-visible:ring-brand-500 rounded-lg px-4 py-2 text-sm font-medium text-white transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none"
-            >
-              Đăng ký
-            </Link>
+            <NavLink to="/">Trang chủ</NavLink>
+            <a href="/#how-it-works">Quy trình</a>
+            <a href="/#impact">Minh bạch</a>
           </nav>
+
+          <div className="public-header__actions">
+            {isAuthenticated ? (
+              <Link to={home}>
+                <Button variant="dark">
+                  Vào hệ thống <ArrowUpRight aria-hidden="true" size={18} />
+                </Button>
+              </Link>
+            ) : (
+              <>
+                <Link className="text-link public-header__login" to="/login">
+                  Đăng nhập
+                </Link>
+                <Link to="/register" aria-label="Đăng ký">
+                  <Button>
+                    Báo cáo ngay <ArrowUpRight aria-hidden="true" size={18} />
+                  </Button>
+                </Link>
+              </>
+            )}
+
+            <button
+              className="menu-toggle"
+              type="button"
+              onClick={() => setMenuOpen((value) => !value)}
+              aria-label={menuOpen ? 'Đóng menu' : 'Mở menu'}
+              aria-expanded={menuOpen}
+            >
+              {menuOpen ? <X aria-hidden="true" /> : <Menu aria-hidden="true" />}
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className="flex-1">
+      <main>
         <Outlet />
       </main>
+
+      <footer className="public-footer">
+        <div className="public-footer__grid container">
+          <div className="public-footer__brand">
+            <CivicPulseLogo />
+            <p>
+              Nền tảng báo cáo và xử lý sự cố hạ tầng đô thị minh bạch, hiệu quả và lấy
+              người dân làm trung tâm.
+            </p>
+          </div>
+          <div>
+            <strong>Sản phẩm</strong>
+            <Link to="/register">Tạo báo cáo</Link>
+            <Link to="/login" aria-label="Đăng nhập tại chân trang">
+              Đăng nhập
+            </Link>
+          </div>
+          <div>
+            <strong>Khám phá</strong>
+            <a href="/#how-it-works">Quy trình</a>
+            <a href="/#impact">Tác động</a>
+            <a href="mailto:support@civicpulse.vn">Hỗ trợ</a>
+          </div>
+          <div>
+            <strong>Liên hệ</strong>
+            <span>support@civicpulse.vn</span>
+            <span>1900 2026</span>
+            <span>Hà Nội, Việt Nam</span>
+          </div>
+        </div>
+        <div className="public-footer__bottom container">
+          <span>© 2026 Civic Pulse. Urban Issue Reporting &amp; Resolution.</span>
+          <div>
+            <span>Quyền riêng tư</span>
+            <span>Điều khoản</span>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

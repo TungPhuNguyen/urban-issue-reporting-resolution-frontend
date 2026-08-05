@@ -66,8 +66,8 @@ export default function ManualAssignmentQueuePage() {
   const totalPages = Math.max(page.totalPages, 1)
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="reports-page flex flex-col gap-4">
+      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Hàng đợi phân công thủ công
@@ -152,7 +152,7 @@ export default function ManualAssignmentQueuePage() {
                     <td className="px-4 py-3 text-right">
                       <Link
                         to={`/admin/reports/${report.id}`}
-                        className="inline-flex h-8 items-center justify-center rounded-lg bg-gray-100 px-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-200"
+                        className="button button--ghost inline-flex h-8 items-center justify-center rounded-lg bg-gray-100 px-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-200"
                       >
                         Xem chi tiết
                       </Link>

@@ -234,8 +234,8 @@ export default function DepartmentsPage() {
   const page = departmentsQuery.data
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="resource-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Quản lý Departments

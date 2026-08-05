@@ -49,8 +49,8 @@ export default function CitizenReportsPage() {
   }
 
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <section className="reports-page mx-auto flex max-w-5xl flex-col gap-6">
+      <div className="page-heading page-heading--split flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Báo cáo của tôi
@@ -63,13 +63,13 @@ export default function CitizenReportsPage() {
 
         <Link
           to="/citizen/reports/create"
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
+          className="button button--primary rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
         >
           Tạo phản ánh mới
         </Link>
       </div>
 
-      <Card className="p-4">
+      <Card className="filter-bar filter-bar--wrap p-4">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_240px_auto] md:items-end">
           <Input
             label="Tìm kiếm"

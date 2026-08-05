@@ -20,13 +20,13 @@ export function EmptyState({
   return (
     <div
       className={clsx(
-        'flex flex-col items-center justify-center rounded-xl border border-dashed',
+        'empty-state flex flex-col items-center justify-center rounded-xl border border-dashed',
         'border-gray-300 px-6 py-12 text-center dark:border-gray-700',
         className,
       )}
       {...props}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
+      <div className="empty-state__icon flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400">
         {icon ?? <Inbox className="h-6 w-6" aria-hidden="true" />}
       </div>
 

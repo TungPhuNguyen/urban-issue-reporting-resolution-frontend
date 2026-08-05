@@ -153,8 +153,8 @@ export default function AdminDashboardPage() {
     }))
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <section className="dashboard-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Dashboard quản trị

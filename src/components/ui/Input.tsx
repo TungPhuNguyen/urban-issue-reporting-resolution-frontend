@@ -13,11 +13,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   const generatedId = useId()
   const inputId = id ?? generatedId
   return (
-    <div className="flex flex-col gap-1">
+    <div className={clsx('field flex flex-col gap-1', error && 'field--error')}>
       {label && (
         <label
           htmlFor={inputId}
-          className="text-sm font-medium text-gray-700 dark:text-gray-300"
+          className="field__label text-sm font-medium text-gray-700 dark:text-gray-300"
         >
           {label}
         </label>
@@ -35,7 +35,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         )}
         {...props}
       />
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="field__error text-xs text-red-600">{error}</p>}
     </div>
   )
 })

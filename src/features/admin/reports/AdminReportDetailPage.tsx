@@ -277,7 +277,7 @@ export default function AdminReportDetailPage() {
     }
   }
   return (
-    <section className="flex flex-col gap-5">
+    <section className="report-detail-page flex flex-col gap-5">
       <div>
         <Link
           to="/admin/reports"

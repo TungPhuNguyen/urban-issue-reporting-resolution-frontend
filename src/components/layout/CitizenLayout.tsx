@@ -1,9 +1,15 @@
-import { Bell, FileText } from 'lucide-react'
+import { Bell, FileText, Plus } from 'lucide-react'
 
 import type { AppShellMenuItem } from './AppShell'
 import RoleLayout from './RoleLayout'
 
 const citizenMenuItems: AppShellMenuItem[] = [
+  {
+    label: 'Tạo báo cáo',
+    path: '/citizen/reports/create',
+    icon: Plus,
+    accent: true,
+  },
   {
     label: 'Báo cáo của tôi',
     path: '/citizen/reports',

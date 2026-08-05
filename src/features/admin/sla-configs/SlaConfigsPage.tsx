@@ -132,8 +132,8 @@ export default function SlaConfigsPage() {
   const page = configsQuery.data
 
   return (
-    <section className="flex flex-col gap-5">
-      <div>
+    <section className="resource-page flex flex-col gap-5">
+      <div className="page-heading">
         <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
           Quản lý cấu hình SLA
         </h1>
@@ -155,7 +155,7 @@ export default function SlaConfigsPage() {
         </div>
       )}
 
-      <Card className="p-5">
+      <Card className="filter-bar filter-bar--wrap p-5">
         <form
           className="flex flex-col gap-3 md:flex-row"
           onSubmit={(event) => {
