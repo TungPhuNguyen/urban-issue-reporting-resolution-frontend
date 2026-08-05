@@ -44,9 +44,9 @@ describe('ReportTimeline', () => {
       />,
     )
 
-    expect(screen.getByText('Người cập nhật: Nguyễn Văn An')).toBeInTheDocument()
+    expect(screen.getByText('Thực hiện bởi: Nguyễn Văn An')).toBeInTheDocument()
 
-    expect(screen.getByText('Người cập nhật: Hệ thống')).toBeInTheDocument()
+    expect(screen.getByText('Thực hiện bởi: Hệ thống')).toBeInTheDocument()
 
     expect(screen.getByAltText('Ảnh tiến trình 1')).toHaveAttribute(
       'src',

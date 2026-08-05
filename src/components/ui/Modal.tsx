@@ -1,4 +1,4 @@
-import { useEffect, useId, type ReactNode } from 'react'
+import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { clsx } from 'clsx'
@@ -13,6 +13,15 @@ export interface ModalProps {
   className?: string
 }
 
+const FOCUSABLE_ELEMENTS = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
+
 export function Modal({
   open,
   title,
@@ -24,15 +33,58 @@ export function Modal({
 }: ModalProps) {
   const titleId = useId()
   const descriptionId = useId()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const previousActiveElementRef = useRef<HTMLElement | null>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
 
   useEffect(() => {
     if (!open) {
       return
     }
 
+    previousActiveElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+
+    const dialog = dialogRef.current
+    const focusableElements = dialog
+      ? Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS))
+      : []
+
+    ;(focusableElements[0] ?? dialog)?.focus()
+
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === 'Escape') {
-        onClose()
+        event.preventDefault()
+        onCloseRef.current()
+
+        return
+      }
+
+      if (event.key !== 'Tab' || !dialogRef.current) {
+        return
+      }
+
+      const currentFocusableElements = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS),
+      )
+
+      if (currentFocusableElements.length === 0) {
+        event.preventDefault()
+        dialogRef.current.focus()
+
+        return
+      }
+
+      const firstElement = currentFocusableElements[0]!
+      const lastElement = currentFocusableElements.at(-1)!
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault()
+        lastElement.focus()
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault()
+        firstElement.focus()
       }
     }
 
@@ -43,8 +95,9 @@ export function Modal({
     return () => {
       document.body.style.overflow = previousOverflow
       document.removeEventListener('keydown', handleKeyDown)
+      previousActiveElementRef.current?.focus()
     }
-  }, [open, onClose])
+  }, [open])
 
   if (!open) {
     return null
@@ -55,15 +108,17 @@ export function Modal({
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
       onMouseDown={(event) => {
         if (event.target === event.currentTarget) {
-          onClose()
+          onCloseRef.current()
         }
       }}
     >
       <div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
+        tabIndex={-1}
         className={clsx(
           'flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-xl',
           'dark:bg-gray-900',
@@ -92,7 +147,7 @@ export function Modal({
           <button
             type="button"
             aria-label="Đóng"
-            onClick={onClose}
+            onClick={() => onCloseRef.current()}
             className="focus-visible:ring-brand-500 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-2 focus-visible:outline-none dark:hover:bg-gray-800 dark:hover:text-gray-100"
           >
             <X className="h-5 w-5" aria-hidden="true" />

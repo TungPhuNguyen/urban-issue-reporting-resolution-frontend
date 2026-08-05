@@ -5,7 +5,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
-import { getImageUrl } from '@/features/staff/image'
+import { getImageUrl } from '@/lib/utils/image'
 import { ApiError } from '@/lib/api/http'
 
 import AdminReportTimeline from './AdminReportTimeline'

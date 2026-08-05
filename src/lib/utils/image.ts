@@ -1,15 +1,24 @@
 import { env } from '@/config/env'
 
+export function resolveImageUrl(
+  imageUrl: string,
+  apiBaseUrl: string,
+  applicationOrigin: string,
+) {
+  if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+    return imageUrl
+  }
+
+  const apiOrigin = new URL(apiBaseUrl, applicationOrigin).origin
+  const normalizedPath = imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`
+
+  return `${apiOrigin}${normalizedPath}`
+}
+
 export function getImageUrl(url: string | null | undefined) {
   if (!url) {
     return ''
   }
 
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    return url
-  }
-
-  const baseUrl = env.apiBaseUrl.replace('/api/v1', '')
-
-  return `${baseUrl}${url}`
+  return resolveImageUrl(url, env.apiBaseUrl, window.location.origin)
 }

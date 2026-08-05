@@ -1,29 +1,31 @@
 import { Badge, type BadgeProps } from './Badge'
+import { getStatusLabel } from './report-labels'
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>
 
-interface StatusBadgeProps {
+export interface StatusBadgeProps {
   status?: string | null
 }
 
-const statusConfig: Record<string, { label: string; variant: BadgeVariant }> = {
-  New: { label: 'Mới tiếp nhận', variant: 'info' },
-  Assigned: { label: 'Đã phân công', variant: 'info' },
-  Accepted: { label: 'Đã tiếp nhận', variant: 'info' },
-  InProgress: { label: 'Đang xử lý', variant: 'warning' },
-  Resolved: { label: 'Đã xử lý', variant: 'success' },
-  Closed: { label: 'Đã đóng', variant: 'default' },
-  Rejected: { label: 'Từ chối', variant: 'danger' },
-  Cancelled: { label: 'Đã hủy', variant: 'default' },
+const statusVariants: Record<string, BadgeVariant> = {
+  New: 'info',
+  Assigned: 'info',
+  Accepted: 'info',
+  InProgress: 'warning',
+  Resolved: 'success',
+  Closed: 'default',
+  Rejected: 'danger',
+  Reopened: 'warning',
+  Cancelled: 'default',
 }
 
 export function StatusBadge({ status }: StatusBadgeProps) {
-  const config = status ? statusConfig[status] : undefined
+  const variant = status ? statusVariants[status] : undefined
 
   return (
-    <Badge variant={config?.variant ?? 'default'}>
+    <Badge variant={variant ?? 'default'}>
       <span aria-hidden="true" className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current" />
-      {config?.label ?? status ?? 'Không xác định'}
+      {getStatusLabel(status)}
     </Badge>
   )
 }

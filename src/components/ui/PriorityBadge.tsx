@@ -1,15 +1,16 @@
 import { Badge, type BadgeProps } from './Badge'
+import { getPriorityLabel } from './report-labels'
 
 type BadgeVariant = NonNullable<BadgeProps['variant']>
 
-interface PriorityBadgeProps {
+export interface PriorityBadgeProps {
   priority?: string | null
 }
 
-const priorityConfig: Record<string, { label: string; variant: BadgeVariant }> = {
-  Low: { label: 'Ưu tiên thấp', variant: 'default' },
-  Medium: { label: 'Ưu tiên vừa', variant: 'warning' },
-  High: { label: 'Ưu tiên cao', variant: 'danger' },
+const priorityVariants: Record<string, BadgeVariant> = {
+  Low: 'default',
+  Medium: 'warning',
+  High: 'danger',
 }
 
 export function PriorityBadge({ priority }: PriorityBadgeProps) {
@@ -17,7 +18,9 @@ export function PriorityBadge({ priority }: PriorityBadgeProps) {
     return null
   }
 
-  const config = priorityConfig[priority]
-
-  return <Badge variant={config?.variant ?? 'default'}>{config?.label ?? priority}</Badge>
+  return (
+    <Badge variant={priorityVariants[priority] ?? 'default'}>
+      {getPriorityLabel(priority)}
+    </Badge>
+  )
 }

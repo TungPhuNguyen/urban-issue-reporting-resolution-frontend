@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { LogOut, Menu, X, type LucideIcon } from 'lucide-react'
 import { clsx } from 'clsx'
@@ -26,6 +26,15 @@ interface SidebarContentProps extends AppShellProps {
   closeButton?: ReactNode
   onNavigate?: () => void
 }
+
+const FOCUSABLE_ELEMENTS = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
 
 function SidebarContent({
   title,
@@ -112,6 +121,69 @@ function SidebarContent({
 
 export function AppShell(props: AppShellProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const mobileMenuId = useId()
+  const mobileMenuRef = useRef<HTMLElement>(null)
+  const menuTriggerRef = useRef<HTMLButtonElement>(null)
+
+  useEffect(() => {
+    if (!isMobileMenuOpen) {
+      return
+    }
+
+    const previousOverflow = document.body.style.overflow
+    const menuTrigger = menuTriggerRef.current
+    document.body.style.overflow = 'hidden'
+
+    const menu = mobileMenuRef.current
+    const focusableElements = menu
+      ? Array.from(menu.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS))
+      : []
+
+    ;(focusableElements[0] ?? menu)?.focus()
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        setIsMobileMenuOpen(false)
+
+        return
+      }
+
+      if (event.key !== 'Tab' || !mobileMenuRef.current) {
+        return
+      }
+
+      const currentFocusableElements = Array.from(
+        mobileMenuRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS),
+      )
+
+      if (currentFocusableElements.length === 0) {
+        event.preventDefault()
+        mobileMenuRef.current.focus()
+
+        return
+      }
+
+      const firstElement = currentFocusableElements[0]!
+      const lastElement = currentFocusableElements.at(-1)!
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault()
+        lastElement.focus()
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault()
+        firstElement.focus()
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+      menuTrigger?.focus()
+    }
+  }, [isMobileMenuOpen])
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
@@ -121,14 +193,21 @@ export function AppShell(props: AppShellProps) {
 
       {isMobileMenuOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <button
-            type="button"
-            aria-label="Đóng menu"
+          <div
+            aria-hidden="true"
             onClick={() => setIsMobileMenuOpen(false)}
             className="absolute inset-0 bg-black/50"
           />
 
-          <aside className="relative flex h-full w-72 max-w-[85vw] flex-col bg-white shadow-xl dark:bg-gray-900">
+          <aside
+            ref={mobileMenuRef}
+            id={mobileMenuId}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Menu điều hướng"
+            tabIndex={-1}
+            className="relative flex h-full w-72 max-w-[85vw] flex-col bg-white shadow-xl dark:bg-gray-900"
+          >
             <SidebarContent
               {...props}
               onNavigate={() => setIsMobileMenuOpen(false)}
@@ -150,8 +229,11 @@ export function AppShell(props: AppShellProps) {
       <div className="lg:pl-64">
         <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-gray-200 bg-white/95 px-4 backdrop-blur lg:px-6 dark:border-gray-800 dark:bg-gray-900/95">
           <button
+            ref={menuTriggerRef}
             type="button"
             aria-label="Mở menu"
+            aria-controls={mobileMenuId}
+            aria-expanded={isMobileMenuOpen}
             onClick={() => setIsMobileMenuOpen(true)}
             className="rounded-lg p-2 text-gray-600 hover:bg-gray-100 lg:hidden dark:text-gray-300 dark:hover:bg-gray-800"
           >
