@@ -90,7 +90,7 @@ describe('StaffReportDetailPage - UC-18, UC-21 and UC-22', () => {
     expect(screen.getByText(report.departmentName)).toBeInTheDocument()
     expect(screen.getByText(report.assignedStaffName)).toBeInTheDocument()
     expect(screen.getByText(report.description)).toBeInTheDocument()
-    expect(screen.getByText('Cao')).toBeInTheDocument()
+    expect(screen.getByText('Ưu tiên cao')).toBeInTheDocument()
     expect(screen.getByText('Đang xử lý')).toBeInTheDocument()
     expect(screen.getByText('8 lượt')).toBeInTheDocument()
     expect(screen.getByText('10.7769, 106.7009')).toBeInTheDocument()
@@ -109,7 +109,7 @@ describe('StaffReportDetailPage - UC-18, UC-21 and UC-22', () => {
     renderPage()
 
     expect(screen.getByText('Quá hạn SLA')).toBeInTheDocument()
-    expect(screen.getByText('Báo cáo đã được escalated')).toBeInTheDocument()
+    expect(screen.getByText('Báo cáo đã được cảnh báo quá hạn')).toBeInTheDocument()
     expect(screen.getByText('Công dân yêu cầu xử lý thêm')).toBeInTheDocument()
     expect(screen.getByText(report.complaintReason)).toBeInTheDocument()
     expect(screen.getByText('24 giờ')).toBeInTheDocument()

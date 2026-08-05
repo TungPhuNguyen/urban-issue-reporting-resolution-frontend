@@ -61,4 +61,51 @@ describe('Modal', () => {
 
     expect(onClose).toHaveBeenCalledOnce()
   })
+
+  it('moves focus inside, traps it and restores it after closing', async () => {
+    const user = userEvent.setup()
+    const trigger = document.createElement('button')
+    trigger.textContent = 'Mở modal'
+    document.body.append(trigger)
+    trigger.focus()
+
+    const { rerender } = render(
+      <Modal
+        open
+        title="Xác nhận"
+        footer={<button type="button">Lưu</button>}
+        onClose={vi.fn()}
+      >
+        Nội dung
+      </Modal>,
+    )
+
+    expect(screen.getByRole('button', { name: 'Đóng' })).toHaveFocus()
+
+    await user.tab({ shift: true })
+    expect(screen.getByRole('button', { name: 'Lưu' })).toHaveFocus()
+
+    rerender(
+      <Modal open={false} title="Xác nhận" onClose={vi.fn()}>
+        Nội dung
+      </Modal>,
+    )
+
+    expect(trigger).toHaveFocus()
+    trigger.remove()
+  })
+
+  it('locks body scrolling while open', () => {
+    const { unmount } = render(
+      <Modal open title="Xác nhận" onClose={vi.fn()}>
+        Nội dung
+      </Modal>,
+    )
+
+    expect(document.body.style.overflow).toBe('hidden')
+
+    unmount()
+
+    expect(document.body.style.overflow).toBe('')
+  })
 })

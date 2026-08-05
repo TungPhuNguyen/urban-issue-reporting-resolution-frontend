@@ -4,6 +4,7 @@ export const REPORT_STATUS = {
   Accepted: 'Accepted',
   InProgress: 'InProgress',
   Resolved: 'Resolved',
+  Reopened: 'Reopened',
   Closed: 'Closed',
   Rejected: 'Rejected',
 } as const

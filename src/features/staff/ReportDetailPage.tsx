@@ -10,27 +10,14 @@ import { ProgressUpdateCard } from './components/ProgressUpdateCard'
 import { ReportTimeline } from './components/ReportTimeline'
 import { StartProcessingReportCard } from './components/StartProcessingReportCard'
 import { useStaffReport } from './staff.queries'
-import type { ReportPriority, ReportStatus } from './staff.types'
+import type { ReportStatus } from './staff.types'
+
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 
 interface DetailItemProps {
   label: string
   value: ReactNode
-}
-
-const statusLabels: Record<ReportStatus, string> = {
-  New: 'Mới',
-  Assigned: 'Đã phân công',
-  Accepted: 'Đã tiếp nhận',
-  InProgress: 'Đang xử lý',
-  Resolved: 'Đã giải quyết',
-  Closed: 'Đã đóng',
-  Rejected: 'Đã từ chối',
-}
-
-const priorityLabels: Record<ReportPriority, string> = {
-  Low: 'Thấp',
-  Medium: 'Trung bình',
-  High: 'Cao',
 }
 
 function DetailItem({ label, value }: DetailItemProps) {
@@ -154,9 +141,7 @@ export default function StaffReportDetailPage() {
             </p>
           </div>
 
-          <span className="w-fit rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-            {statusLabels[report.status]}
-          </span>
+          <StatusBadge status={report.status} />
         </div>
 
         <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
@@ -182,7 +167,13 @@ export default function StaffReportDetailPage() {
           />
           <DetailItem
             label="Mức ưu tiên"
-            value={report.priority ? priorityLabels[report.priority] : 'Chưa phân loại'}
+            value={
+              report.priority ? (
+                <PriorityBadge priority={report.priority} />
+              ) : (
+                'Chưa phân loại'
+              )
+            }
           />
           <DetailItem label="Lượt ủng hộ" value={`${report.upvoteCount} lượt`} />
           <DetailItem label="Tọa độ" value={`${report.latitude}, ${report.longitude}`} />
@@ -277,7 +268,7 @@ export default function StaffReportDetailPage() {
       {report.isEscalated && (
         <Card className="border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/40">
           <h2 className="font-semibold text-red-800 dark:text-red-300">
-            Báo cáo đã được escalated
+            Báo cáo đã được cảnh báo quá hạn
           </h2>
 
           <p className="mt-2 text-sm text-red-700 dark:text-red-400">

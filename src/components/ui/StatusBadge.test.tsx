@@ -15,6 +15,12 @@ describe('StatusBadge', () => {
     expect(screen.getByText('Đã hủy')).toBeInTheDocument()
   })
 
+  it('supports the Reopened status', () => {
+    render(<StatusBadge status="Reopened" />)
+
+    expect(screen.getByText('Đã mở lại')).toBeInTheDocument()
+  })
+
   it('renders the original value for an unknown status', () => {
     render(<StatusBadge status="UnknownStatus" />)
 

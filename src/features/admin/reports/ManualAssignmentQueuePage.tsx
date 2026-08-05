@@ -3,7 +3,9 @@ import { Link } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
 
 import { useManualAssignmentQueue } from './admin-reports.queries'
@@ -87,13 +89,11 @@ export default function ManualAssignmentQueuePage() {
 
       <Card className="overflow-hidden">
         {reports.length === 0 ? (
-          <div className="flex min-h-64 flex-col items-center justify-center gap-2 p-8 text-center">
-            <h2 className="text-lg font-medium">Không có báo cáo chờ phân công</h2>
-
-            <p className="text-sm text-gray-500">
-              Hàng đợi sẽ tự động cập nhật khi có báo cáo mới.
-            </p>
-          </div>
+          <EmptyState
+            title="Không có báo cáo chờ phân công"
+            description="Hàng đợi sẽ tự động cập nhật khi có báo cáo mới."
+            className="min-h-64 rounded-none border-0"
+          />
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[1050px] text-left text-sm">
@@ -142,9 +142,7 @@ export default function ManualAssignmentQueuePage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
-                        {report.status}
-                      </span>
+                      <StatusBadge status={report.status} />
                     </td>
 
                     <td className="px-4 py-3 text-gray-500">

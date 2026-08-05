@@ -81,18 +81,18 @@ export function ReportCard({
                 </h2>
 
                 <p className="mt-1 flex items-start gap-1.5 text-sm text-gray-600 dark:text-gray-400">
-                  <MapPin aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
                   <span>Khu vực: {report.areaName}</span>
                 </p>
 
                 {report.addressText && (
-                  <p className="mt-1 pl-5.5 text-sm text-gray-600 dark:text-gray-400">
+                  <p className="mt-1 pl-5 text-sm text-gray-600 dark:text-gray-400">
                     {report.addressText}
                   </p>
                 )}
               </div>
 
-              <div className="flex shrink-0 flex-wrap items-center gap-2 sm:max-w-52 sm:justify-end">
+              <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
                 <StatusBadge status={report.status} />
                 <PriorityBadge priority={report.priority} />
               </div>
@@ -105,19 +105,19 @@ export function ReportCard({
             <div className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-gray-500 dark:text-gray-400">
               {typeof report.upvoteCount === 'number' && (
                 <span className="inline-flex items-center gap-1.5">
-                  <ThumbsUp aria-hidden="true" className="h-3.5 w-3.5" />
+                  <ThumbsUp className="h-3.5 w-3.5" />
                   {report.upvoteCount} lượt ủng hộ
                 </span>
               )}
 
               <span className="inline-flex items-center gap-1.5">
-                <CalendarDays aria-hidden="true" className="h-3.5 w-3.5" />
+                <CalendarDays className="h-3.5 w-3.5" />
                 Ngày gửi: {formatDateTime(report.createdAt)}
               </span>
 
               {showDueDate && (
                 <span className="inline-flex items-center gap-1.5">
-                  <Clock aria-hidden="true" className="h-3.5 w-3.5" />
+                  <Clock className="h-3.5 w-3.5" />
                   Hạn xử lý: {formatDateTime(report.dueAt)}
                 </span>
               )}

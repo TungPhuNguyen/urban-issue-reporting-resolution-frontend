@@ -2,8 +2,13 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
+import { getPriorityLabel, getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
 
 import { useAdminReports } from './admin-reports.queries'
@@ -17,6 +22,7 @@ const STATUSES = [
   'Accepted',
   'InProgress',
   'Resolved',
+  'Reopened',
   'Closed',
   'Rejected',
 ]
@@ -101,7 +107,7 @@ export default function AdminReportsPage() {
             Tất cả báo cáo
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Tìm kiếm, xử lý khiếu nại và theo dõi báo cáo escalation.
+            Tìm kiếm, xử lý khiếu nại và theo dõi báo cáo được cảnh báo.
           </p>
         </div>
 
@@ -146,7 +152,7 @@ export default function AdminReportsPage() {
             <option value="">Tất cả trạng thái</option>
             {STATUSES.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {getStatusLabel(item)}
               </option>
             ))}
           </select>
@@ -164,7 +170,7 @@ export default function AdminReportsPage() {
             <option value="">Tất cả mức ưu tiên</option>
             {PRIORITIES.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {getPriorityLabel(item)}
               </option>
             ))}
           </select>
@@ -192,7 +198,7 @@ export default function AdminReportsPage() {
                 })
               }
             />
-            Đã escalation
+            Đã cảnh báo
           </label>
 
           <div className="flex gap-2 xl:col-span-5">
@@ -223,12 +229,10 @@ export default function AdminReportsPage() {
           </Button>
         </Card>
       ) : !page || page.items.length === 0 ? (
-        <Card className="p-10 text-center">
-          <h2 className="text-lg font-semibold">Không có báo cáo phù hợp</h2>
-          <p className="mt-2 text-sm text-gray-500">
-            Hãy thay đổi bộ lọc hoặc làm mới dữ liệu.
-          </p>
-        </Card>
+        <EmptyState
+          title="Không có báo cáo phù hợp"
+          description="Hãy thay đổi bộ lọc hoặc làm mới dữ liệu."
+        />
       ) : (
         <>
           <Card className="overflow-hidden">
@@ -259,9 +263,13 @@ export default function AdminReportsPage() {
                       <td className="px-4 py-3">
                         <p>{report.categoryName}</p>
                         <p className="mt-1 text-gray-500">{report.areaName}</p>
-                        <p className="mt-1 text-xs text-gray-500">
-                          {report.priority ?? 'Chưa xác định'}
-                        </p>
+                        <div className="mt-2">
+                          {report.priority ? (
+                            <PriorityBadge priority={report.priority} />
+                          ) : (
+                            <span className="text-xs text-gray-500">Chưa xác định</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <p>{report.departmentName ?? 'Chưa có phòng ban'}</p>
@@ -270,27 +278,15 @@ export default function AdminReportsPage() {
                         </p>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800">
-                          {report.status}
-                        </span>
+                        <StatusBadge status={report.status} />
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col items-start gap-1.5">
-                          {report.hasComplaint && (
-                            <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800">
-                              Khiếu nại
-                            </span>
-                          )}
+                          {report.hasComplaint && <Badge variant="info">Khiếu nại</Badge>}
                           {report.isEscalated && (
-                            <span className="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">
-                              Escalated
-                            </span>
+                            <Badge variant="warning">Đã cảnh báo</Badge>
                           )}
-                          {report.isOverdue && (
-                            <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
-                              Quá hạn
-                            </span>
-                          )}
+                          {report.isOverdue && <Badge variant="danger">Quá hạn</Badge>}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right">

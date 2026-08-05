@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
 import { useDebounce } from '@/hooks/useDebounce'
 
-import { ReportCard } from './reports/ReportCard'
+import { ReportCard } from '@/components/reports/ReportCard'
 import { useCitizenReports } from './reports/citizen-report.queries'
 import { REPORT_STATUS, type ReportStatus } from './reports/citizen-report.types'
 
@@ -32,6 +32,10 @@ const statusOptions: {
   {
     value: REPORT_STATUS.Resolved,
     label: 'Đã giải quyết',
+  },
+  {
+    value: REPORT_STATUS.Reopened,
+    label: 'Đã mở lại',
   },
   { value: REPORT_STATUS.Closed, label: 'Đã đóng' },
   {

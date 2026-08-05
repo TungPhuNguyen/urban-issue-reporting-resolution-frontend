@@ -4,9 +4,12 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
+import { getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
-import { getImageUrl } from '@/lib/utils/image'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
+import { getImageUrl } from '@/lib/utils/image'
 
 import AdminReportTimeline from './AdminReportTimeline'
 import ReassignReportPanel from './ReassignReportPanel'
@@ -306,7 +309,9 @@ export default function AdminReportDetailPage() {
             Trạng thái
           </p>
 
-          <p className="mt-1">{report.status}</p>
+          <div className="mt-1">
+            <StatusBadge status={report.status} />
+          </div>
         </div>
 
         <div>
@@ -362,7 +367,13 @@ export default function AdminReportDetailPage() {
             Mức ưu tiên
           </p>
 
-          <p className="mt-1">{report.priority ?? 'Chưa xác định'}</p>
+          <div className="mt-1">
+            {report.priority ? (
+              <PriorityBadge priority={report.priority} />
+            ) : (
+              'Chưa xác định'
+            )}
+          </div>
         </div>
 
         <div>
@@ -379,7 +390,7 @@ export default function AdminReportDetailPage() {
 
         <div>
           <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-            Escalation
+            Cảnh báo quá hạn
           </p>
 
           <p
@@ -388,8 +399,8 @@ export default function AdminReportDetailPage() {
             }`}
           >
             {report.isEscalated
-              ? `Đã escalation lúc ${formatDate(report.escalatedAt)}`
-              : 'Chưa escalation'}
+              ? `Đã cảnh báo lúc ${formatDate(report.escalatedAt)}`
+              : 'Chưa có cảnh báo'}
           </p>
         </div>
 
@@ -731,7 +742,8 @@ export default function AdminReportDetailPage() {
 
         {!canReject ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Không thể từ chối báo cáo ở trạng thái <strong>{report.status}</strong>.
+            Không thể từ chối báo cáo ở trạng thái{' '}
+            <strong>{getStatusLabel(report.status)}</strong>.
           </div>
         ) : (
           <div className="mt-4 flex max-w-2xl flex-col gap-4">
@@ -844,8 +856,9 @@ export default function AdminReportDetailPage() {
               'Báo cáo có khiếu nại đang chờ. Hãy xử lý khiếu nại ở phần bên dưới.'
             ) : (
               <>
-                Chỉ có thể đóng báo cáo ở trạng thái <strong>Resolved</strong>. Trạng thái
-                hiện tại là <strong>{report.status}</strong>.
+                Chỉ có thể đóng báo cáo ở trạng thái{' '}
+                <strong>{getStatusLabel('Resolved')}</strong>. Trạng thái hiện tại là{' '}
+                <strong>{getStatusLabel(report.status)}</strong>.
               </>
             )}
           </div>

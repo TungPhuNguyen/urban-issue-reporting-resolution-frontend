@@ -2,8 +2,13 @@ import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
+import { getPriorityLabel, getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useAuthStore } from '@/features/auth/auth.store'
 import { ApiError } from '@/lib/api/http'
 
@@ -58,16 +63,6 @@ function formatOverdueDuration(milliseconds: number) {
   }
 
   return parts.join(' ')
-}
-
-function priorityLabel(priority: ReportPriority) {
-  const labels: Record<ReportPriority, string> = {
-    Low: 'Thấp',
-    Medium: 'Trung bình',
-    High: 'Cao',
-  }
-
-  return labels[priority]
 }
 
 export default function OverdueReportsPage() {
@@ -138,7 +133,7 @@ export default function OverdueReportsPage() {
           <p className="mt-1 text-2xl font-semibold">{page?.totalItems ?? 0}</p>
         </Card>
         <Card className="p-4">
-          <p className="text-sm text-gray-500">Escalated trong trang</p>
+          <p className="text-sm text-gray-500">Đã cảnh báo trong trang</p>
           <p className="mt-1 text-2xl font-semibold text-orange-600">
             {page?.items.filter((report) => report.isEscalated).length ?? 0}
           </p>
@@ -177,7 +172,7 @@ export default function OverdueReportsPage() {
             <option value="all">Tất cả mức ưu tiên</option>
             {PRIORITIES.map((priority) => (
               <option key={priority} value={priority}>
-                {priorityLabel(priority)}
+                {getPriorityLabel(priority)}
               </option>
             ))}
           </select>
@@ -193,8 +188,8 @@ export default function OverdueReportsPage() {
             className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="Accepted">Accepted</option>
-            <option value="InProgress">InProgress</option>
+            <option value="Accepted">{getStatusLabel('Accepted')}</option>
+            <option value="InProgress">{getStatusLabel('InProgress')}</option>
           </select>
           <label className="flex h-10 items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700">
             <input
@@ -208,7 +203,7 @@ export default function OverdueReportsPage() {
                 setPageNumber(1)
               }}
             />
-            Chỉ báo cáo escalated
+            Chỉ báo cáo đã cảnh báo
           </label>
           <div className="flex gap-2">
             <Button type="submit">Tìm kiếm</Button>
@@ -244,12 +239,10 @@ export default function OverdueReportsPage() {
           </Button>
         </Card>
       ) : !page || page.items.length === 0 ? (
-        <Card className="p-10 text-center">
-          <h2 className="text-lg font-semibold">Không có báo cáo quá hạn phù hợp</h2>
-          <p className="mt-2 text-sm text-gray-500">
-            Hãy thay đổi bộ lọc hoặc làm mới dữ liệu.
-          </p>
-        </Card>
+        <EmptyState
+          title="Không có báo cáo quá hạn phù hợp"
+          description="Hãy thay đổi bộ lọc hoặc làm mới dữ liệu."
+        />
       ) : (
         <>
           <Card className="overflow-hidden">
@@ -278,9 +271,9 @@ export default function OverdueReportsPage() {
                       <td className="px-4 py-3">
                         <p className="font-medium">{report.categoryName}</p>
                         <p className="mt-1 text-gray-500">{report.areaName}</p>
-                        <p className="mt-1 text-xs text-gray-500">
-                          {priorityLabel(report.priority)}
-                        </p>
+                        <div className="mt-2">
+                          <PriorityBadge priority={report.priority} />
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <p>{report.departmentName ?? 'Theo phòng ban Staff'}</p>
@@ -289,13 +282,11 @@ export default function OverdueReportsPage() {
                         </p>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-medium text-orange-800">
-                          {report.status}
-                        </span>
+                        <StatusBadge status={report.status} />
                         {report.isEscalated && (
-                          <span className="mt-1 block text-xs font-medium text-red-600">
-                            Escalated
-                          </span>
+                          <div className="mt-2">
+                            <Badge variant="warning">Đã cảnh báo</Badge>
+                          </div>
                         )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">

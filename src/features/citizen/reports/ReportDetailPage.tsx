@@ -3,11 +3,12 @@ import { Link, useLocation, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import { Spinner } from '@/components/ui/Spinner'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { env } from '@/config/env'
 import { ApiError } from '@/lib/api/http'
 
-import { ReportStatusBadge } from './ReportStatusBadge'
 import { ReportTimeline } from './ReportTimeline'
 import {
   useCitizenReportDetail,
@@ -48,22 +49,6 @@ function formatDateTime(value: string | null | undefined): string {
   }
 
   return date.toLocaleString('vi-VN')
-}
-
-function getPriorityLabel(priority: string | null | undefined): string {
-  switch (priority) {
-    case 'High':
-      return 'Cao'
-
-    case 'Medium':
-      return 'Trung bình'
-
-    case 'Low':
-      return 'Thấp'
-
-    default:
-      return 'Chưa phân loại'
-  }
 }
 
 function ErrorCard({
@@ -317,7 +302,7 @@ export default function ReportDetailPage() {
             </p>
           </div>
 
-          <ReportStatusBadge status={report.status} />
+          <StatusBadge status={report.status} />
         </div>
 
         <div className="mt-6">
@@ -372,7 +357,16 @@ export default function ReportDetailPage() {
             value={report.departmentName ?? 'Chưa được phân công'}
           />
 
-          <DetailItem label="Mức ưu tiên" value={getPriorityLabel(report.priority)} />
+          <DetailItem
+            label="Mức ưu tiên"
+            value={
+              report.priority ? (
+                <PriorityBadge priority={report.priority} />
+              ) : (
+                'Chưa phân loại'
+              )
+            }
+          />
 
           <DetailItem label="Lượt ủng hộ" value={report.upvoteCount} />
 

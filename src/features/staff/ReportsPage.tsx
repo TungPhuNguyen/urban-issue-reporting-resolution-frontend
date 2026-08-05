@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
@@ -13,6 +12,7 @@ import {
   type ReportPriority,
   type ReportStatus,
 } from './staff.types'
+import { ReportCard } from '@/components/reports/ReportCard'
 
 const PAGE_SIZE = 10
 
@@ -20,22 +20,23 @@ const statusOptions: {
   value: ReportStatus
   label: string
 }[] = [
-  { value: REPORT_STATUS.Assigned, label: 'Đã phân công' },
-  { value: REPORT_STATUS.Accepted, label: 'Đã tiếp nhận' },
-  { value: REPORT_STATUS.InProgress, label: 'Đang xử lý' },
-  { value: REPORT_STATUS.Resolved, label: 'Đã giải quyết' },
-  { value: REPORT_STATUS.Closed, label: 'Đã đóng' },
-  { value: REPORT_STATUS.Rejected, label: 'Đã từ chối' },
-]
+    { value: REPORT_STATUS.Assigned, label: 'Đã phân công' },
+    { value: REPORT_STATUS.Accepted, label: 'Đã tiếp nhận' },
+    { value: REPORT_STATUS.InProgress, label: 'Đang xử lý' },
+    { value: REPORT_STATUS.Resolved, label: 'Đã giải quyết' },
+    { value: REPORT_STATUS.Reopened, label: 'Đã mở lại' },
+    { value: REPORT_STATUS.Closed, label: 'Đã đóng' },
+    { value: REPORT_STATUS.Rejected, label: 'Đã từ chối' },
+  ]
 
 const priorityOptions: {
   value: ReportPriority
   label: string
 }[] = [
-  { value: REPORT_PRIORITY.Low, label: 'Thấp' },
-  { value: REPORT_PRIORITY.Medium, label: 'Trung bình' },
-  { value: REPORT_PRIORITY.High, label: 'Cao' },
-]
+    { value: REPORT_PRIORITY.Low, label: 'Thấp' },
+    { value: REPORT_PRIORITY.Medium, label: 'Trung bình' },
+    { value: REPORT_PRIORITY.High, label: 'Cao' },
+  ]
 
 export default function StaffReportsPage() {
   const [search, setSearch] = useState('')
@@ -222,56 +223,13 @@ export default function StaffReportsPage() {
 
           <div className="flex flex-col gap-4">
             {reports.map((report) => (
-              <Link key={report.id} to={`/staff/reports/${report.id}`} className="block">
-                <Card className="p-5 transition hover:-translate-y-0.5 hover:shadow-md">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <p className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
-                        Mã báo cáo: {report.id}
-                      </p>
-
-                      <h2 className="mt-1 font-semibold text-gray-900 dark:text-gray-100">
-                        {report.categoryName}
-                      </h2>
-
-                      <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                        Khu vực: {report.areaName}
-                      </p>
-
-                      {report.addressText && (
-                        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-                          Địa chỉ: {report.addressText}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="text-right text-sm">
-                      <p className="font-medium text-gray-900 dark:text-gray-100">
-                        {report.status}
-                      </p>
-
-                      <p className="text-gray-500 dark:text-gray-400">
-                        Priority: {report.priority ?? '-'}
-                      </p>
-
-                      <p className="text-gray-500 dark:text-gray-400">
-                        Created: {new Date(report.createdAt).toLocaleString('vi-VN')}
-                      </p>
-
-                      <p className="text-gray-500 dark:text-gray-400">
-                        Due:{' '}
-                        {report.dueAt
-                          ? new Date(report.dueAt).toLocaleString('vi-VN')
-                          : 'Not started'}
-                      </p>
-                    </div>
-                  </div>
-
-                  <p className="mt-3 text-sm text-gray-700 dark:text-gray-300">
-                    {report.description}
-                  </p>
-                </Card>
-              </Link>
+              <ReportCard
+                key={report.id}
+                report={report}
+                to={`/staff/reports/${report.id}`}
+                showReportId
+                showDueDate
+              />
             ))}
           </div>
 

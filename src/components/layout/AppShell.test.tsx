@@ -75,6 +75,27 @@ describe('AppShell', () => {
     )
   })
 
+  it('manages focus, Escape and body scrolling for the mobile menu', async () => {
+    const user = userEvent.setup()
+
+    renderAppShell()
+
+    const menuTrigger = screen.getByRole('button', { name: 'Mở menu' })
+    await user.click(menuTrigger)
+
+    expect(document.body.style.overflow).toBe('hidden')
+    expect(screen.getByRole('dialog', { name: 'Menu điều hướng' })).toBeVisible()
+    expect(screen.getByRole('button', { name: 'Đóng menu' })).toHaveFocus()
+
+    await user.keyboard('{Escape}')
+
+    expect(
+      screen.queryByRole('dialog', { name: 'Menu điều hướng' }),
+    ).not.toBeInTheDocument()
+    expect(document.body.style.overflow).toBe('')
+    expect(menuTrigger).toHaveFocus()
+  })
+
   it('calls onLogout when the logout button is clicked', async () => {
     const user = userEvent.setup()
     const onLogout = vi.fn()
