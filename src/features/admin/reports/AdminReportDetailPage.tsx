@@ -472,8 +472,9 @@ export default function AdminReportDetailPage() {
 
         {!canAssign ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Báo cáo này không thể phân công mới. Chỉ báo cáo trạng thái New và chưa có
-            phòng ban mới được phân công.
+            Báo cáo này không thể phân công mới. Chỉ báo cáo ở trạng thái{' '}
+            <strong>{getStatusLabel('New')}</strong> và chưa có phòng ban mới được phân
+            công.
           </div>
         ) : (
           <form className="mt-4 flex max-w-2xl flex-col gap-4" onSubmit={handleAssign}>
@@ -598,8 +599,8 @@ export default function AdminReportDetailPage() {
           </div>
         ) : !canAssignStaff ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Chỉ report ở trạng thái Assigned, đã có phòng ban và chưa có Staff mới được
-            phân công trong UC33.
+            Chỉ báo cáo ở trạng thái <strong>{getStatusLabel('Assigned')}</strong>, đã có
+            phòng ban và chưa có Staff mới được phân công.
           </div>
         ) : (
           <form
@@ -808,8 +809,9 @@ export default function AdminReportDetailPage() {
                 </p>
 
                 <p className="mt-1 text-sm text-red-700">
-                  Báo cáo sẽ chuyển sang trạng thái Rejected và không còn nằm trong hàng
-                  đợi xử lý.
+                  Báo cáo sẽ chuyển sang trạng thái{' '}
+                  <strong>{getStatusLabel('Rejected')}</strong> và không còn nằm trong
+                  hàng đợi xử lý.
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-3">
@@ -923,8 +925,9 @@ export default function AdminReportDetailPage() {
                 </p>
 
                 <p className="mt-1 text-sm text-green-800">
-                  Trạng thái sẽ chuyển từ Resolved sang Closed. Ghi chú xử lý và hình ảnh
-                  minh chứng hiện có sẽ được giữ nguyên.
+                  Trạng thái sẽ chuyển từ <strong>{getStatusLabel('Resolved')}</strong>{' '}
+                  sang <strong>{getStatusLabel('Closed')}</strong>. Ghi chú xử lý và hình
+                  ảnh minh chứng hiện có sẽ được giữ nguyên.
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-3">

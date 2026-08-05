@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api/http'
 
@@ -13,16 +14,6 @@ import type {
   ReportsByCategoryItem,
   ReportsByStatusItem,
 } from './dashboard/dashboard.types'
-
-const STATUS_LABELS: Record<string, string> = {
-  New: 'Mới',
-  Assigned: 'Đã phân công',
-  Accepted: 'Đã tiếp nhận',
-  InProgress: 'Đang xử lý',
-  Resolved: 'Đã xử lý',
-  Closed: 'Đã đóng',
-  Rejected: 'Bị từ chối',
-}
 
 function toInputDate(date: Date): string {
   const year = date.getFullYear()
@@ -138,7 +129,7 @@ export default function AdminDashboardPage() {
 
   const statusItems = (data?.reportsByStatus ?? []).map((item: ReportsByStatusItem) => ({
     key: item.status,
-    label: STATUS_LABELS[item.status] ?? item.status,
+    label: getStatusLabel(item.status),
     count: item.reportCount,
     percentage: item.percentage,
   }))
@@ -275,7 +266,7 @@ export default function AdminDashboardPage() {
             </Card>
 
             <Card className="p-5">
-              <p className="text-sm text-gray-500">Đã Escalate</p>
+              <p className="text-sm text-gray-500">Đã cảnh báo quá hạn</p>
               <p className="mt-2 text-3xl font-bold text-orange-600">
                 {formatNumber(data.summary.escalatedReports)}
               </p>

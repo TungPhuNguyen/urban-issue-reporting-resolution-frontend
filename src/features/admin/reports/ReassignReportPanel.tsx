@@ -2,6 +2,7 @@ import { type FormEvent, useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { getStatusLabel } from '@/components/ui/report-labels'
 import { ApiError } from '@/lib/api/http'
 
 import {
@@ -105,7 +106,8 @@ export default function ReassignReportPanel({
       {!canReassign ? (
         <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
           Chức năng này xuất hiện sau lần phân công Staff đầu tiên, hoặc khi báo cáo đang
-          Accepted/InProgress.
+          ở trạng thái <strong>{getStatusLabel('Accepted')}</strong> hoặc{' '}
+          <strong>{getStatusLabel('InProgress')}</strong>.
         </div>
       ) : (
         <form className="mt-4 flex max-w-2xl flex-col gap-4" onSubmit={submit}>

@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { env } from '@/config/env'
 import { ApiError } from '@/lib/api/http'
+import { getStatusLabel } from '@/components/ui/report-labels'
 
 import { ReportTimeline } from './ReportTimeline'
 import {
@@ -504,7 +505,8 @@ export default function ReportDetailPage() {
             </div>
           ) : !canClose ? (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
-              Chỉ có thể đóng báo cáo ở trạng thái Resolved.
+              Chỉ có thể đóng báo cáo ở trạng thái{' '}
+              <strong>{getStatusLabel('Resolved')}</strong>.
             </div>
           ) : (
             <div className="mt-4 flex max-w-2xl flex-col gap-4">
@@ -568,7 +570,8 @@ export default function ReportDetailPage() {
                   </p>
 
                   <p className="mt-1 text-sm text-green-800">
-                    Báo cáo sẽ chuyển sang trạng thái Closed.
+                    Báo cáo sẽ chuyển sang trạng thái{' '}
+                    <strong>{getStatusLabel('Closed')}</strong>.
                   </p>
 
                   <div className="mt-4 flex flex-wrap gap-3">
@@ -615,7 +618,8 @@ export default function ReportDetailPage() {
             </div>
           ) : !canSubmitComplaint ? (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
-              Chỉ có thể yêu cầu mở lại báo cáo ở trạng thái Resolved.
+              Chỉ có thể yêu cầu mở lại báo cáo ở trạng thái{' '}
+              <strong>{getStatusLabel('Resolved')}</strong>.
             </div>
           ) : (
             <div className="mt-4 flex max-w-2xl flex-col gap-4">

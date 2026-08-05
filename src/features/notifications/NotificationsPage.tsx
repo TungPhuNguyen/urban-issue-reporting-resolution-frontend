@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuthStore } from '@/features/auth/auth.store'
 import { ApiError } from '@/lib/api/http'
@@ -57,7 +59,7 @@ function getTypeLabel(type: NotificationType): string {
     ComplaintSubmitted: 'Khiếu nại mới',
     SLAWarning: 'Cảnh báo SLA',
     SLABreached: 'Vi phạm SLA',
-    Escalated: 'Báo cáo escalated',
+    Escalated: 'Cảnh báo quá hạn',
   }
 
   return labels[type] ?? type
@@ -211,7 +213,7 @@ export default function NotificationsPage() {
               setReadFilter(event.target.value as ReadFilter)
               setPageNumber(1)
             }}
-            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
           >
             <option value="all">Tất cả</option>
             <option value="unread">Chưa đọc</option>
@@ -234,12 +236,10 @@ export default function NotificationsPage() {
           </Button>
         </Card>
       ) : !page || page.items.length === 0 ? (
-        <Card className="p-10 text-center">
-          <h2 className="text-lg font-semibold">Chưa có thông báo</h2>
-          <p className="mt-2 text-sm text-gray-500">
-            Các thông báo mới sẽ xuất hiện tại đây.
-          </p>
-        </Card>
+        <EmptyState
+          title="Chưa có thông báo"
+          description="Các thông báo mới sẽ xuất hiện tại đây."
+        />
       ) : (
         <>
           <div className="flex flex-col gap-3">
@@ -256,14 +256,15 @@ export default function NotificationsPage() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       {!notification.isRead && (
-                        <span className="h-2.5 w-2.5 rounded-full bg-blue-600" />
+                        <span
+                          aria-hidden="true"
+                          className="h-2.5 w-2.5 rounded-full bg-blue-600"
+                        />
                       )}
                       <h2 className="font-semibold text-gray-900 dark:text-gray-100">
                         {notification.title}
                       </h2>
-                      <span className="rounded-full bg-gray-100 px-2.5 py-1 text-xs text-gray-700 dark:bg-gray-800 dark:text-gray-200">
-                        {getTypeLabel(notification.type)}
-                      </span>
+                      <Badge variant="default">{getTypeLabel(notification.type)}</Badge>
                     </div>
 
                     <p className="mt-2 text-sm whitespace-pre-wrap text-gray-600 dark:text-gray-300">
