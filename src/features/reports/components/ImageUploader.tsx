@@ -138,7 +138,7 @@ export function ImageUploader({
 
   return (
     <div className={className}>
-      <label htmlFor="report-images" className="mb-1 block text-sm font-medium">
+      <label htmlFor="report-images" className="w-full bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500">
         Hình ảnh sự cố
         <span className="ml-1 text-red-500">*</span>
       </label>
@@ -151,7 +151,7 @@ export function ImageUploader({
         accept="image/jpeg,image/png,image/webp"
         disabled={disabled || value.length >= maxFiles}
         onChange={handleFileChange}
-        className="block w-full rounded-md border border-gray-300 px-3 py-2 text-sm disabled:cursor-not-allowed disabled:bg-gray-100"
+        className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-900 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
         aria-invalid={Boolean(error) || validationErrors.length > 0}
         aria-describedby={error ? 'report-images-error' : undefined}
       />

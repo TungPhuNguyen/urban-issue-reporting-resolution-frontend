@@ -36,7 +36,7 @@ export function AreaSelect({
 
   return (
     <div className={className}>
-      <label htmlFor={id} className="mb-1 block text-sm font-medium">
+      <label htmlFor={id} className="w-full bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500">
         {label}
 
         <span className="ml-1 text-red-500">*</span>
@@ -53,7 +53,7 @@ export function AreaSelect({
 
           onChange(selectedValue === '' ? null : Number(selectedValue))
         }}
-        className="w-full rounded-md border px-3 py-2 disabled:cursor-not-allowed disabled:bg-gray-100"
+        className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-gray-900 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-500"
       >
         <option value="">
           {!enabled

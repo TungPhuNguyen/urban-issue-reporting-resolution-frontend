@@ -134,7 +134,7 @@ export default function RegisterPage() {
               onChange={(event) => setFullName(event.target.value)}
               disabled={isLoading}
               className="w-full rounded border px-3 py-2"
-              placeholder="Nguyễn Văn A"
+              placeholder="Nhập Họ và Tên"
             />
           </div>
 
@@ -147,7 +147,7 @@ export default function RegisterPage() {
               onChange={(event) => setEmail(event.target.value)}
               disabled={isLoading}
               className="w-full rounded border px-3 py-2"
-              placeholder="citizen@example.com"
+              placeholder=""
             />
           </div>
 
@@ -160,7 +160,7 @@ export default function RegisterPage() {
               onChange={(event) => setPhoneNumber(event.target.value)}
               disabled={isLoading}
               className="w-full rounded border px-3 py-2"
-              placeholder="0900000001"
+              placeholder="Nhập số điện thoại"
             />
           </div>
 
@@ -173,7 +173,7 @@ export default function RegisterPage() {
               onChange={(event) => setPassword(event.target.value)}
               disabled={isLoading}
               className="w-full rounded border px-3 py-2"
-              placeholder="Password@123"
+              placeholder=""
             />
           </div>
 
