@@ -20,23 +20,23 @@ const statusOptions: {
   value: ReportStatus
   label: string
 }[] = [
-    { value: REPORT_STATUS.Assigned, label: 'Đã phân công' },
-    { value: REPORT_STATUS.Accepted, label: 'Đã tiếp nhận' },
-    { value: REPORT_STATUS.InProgress, label: 'Đang xử lý' },
-    { value: REPORT_STATUS.Resolved, label: 'Đã giải quyết' },
-    { value: REPORT_STATUS.Reopened, label: 'Đã mở lại' },
-    { value: REPORT_STATUS.Closed, label: 'Đã đóng' },
-    { value: REPORT_STATUS.Rejected, label: 'Đã từ chối' },
-  ]
+  { value: REPORT_STATUS.Assigned, label: 'Đã phân công' },
+  { value: REPORT_STATUS.Accepted, label: 'Đã tiếp nhận' },
+  { value: REPORT_STATUS.InProgress, label: 'Đang xử lý' },
+  { value: REPORT_STATUS.Resolved, label: 'Đã giải quyết' },
+  { value: REPORT_STATUS.Reopened, label: 'Đã mở lại' },
+  { value: REPORT_STATUS.Closed, label: 'Đã đóng' },
+  { value: REPORT_STATUS.Rejected, label: 'Đã từ chối' },
+]
 
 const priorityOptions: {
   value: ReportPriority
   label: string
 }[] = [
-    { value: REPORT_PRIORITY.Low, label: 'Thấp' },
-    { value: REPORT_PRIORITY.Medium, label: 'Trung bình' },
-    { value: REPORT_PRIORITY.High, label: 'Cao' },
-  ]
+  { value: REPORT_PRIORITY.Low, label: 'Thấp' },
+  { value: REPORT_PRIORITY.Medium, label: 'Trung bình' },
+  { value: REPORT_PRIORITY.High, label: 'Cao' },
+]
 
 export default function StaffReportsPage() {
   const [search, setSearch] = useState('')

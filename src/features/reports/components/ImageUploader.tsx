@@ -138,7 +138,10 @@ export function ImageUploader({
 
   return (
     <div className={className}>
-      <label htmlFor="report-images" className="w-full bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500">
+      <label
+        htmlFor="report-images"
+        className="w-full bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
+      >
         Hình ảnh sự cố
         <span className="ml-1 text-red-500">*</span>
       </label>

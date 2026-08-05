@@ -219,7 +219,11 @@ export default function CitizenReportsPage() {
 
           <div className="flex flex-col gap-4">
             {reports.map((report) => (
-              <ReportCard key={report.id} report={report} to={`/citizen/reports/${report.id}`}/>
+              <ReportCard
+                key={report.id}
+                report={report}
+                to={`/citizen/reports/${report.id}`}
+              />
             ))}
           </div>
 

@@ -21,7 +21,10 @@ export function CategorySelect({
 
   return (
     <div className={className}>
-      <label htmlFor={id} className="w-full bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500">
+      <label
+        htmlFor={id}
+        className="w-full bg-white text-gray-900 disabled:bg-gray-100 disabled:text-gray-500"
+      >
         Loại sự cố
         <span className="ml-1 text-red-500">*</span>
       </label>
