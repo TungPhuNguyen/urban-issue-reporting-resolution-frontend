@@ -6,6 +6,8 @@ import type {
   CreateAreaInput,
   PagedResult,
   UpdateAreaInput,
+  AreaBoundary,
+  UpdateAreaBoundaryInput,
 } from './areas.types'
 
 export const areasApi = {
@@ -43,6 +45,23 @@ export const areasApi = {
       isActive: input.isActive,
     })
 
+    return response.data
+  },
+
+  remove: async (id: number): Promise<void> => {
+    await http.delete(`/admin/areas/${id}`)
+  },
+
+  getBoundary: async (id: number): Promise<AreaBoundary> => {
+    const response = await http.get<AreaBoundary>(`/admin/areas/${id}/boundary`)
+    return response.data
+  },
+
+  updateBoundary: async (input: UpdateAreaBoundaryInput): Promise<AreaBoundary> => {
+    const response = await http.put<AreaBoundary>(
+      `/admin/areas/${input.areaId}/boundary`,
+      { geoJson: input.geoJson },
+    )
     return response.data
   },
 }

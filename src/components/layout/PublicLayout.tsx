@@ -8,7 +8,7 @@ import { useAuthStore } from '@/features/auth/auth.store'
 
 const roleHome = {
   Admin: '/admin/dashboard',
-  Staff: '/staff/reports',
+  Staff: '/staff/dashboard',
   Citizen: '/citizen/reports',
 } as const
 
@@ -18,7 +18,13 @@ export default function PublicLayout() {
   const [scrolled, setScrolled] = useState(false)
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
   const user = useAuthStore((state) => state.user)
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/register'
+  const isAuthPage = [
+    '/login',
+    '/register',
+    '/forgot-password',
+    '/reset-password',
+    '/verify-email',
+  ].includes(location.pathname)
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20)
@@ -46,6 +52,8 @@ export default function PublicLayout() {
             className={`public-nav ${menuOpen ? 'public-nav--open' : ''}`}
           >
             <NavLink to="/">Trang chủ</NavLink>
+            <NavLink to="/reports">Bản đồ phản ánh</NavLink>
+            <NavLink to="/lookup">Tra cứu</NavLink>
             <a href="/#how-it-works">Quy trình</a>
             <a href="/#impact">Minh bạch</a>
           </nav>
@@ -99,6 +107,7 @@ export default function PublicLayout() {
           <div>
             <strong>Sản phẩm</strong>
             <Link to="/register">Tạo báo cáo</Link>
+            <Link to="/reports">Bản đồ phản ánh</Link>
             <Link to="/login" aria-label="Đăng nhập tại chân trang">
               Đăng nhập
             </Link>

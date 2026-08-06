@@ -10,6 +10,7 @@ import {
   ScrollText,
   Tags,
   Timer,
+  Users,
 } from 'lucide-react'
 
 import type { AppShellMenuItem } from './AppShell'
@@ -57,6 +58,11 @@ const adminMenuItems: AppShellMenuItem[] = [
     label: 'Đơn vị xử lý',
     path: '/admin/departments',
     icon: Building2,
+  },
+  {
+    label: 'Người dùng',
+    path: '/admin/users',
+    icon: Users,
   },
   {
     label: 'Thông báo',

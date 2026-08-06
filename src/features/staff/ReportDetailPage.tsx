@@ -121,11 +121,11 @@ export default function StaffReportDetailPage() {
         </Link>
 
         <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Chi tiết báo cáo
+          {report.title ?? 'Chi tiết báo cáo'}
         </h1>
 
         <p className="mt-1 text-sm break-all text-gray-500 dark:text-gray-400">
-          {report.id}
+          {report.reportCode ?? report.id}
         </p>
       </div>
 
@@ -155,6 +155,9 @@ export default function StaffReportDetailPage() {
         <div className="mt-6 grid gap-5 border-t border-gray-200 pt-5 sm:grid-cols-2 lg:grid-cols-3 dark:border-gray-800">
           <DetailItem label="Người báo cáo" value={report.citizenName} />
           <DetailItem label="Danh mục" value={report.categoryName} />
+          {report.otherCategoryText && (
+            <DetailItem label="Loại sự cố cụ thể" value={report.otherCategoryText} />
+          )}
           <DetailItem label="Khu vực" value={report.areaName} />
           <DetailItem label="Địa chỉ" value={report.addressText ?? 'Chưa có địa chỉ'} />
           <DetailItem
@@ -293,9 +296,37 @@ export default function StaffReportDetailPage() {
         </Card>
       )}
 
-      {report.status === 'Assigned' && <AcceptReportCard reportId={reportId} />}
-      {report.status === 'Accepted' && <StartProcessingReportCard reportId={reportId} />}
-      {report.status === 'InProgress' && <ProgressUpdateCard reportId={reportId} />}
+      {report.resolution && (
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold">Kết quả xử lý gần nhất</h2>
+          <p className="mt-2 text-sm whitespace-pre-wrap">
+            {report.resolution.note ?? 'Không có ghi chú.'}
+          </p>
+          {report.resolution.imageUrls.length > 0 && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {report.resolution.imageUrls.map((url, index) => (
+                <a key={url} href={getImageUrl(url)} target="_blank" rel="noreferrer">
+                  <img
+                    src={getImageUrl(url)}
+                    alt={`Ảnh kết quả ${index + 1}`}
+                    className="h-40 w-full rounded-lg object-cover"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
+      {(report.allowedActions?.canAccept ?? report.status === 'Assigned') && (
+        <AcceptReportCard reportId={reportId} />
+      )}
+      {(report.allowedActions?.canStartProcessing ?? report.status === 'Accepted') && (
+        <StartProcessingReportCard reportId={reportId} />
+      )}
+      {(report.allowedActions?.canAddProgress ?? report.status === 'InProgress') && (
+        <ProgressUpdateCard reportId={reportId} />
+      )}
       <ReportTimeline reportId={reportId} />
     </section>
   )

@@ -7,6 +7,7 @@ import {
 
 import { areasApi } from './areas.api'
 import type { AreaListParams, CreateAreaInput, UpdateAreaInput } from './areas.types'
+import type { UpdateAreaBoundaryInput } from './areas.types'
 
 export const areaKeys = {
   all: ['admin', 'areas'] as const,
@@ -16,6 +17,16 @@ export const areaKeys = {
   list: (params: AreaListParams) => [...areaKeys.lists(), params] as const,
 
   detail: (id: number) => [...areaKeys.all, 'detail', id] as const,
+
+  boundary: (id: number) => [...areaKeys.all, 'boundary', id] as const,
+}
+
+export function useAreaBoundary(id: number | null) {
+  return useQuery({
+    queryKey: areaKeys.boundary(id ?? 0),
+    queryFn: () => areasApi.getBoundary(id!),
+    enabled: Boolean(id),
+  })
 }
 
 export function useAreas(params: AreaListParams) {
@@ -60,6 +71,25 @@ export function useUpdateArea() {
       void queryClient.invalidateQueries({
         queryKey: areaKeys.lists(),
       })
+    },
+  })
+}
+
+export function useDeleteArea() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => areasApi.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: areaKeys.all }),
+  })
+}
+
+export function useUpdateAreaBoundary() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: UpdateAreaBoundaryInput) => areasApi.updateBoundary(input),
+    onSuccess: (result) => {
+      queryClient.setQueryData(areaKeys.boundary(result.areaId), result)
+      void queryClient.invalidateQueries({ queryKey: areaKeys.lists() })
     },
   })
 }

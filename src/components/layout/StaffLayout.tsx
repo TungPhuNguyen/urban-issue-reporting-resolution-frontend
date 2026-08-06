@@ -1,9 +1,14 @@
-import { Bell, CircleAlert, FileText } from 'lucide-react'
+import { Bell, CircleAlert, FileText, LayoutDashboard } from 'lucide-react'
 
 import type { AppShellMenuItem } from './AppShell'
 import RoleLayout from './RoleLayout'
 
 const staffMenuItems: AppShellMenuItem[] = [
+  {
+    label: 'Tổng quan',
+    path: '/staff/dashboard',
+    icon: LayoutDashboard,
+  },
   {
     label: 'Danh sách báo cáo',
     path: '/staff/reports',

@@ -58,15 +58,25 @@ export default function RegisterPage() {
 
     try {
       setIsLoading(true)
-      await authApi.register({
+      const result = await authApi.register({
         fullName: fullName.trim(),
         email: email.trim(),
         phoneNumber: phoneNumber.trim() || undefined,
         password,
         confirmPassword,
       })
-      setSuccessMessage('Đăng ký thành công. Đang chuyển đến trang đăng nhập...')
-      window.setTimeout(() => navigate('/login', { replace: true }), 1000)
+      if (result.requiresEmailVerification || !result.accessToken) {
+        setSuccessMessage(
+          'Đăng ký thành công. Vui lòng kiểm tra email và xác minh tài khoản trước khi đăng nhập.',
+        )
+        window.setTimeout(
+          () => navigate(`/verify-email?email=${encodeURIComponent(result.email)}`),
+          1500,
+        )
+      } else {
+        setSuccessMessage('Đăng ký thành công. Đang chuyển đến trang đăng nhập...')
+        window.setTimeout(() => navigate('/login', { replace: true }), 1000)
+      }
     } catch (error) {
       if (error instanceof ApiError) {
         const firstValidationError = error.fieldErrors

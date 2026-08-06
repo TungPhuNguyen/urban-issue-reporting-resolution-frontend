@@ -33,7 +33,8 @@ export default function ReopenReportPanel({ report, onSuccess }: Props) {
   const dismissMutation = useDismissComplaint()
   const isPending = reopenMutation.isPending || dismissMutation.isPending
   const hasPendingComplaint =
-    report.status === 'Resolved' && report.complaintSubmittedAt !== null
+    report.allowedActions?.canReviewComplaint ??
+    (report.status === 'Resolved' && report.complaintSubmittedAt !== null)
 
   async function submit() {
     if (!decision) {

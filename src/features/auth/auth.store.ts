@@ -17,7 +17,8 @@ interface AuthState {
   status: AuthStatus
   error: string | null
 
-  login: (payload: LoginRequest) => Promise<AuthUser>
+  login: (payload: LoginRequest, remember?: boolean) => Promise<AuthUser>
+  updateUser: (user: AuthUser) => void
   loadCurrentUser: () => Promise<void>
   logout: () => Promise<void>
   clearAuth: () => void
@@ -32,7 +33,7 @@ export const useAuthStore = create<AuthState>()(
       status: 'idle',
       error: null,
 
-      login: async (payload) => {
+      login: async (payload, remember = false) => {
         set({
           status: 'loading',
           error: null,
@@ -47,9 +48,10 @@ export const useAuthStore = create<AuthState>()(
             email: response.email,
             role: response.role,
             departmentId: response.departmentId,
+            isEmailVerified: response.isEmailVerified,
           }
 
-          tokenStorage.set(response.accessToken, response.refreshToken)
+          tokenStorage.set(response.accessToken, response.refreshToken, remember)
 
           set({
             user,
@@ -108,6 +110,9 @@ export const useAuthStore = create<AuthState>()(
             email: response.email,
             role: response.role,
             departmentId: response.departmentId,
+            departmentName: response.departmentName,
+            phoneNumber: response.phoneNumber,
+            isEmailVerified: response.isEmailVerified,
           }
 
           set({
@@ -130,6 +135,8 @@ export const useAuthStore = create<AuthState>()(
           })
         }
       },
+
+      updateUser: (user) => set({ user }),
 
       logout: async () => {
         const refreshToken = tokenStorage.getRefresh()

@@ -16,6 +16,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [formError, setFormError] = useState('')
+  const [remember, setRemember] = useState(false)
   const isLoading = status === 'loading'
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -33,7 +34,7 @@ export function LoginPage() {
     }
 
     try {
-      const user = await login({ email: email.trim(), password })
+      const user = await login({ email: email.trim(), password }, remember)
       const redirectTo = (location.state as { from?: string } | null)?.from
 
       if (redirectTo) {
@@ -43,7 +44,7 @@ export function LoginPage() {
 
       const roleHome = {
         Admin: '/admin/dashboard',
-        Staff: '/staff/reports',
+        Staff: '/staff/dashboard',
         Citizen: '/citizen/reports',
       } as const
 
@@ -105,10 +106,16 @@ export function LoginPage() {
 
         <div className="auth-form__row">
           <label className="check-row">
-            <input type="checkbox" />
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
+            />
             <span>Ghi nhớ đăng nhập</span>
           </label>
-          <span className="muted text-sm">Bảo mật bằng JWT</span>
+          <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+            Quên mật khẩu?
+          </Link>
         </div>
 
         <Button type="submit" size="lg" loading={isLoading} className="button--full">

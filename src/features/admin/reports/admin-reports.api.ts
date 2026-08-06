@@ -18,6 +18,7 @@ import type {
   PostResolutionActionResult,
   ReassignReportInput,
   ReopenReportInput,
+  ClassifyReportInput,
 } from './admin-reports.types'
 
 function removeAssignedReports(
@@ -225,6 +226,18 @@ export const adminReportsApi = {
       },
     )
 
+    return response.data
+  },
+
+  classifyReport: async ({
+    reportId,
+    categoryId,
+    note,
+  }: ClassifyReportInput): Promise<AssignReportResult> => {
+    const response = await http.post<AssignReportResult>(
+      `/admin/reports/${reportId}/classify`,
+      { categoryId, note: note?.trim() || null },
+    )
     return response.data
   },
 }

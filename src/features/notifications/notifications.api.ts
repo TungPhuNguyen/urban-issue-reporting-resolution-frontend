@@ -5,6 +5,7 @@ import type {
   NotificationItem,
   NotificationListParams,
   PagedResult,
+  UnreadNotificationCountResult,
 } from './notifications.types'
 
 export const notificationsApi = {
@@ -32,5 +33,12 @@ export const notificationsApi = {
     const response = await http.patch<MarkAllReadResult>('/notifications/read-all')
 
     return response.data
+  },
+
+  getUnreadCount: async (): Promise<number> => {
+    const response = await http.get<UnreadNotificationCountResult>(
+      '/notifications/unread-count',
+    )
+    return response.data.unreadCount
   },
 }

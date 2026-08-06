@@ -7,6 +7,8 @@ import { getImageUrl } from '@/lib/utils/image'
 
 export interface ReportCardData {
   id: string
+  reportCode?: string
+  title?: string
   categoryName: string
   areaName: string
   description: string
@@ -63,7 +65,9 @@ export function ReportCard({
                 loading="lazy"
               />
               {showReportId && (
-                <span className="report-card__code">#{report.id.slice(0, 8)}</span>
+                <span className="report-card__code">
+                  {report.reportCode ?? `#${report.id.slice(0, 8)}`}
+                </span>
               )}
             </>
           ) : (
@@ -79,7 +83,8 @@ export function ReportCard({
             <PriorityBadge priority={report.priority} />
           </div>
 
-          <h3>{report.categoryName}</h3>
+          <h3>{report.title ?? report.categoryName}</h3>
+          {report.title && <small>{report.categoryName}</small>}
           <p>{report.description}</p>
 
           <div className="report-card__meta">

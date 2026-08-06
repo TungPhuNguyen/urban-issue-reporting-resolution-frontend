@@ -19,9 +19,9 @@ const statusOptions: ReportStatus[] = [
   REPORT_STATUS.Accepted,
   REPORT_STATUS.InProgress,
   REPORT_STATUS.Resolved,
-  REPORT_STATUS.Reopened,
   REPORT_STATUS.Closed,
   REPORT_STATUS.Rejected,
+  REPORT_STATUS.Cancelled,
 ]
 
 export default function CitizenReportsPage() {
@@ -203,6 +203,7 @@ export default function CitizenReportsPage() {
                 key={report.id}
                 report={report}
                 to={`/citizen/reports/${report.id}`}
+                showReportId
               />
             ))}
           </div>

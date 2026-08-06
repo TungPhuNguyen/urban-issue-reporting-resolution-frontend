@@ -10,6 +10,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
 import { getImageUrl } from '@/lib/utils/image'
+import { usePublicCategories } from '@/features/public-catalog/public-catalog.queries'
 
 import AdminReportTimeline from './AdminReportTimeline'
 import ReassignReportPanel from './ReassignReportPanel'
@@ -23,6 +24,7 @@ import {
   useAssignStaff,
   useRejectReport,
   useCloseAdminReport,
+  useClassifyReport,
 } from './admin-reports.queries'
 
 function formatDate(value: string | null | undefined) {
@@ -89,6 +91,10 @@ export default function AdminReportDetailPage() {
 
   const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 
+  const [classificationCategoryId, setClassificationCategoryId] = useState('')
+  const [classificationNote, setClassificationNote] = useState('')
+  const [classificationError, setClassificationError] = useState<string | null>(null)
+
   const reportQuery = useAdminReportDetail(reportId)
 
   const departmentsQuery = useActiveDepartments()
@@ -101,6 +107,8 @@ export default function AdminReportDetailPage() {
   const assignStaffMutation = useAssignStaff()
   const rejectMutation = useRejectReport()
   const closeMutation = useCloseAdminReport()
+  const classifyMutation = useClassifyReport()
+  const categoriesQuery = usePublicCategories()
 
   if (reportQuery.isPending) {
     return (
@@ -125,7 +133,9 @@ export default function AdminReportDetailPage() {
   }
 
   const report = reportQuery.data
-  const canClose = report.status === 'Resolved' && report.complaintSubmittedAt === null
+  const canClose =
+    report.allowedActions?.canClose ??
+    (report.status === 'Resolved' && report.complaintSubmittedAt === null)
 
   const canReject =
     report.status !== 'Resolved' &&
@@ -137,7 +147,31 @@ export default function AdminReportDetailPage() {
     report.departmentId !== null &&
     report.assignedStaffId === null
 
-  const canAssign = report.status === 'New' && report.departmentId == null
+  const canAssign =
+    report.allowedActions?.canAssign ??
+    (report.status === 'New' && report.departmentId == null)
+
+  async function handleClassify(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const nextCategoryId = Number(classificationCategoryId)
+    if (!Number.isInteger(nextCategoryId) || nextCategoryId <= 0) {
+      setClassificationError('Vui lòng chọn danh mục mới.')
+      return
+    }
+    setClassificationError(null)
+    try {
+      await classifyMutation.mutateAsync({
+        reportId,
+        categoryId: nextCategoryId,
+        note: classificationNote,
+      })
+      await reportQuery.refetch()
+      setClassificationCategoryId('')
+      setClassificationNote('')
+    } catch (error) {
+      setClassificationError(getErrorMessage(error, 'Không thể phân loại báo cáo.'))
+    }
+  }
 
   async function handleAssign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -287,10 +321,12 @@ export default function AdminReportDetailPage() {
         </Link>
 
         <h1 className="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-          Chi tiết báo cáo
+          {report.title ?? 'Chi tiết báo cáo'}
         </h1>
 
-        <p className="mt-1 font-mono text-sm text-gray-500">{report.id}</p>
+        <p className="mt-1 font-mono text-sm text-gray-500">
+          {report.reportCode ?? report.id}
+        </p>
       </div>
 
       <Card className="grid gap-5 p-6 md:grid-cols-2">
@@ -320,6 +356,9 @@ export default function AdminReportDetailPage() {
           </p>
 
           <p className="mt-1">{report.categoryName}</p>
+          {report.otherCategoryText && (
+            <p className="mt-1 text-sm text-amber-700">{report.otherCategoryText}</p>
+          )}
         </div>
 
         <div>
@@ -456,6 +495,67 @@ export default function AdminReportDetailPage() {
           </div>
         )}
       </Card>
+
+      {report.allowedActions?.canClassify && (
+        <Card className="border-amber-200 p-6">
+          <h2 className="text-lg font-semibold">Phân loại báo cáo “Khác”</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Chọn danh mục chính thức trước khi phân công đơn vị xử lý.
+          </p>
+          <form className="mt-4 grid max-w-2xl gap-3" onSubmit={handleClassify}>
+            <select
+              value={classificationCategoryId}
+              onChange={(event) => setClassificationCategoryId(event.target.value)}
+              className="h-10 rounded-lg border border-gray-300 bg-white px-3 dark:border-gray-700 dark:bg-gray-900"
+            >
+              <option value="">Chọn danh mục mới</option>
+              {categoriesQuery.data
+                ?.filter((category) => category.id !== report.categoryId)
+                .map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+            </select>
+            <textarea
+              value={classificationNote}
+              maxLength={1000}
+              rows={3}
+              placeholder="Ghi chú phân loại"
+              onChange={(event) => setClassificationNote(event.target.value)}
+              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
+            />
+            {classificationError && (
+              <p className="text-sm text-red-600">{classificationError}</p>
+            )}
+            <Button type="submit" loading={classifyMutation.isPending}>
+              Xác nhận phân loại
+            </Button>
+          </form>
+        </Card>
+      )}
+
+      {report.resolution && (
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold">Kết quả xử lý</h2>
+          <p className="mt-2 text-sm whitespace-pre-wrap">
+            {report.resolution.note ?? 'Không có ghi chú.'}
+          </p>
+          {report.resolution.imageUrls.length > 0 && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {report.resolution.imageUrls.map((url, index) => (
+                <a key={url} href={getImageUrl(url)} target="_blank" rel="noreferrer">
+                  <img
+                    src={getImageUrl(url)}
+                    alt={`Ảnh kết quả ${index + 1}`}
+                    className="h-40 w-full rounded-lg object-cover"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
 
       <AdminReportTimeline reportId={report.id} />
 
@@ -724,9 +824,10 @@ export default function AdminReportDetailPage() {
           </form>
         )}
       </Card>
-      {(report.assignedStaffId !== null ||
-        report.status === 'Accepted' ||
-        report.status === 'InProgress') && (
+      {(report.allowedActions?.canReassign ??
+        (report.assignedStaffId !== null ||
+          report.status === 'Accepted' ||
+          report.status === 'InProgress')) && (
         <ReassignReportPanel
           report={report}
           onSuccess={() => void reportQuery.refetch()}
@@ -955,7 +1056,9 @@ export default function AdminReportDetailPage() {
         )}
       </Card>
 
-      <ReopenReportPanel report={report} onSuccess={() => void reportQuery.refetch()} />
+      {(report.allowedActions?.canReviewComplaint ?? true) && (
+        <ReopenReportPanel report={report} onSuccess={() => void reportQuery.refetch()} />
+      )}
     </section>
   )
 }

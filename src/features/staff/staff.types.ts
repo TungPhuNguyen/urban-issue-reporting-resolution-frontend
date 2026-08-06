@@ -4,9 +4,9 @@ export const REPORT_STATUS = {
   Accepted: 'Accepted',
   InProgress: 'InProgress',
   Resolved: 'Resolved',
-  Reopened: 'Reopened',
   Closed: 'Closed',
   Rejected: 'Rejected',
+  Cancelled: 'Cancelled',
 } as const
 
 export type ReportStatus = (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]
@@ -29,6 +29,8 @@ export interface PagedResult<T> {
 
 export interface StaffReportSummary {
   id: string
+  reportCode?: string
+  title?: string
 
   categoryId: number
   categoryName: string
@@ -37,6 +39,7 @@ export interface StaffReportSummary {
   areaName: string
 
   description: string
+  otherCategoryText?: string | null
   addressText: string | null
 
   priority: ReportPriority | null
@@ -53,10 +56,17 @@ export interface StaffReportSummary {
 
   createdAt: string
   dueAt: string | null
+  isOverdue?: boolean
+  overdueHours?: number | null
+  isEscalated?: boolean
+  escalatedAt?: string | null
 }
 
 export interface StaffReportDetail {
   id: string
+  reportNumber?: number
+  reportCode?: string
+  title?: string
 
   citizenId: string
   citizenName: string
@@ -74,6 +84,7 @@ export interface StaffReportDetail {
   assignedStaffName: string | null
 
   description: string
+  otherCategoryText?: string | null
   addressText: string | null
 
   latitude: number
@@ -102,6 +113,42 @@ export interface StaffReportDetail {
 
   acceptedAt: string | null
   resolvedAt: string | null
+  complaint?: import('@/features/reports/report.types').ReportComplaint | null
+  resolution?: import('@/features/reports/report.types').ReportResolution | null
+  allowedActions?: import('@/features/reports/report.types').ReportAllowedActions
+  rowVersion?: string
+}
+
+export interface StaffDashboardStatusItem {
+  status: ReportStatus
+  count: number
+}
+
+export interface StaffDashboardTrendItem {
+  date: string
+  count: number
+}
+
+export interface StaffDashboard {
+  departmentId: number
+  departmentName: string
+  from: string
+  to: string
+  totalReports: number
+  newReports: number
+  assignedReports: number
+  acceptedReports: number
+  inProgressReports: number
+  resolvedReports: number
+  closedReports: number
+  rejectedReports: number
+  slaWarningReports: number
+  slaBreachedReports: number
+  escalatedReports: number
+  overdueReports: number
+  averageResolutionHours: number | null
+  reportsByStatus: StaffDashboardStatusItem[]
+  trend: StaffDashboardTrendItem[]
 }
 
 export interface StaffProgressUpdate {

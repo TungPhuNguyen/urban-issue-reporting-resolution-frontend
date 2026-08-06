@@ -5,13 +5,16 @@ export type ReportStatus =
   | 'Resolved'
   | 'Closed'
   | 'Rejected'
-  | 'Reopened'
+  | 'Cancelled'
   | string
 
 export type ReportPriority = 'Low' | 'Medium' | 'High'
 
 export interface ManualAssignmentReport {
   id: string
+
+  reportCode?: string
+  title?: string
 
   citizenName?: string
 
@@ -22,6 +25,7 @@ export interface ManualAssignmentReport {
   areaName: string
 
   description: string
+  otherCategoryText?: string | null
   createdAt: string
 
   status: ReportStatus
@@ -57,6 +61,10 @@ export interface AdminReportsParams extends ManualAssignmentQueueParams {
   hasComplaint?: boolean
   isOverdue?: boolean
   isEscalated?: boolean
+  categoryId?: number
+  areaId?: number
+  departmentId?: number
+  staffId?: string
 }
 
 export interface PagedResult<T> {
@@ -68,6 +76,7 @@ export interface PagedResult<T> {
 }
 
 export interface AdminReportDetail extends ManualAssignmentReport {
+  reportNumber?: number
   citizenId: string
   citizenEmail: string
 
@@ -101,6 +110,10 @@ export interface AdminReportDetail extends ManualAssignmentReport {
 
   reopenedAt: string | null
   reopenReason: string | null
+  complaint?: import('@/features/reports/report.types').ReportComplaint | null
+  resolution?: import('@/features/reports/report.types').ReportResolution | null
+  allowedActions?: import('@/features/reports/report.types').ReportAllowedActions
+  rowVersion?: string
 }
 
 export interface Department {
@@ -186,6 +199,12 @@ export interface ReopenReportInput {
 export interface DismissComplaintInput {
   reportId: string
   reason: string
+}
+
+export interface ClassifyReportInput {
+  reportId: string
+  categoryId: number
+  note?: string
 }
 
 export interface AdminReportTimelineItem {

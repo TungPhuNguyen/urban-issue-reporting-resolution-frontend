@@ -16,6 +16,16 @@ export const staffReportKeys = {
   detail: (reportId: string) => [...staffReportKeys.all, 'detail', reportId] as const,
 
   timeline: (reportId: string) => [...staffReportKeys.all, 'timeline', reportId] as const,
+
+  dashboard: (from?: string, to?: string) =>
+    [...staffReportKeys.all, 'dashboard', from ?? '', to ?? ''] as const,
+}
+
+export function useStaffDashboard(from?: string, to?: string) {
+  return useQuery({
+    queryKey: staffReportKeys.dashboard(from, to),
+    queryFn: () => staffReportApi.getDashboard(from, to),
+  })
 }
 
 interface AcceptStaffReportInput {

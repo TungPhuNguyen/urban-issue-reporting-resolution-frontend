@@ -10,8 +10,11 @@ import { getPriorityLabel, getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
+import { usePublicCategories } from '@/features/public-catalog/public-catalog.queries'
+import { useAreas } from '@/features/admin/areas/areas.queries'
+import { useDepartments } from '@/features/admin/departments/departments.queries'
 
-import { useAdminReports } from './admin-reports.queries'
+import { useActiveStaffByDepartment, useAdminReports } from './admin-reports.queries'
 import type { ReportPriority } from './admin-reports.types'
 
 const PAGE_SIZE = 10
@@ -22,9 +25,9 @@ const STATUSES = [
   'Accepted',
   'InProgress',
   'Resolved',
-  'Reopened',
   'Closed',
   'Rejected',
+  'Cancelled',
 ]
 
 function parseBoolean(value: string | null) {
@@ -65,6 +68,18 @@ export default function AdminReportsPage() {
   const priority = (searchParams.get('priority') as ReportPriority | null) ?? ''
   const hasComplaint = parseBoolean(searchParams.get('hasComplaint'))
   const isEscalated = parseBoolean(searchParams.get('isEscalated'))
+  const categoryId = Number(searchParams.get('categoryId')) || undefined
+  const areaId = Number(searchParams.get('areaId')) || undefined
+  const departmentId = Number(searchParams.get('departmentId')) || undefined
+  const staffId = searchParams.get('staffId') || undefined
+  const categoriesQuery = usePublicCategories()
+  const areasQuery = useAreas({ pageNumber: 1, pageSize: 100 })
+  const departmentsQuery = useDepartments({
+    pageNumber: 1,
+    pageSize: 100,
+    isActive: true,
+  })
+  const staffQuery = useActiveStaffByDepartment(departmentId ?? null)
 
   const query = useAdminReports({
     pageNumber,
@@ -74,6 +89,10 @@ export default function AdminReportsPage() {
     priority: priority || undefined,
     hasComplaint,
     isEscalated,
+    categoryId,
+    areaId,
+    departmentId,
+    staffId,
   })
 
   function updateFilters(updates: Record<string, string | undefined>) {
@@ -153,6 +172,75 @@ export default function AdminReportsPage() {
             {STATUSES.map((item) => (
               <option key={item} value={item}>
                 {getStatusLabel(item)}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Danh mục"
+            value={categoryId ?? ''}
+            onChange={(event) =>
+              updateFilters({ categoryId: event.target.value || undefined })
+            }
+            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="">Tất cả danh mục</option>
+            {categoriesQuery.data?.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Khu vực"
+            value={areaId ?? ''}
+            onChange={(event) =>
+              updateFilters({ areaId: event.target.value || undefined })
+            }
+            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="">Tất cả khu vực</option>
+            {areasQuery.data?.items.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.parentAreaName ? `${item.parentAreaName} / ` : ''}
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Phòng ban"
+            value={departmentId ?? ''}
+            onChange={(event) =>
+              updateFilters({
+                departmentId: event.target.value || undefined,
+                staffId: undefined,
+              })
+            }
+            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="">Tất cả phòng ban</option>
+            {departmentsQuery.data?.items.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Staff"
+            value={staffId ?? ''}
+            disabled={!departmentId}
+            onChange={(event) =>
+              updateFilters({ staffId: event.target.value || undefined })
+            }
+            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="">Tất cả Staff</option>
+            {staffQuery.data?.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.fullName}
               </option>
             ))}
           </select>
@@ -252,7 +340,12 @@ export default function AdminReportsPage() {
                   {page.items.map((report) => (
                     <tr key={report.id} className="align-top">
                       <td className="px-4 py-3">
-                        <p className="font-medium">#{report.id.slice(0, 8)}</p>
+                        <p className="font-medium">
+                          {report.reportCode ?? `#${report.id.slice(0, 8)}`}
+                        </p>
+                        {report.title && (
+                          <p className="mt-1 font-medium">{report.title}</p>
+                        )}
                         <p className="mt-1 line-clamp-2 max-w-xs text-gray-500">
                           {report.description}
                         </p>

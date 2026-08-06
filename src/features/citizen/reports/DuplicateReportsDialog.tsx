@@ -38,7 +38,7 @@ function DuplicateReportCard({ report }: { report: DuplicateReport }) {
         {report.thumbnailUrl && (
           <img
             src={getImageUrl(report.thumbnailUrl)}
-            alt={`Ảnh báo cáo trùng lặp ${report.id.slice(0, 8)}`}
+            alt={`Ảnh báo cáo ${report.reportCode}`}
             className="h-20 w-24 shrink-0 rounded-lg object-cover"
           />
         )}
@@ -52,7 +52,11 @@ function DuplicateReportCard({ report }: { report: DuplicateReport }) {
             </span>
           </div>
 
-          <p className="mt-2 line-clamp-2 text-sm text-gray-800 dark:text-gray-200">
+          <p className="mt-2 font-medium text-gray-900 dark:text-gray-100">
+            {report.reportCode} · {report.title}
+          </p>
+
+          <p className="mt-1 line-clamp-2 text-sm text-gray-800 dark:text-gray-200">
             {report.description}
           </p>
 

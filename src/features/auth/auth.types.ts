@@ -6,6 +6,9 @@ export interface AuthUser {
   email: string
   role: UserRole
   departmentId: number | null
+  departmentName?: string | null
+  phoneNumber?: string | null
+  isEmailVerified?: boolean
 }
 
 export interface LoginRequest {
@@ -25,6 +28,7 @@ export interface LoginResponse {
   userId: string
   fullName: string
   email: string
+  isEmailVerified: boolean
   role: UserRole
   departmentId: number | null
   accessToken: string
@@ -36,20 +40,41 @@ export interface RegisterResponse {
   userId: string
   fullName: string
   email: string
+  isEmailVerified: boolean
+  requiresEmailVerification: boolean
   role: UserRole
-  accessToken: string
-  refreshToken: string
-  refreshTokenExpiresAt: string
+  accessToken: string | null
+  refreshToken: string | null
+  refreshTokenExpiresAt: string | null
 }
 
 export interface CurrentUserResponse {
   userId: string
   fullName: string
   email: string
+  isEmailVerified: boolean
   phoneNumber: string | null
   role: UserRole
   departmentId: number | null
   departmentName: string | null
+}
+
+export interface UpdateProfileRequest {
+  fullName: string
+  phoneNumber?: string | null
+}
+
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+  confirmNewPassword: string
+}
+
+export interface ResetPasswordRequest {
+  email: string
+  token: string
+  newPassword: string
+  confirmNewPassword: string
 }
 
 export interface RefreshTokenResponse {

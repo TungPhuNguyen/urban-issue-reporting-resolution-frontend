@@ -12,6 +12,11 @@ import type {
   SubmitComplaintInput,
   PostResolutionActionResult,
   CloseCitizenReportInput,
+  CancelReportRequest,
+  PagedResult,
+  ReportComment,
+  ReportUpvoteResult,
+  UpdateReportRequest,
 } from './citizen-report.types'
 
 export interface GetCitizenReportsParams {
@@ -40,7 +45,14 @@ export const citizenReportApi = {
 
     formData.append('AreaId', String(payload.areaId))
 
+    formData.append('Title', payload.title)
+
     formData.append('Description', payload.description)
+
+    formData.append(
+      'ConfirmPossibleDuplicate',
+      String(payload.confirmPossibleDuplicate ?? false),
+    )
 
     formData.append('Latitude', String(payload.latitude))
 
@@ -48,6 +60,10 @@ export const citizenReportApi = {
 
     if (payload.addressText) {
       formData.append('AddressText', payload.addressText)
+    }
+
+    if (payload.otherCategoryText) {
+      formData.append('OtherCategoryText', payload.otherCategoryText)
     }
 
     payload.images.forEach((image) => {
@@ -73,6 +89,46 @@ export const citizenReportApi = {
     return response.data
   },
 
+  async getReportByCode(reportCode: string): Promise<CitizenReportDetail> {
+    const response = await http.get<CitizenReportDetail>(
+      `/citizen/reports/by-code/${encodeURIComponent(reportCode)}`,
+    )
+
+    return response.data
+  },
+
+  async updateReport(payload: UpdateReportRequest): Promise<CitizenReportDetail> {
+    const response = await http.put<CitizenReportDetail>(
+      `/citizen/reports/${payload.reportId}`,
+      {
+        categoryId: payload.categoryId,
+        areaId: payload.areaId,
+        title: payload.title.trim(),
+        description: payload.description.trim(),
+        otherCategoryText: payload.otherCategoryText?.trim() || null,
+        addressText: payload.addressText?.trim() || null,
+        latitude: payload.latitude,
+        longitude: payload.longitude,
+        confirmPossibleDuplicate: payload.confirmPossibleDuplicate ?? false,
+        rowVersion: payload.rowVersion,
+      },
+    )
+
+    return response.data
+  },
+
+  async cancelReport(payload: CancelReportRequest): Promise<PostResolutionActionResult> {
+    const response = await http.post<PostResolutionActionResult>(
+      `/citizen/reports/${payload.reportId}/cancel`,
+      {
+        reason: payload.reason.trim(),
+        rowVersion: payload.rowVersion,
+      },
+    )
+
+    return response.data
+  },
+
   async getReportTimeline(reportId: string): Promise<ReportTimeline> {
     const response = await http.get<ReportTimeline>(
       `/citizen/reports/${reportId}/timeline`,
@@ -84,12 +140,15 @@ export const citizenReportApi = {
   submitComplaint: async ({
     reportId,
     reason,
+    images,
   }: SubmitComplaintInput): Promise<PostResolutionActionResult> => {
+    const formData = new FormData()
+    formData.append('Reason', reason.trim())
+    images.forEach((image) => formData.append('Images', image))
+
     const response = await http.post<PostResolutionActionResult>(
       `/citizen/reports/${reportId}/complaints`,
-      {
-        reason: reason.trim(),
-      },
+      formData,
     )
 
     return response.data
@@ -107,5 +166,43 @@ export const citizenReportApi = {
     )
 
     return response.data
+  },
+
+  async addUpvote(reportId: string): Promise<ReportUpvoteResult> {
+    const response = await http.post<ReportUpvoteResult>(
+      `/citizen/reports/${reportId}/upvote`,
+    )
+    return response.data
+  },
+
+  async removeUpvote(reportId: string): Promise<ReportUpvoteResult> {
+    const response = await http.delete<ReportUpvoteResult>(
+      `/citizen/reports/${reportId}/upvote`,
+    )
+    return response.data
+  },
+
+  async getComments(
+    reportId: string,
+    pageNumber = 1,
+    pageSize = 20,
+  ): Promise<PagedResult<ReportComment>> {
+    const response = await http.get<PagedResult<ReportComment>>(
+      `/citizen/reports/${reportId}/comments`,
+      { params: { pageNumber, pageSize } },
+    )
+    return response.data
+  },
+
+  async addComment(reportId: string, content: string): Promise<ReportComment> {
+    const response = await http.post<ReportComment>(
+      `/citizen/reports/${reportId}/comments`,
+      { content: content.trim() },
+    )
+    return response.data
+  },
+
+  async deleteComment(reportId: string, commentId: number): Promise<void> {
+    await http.delete(`/citizen/reports/${reportId}/comments/${commentId}`)
   },
 }

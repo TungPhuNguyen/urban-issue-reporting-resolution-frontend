@@ -3,9 +3,17 @@ import { type FormEvent, useEffect, useState } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+import { Modal } from '@/components/ui/Modal'
 import { ApiError } from '@/lib/api/http'
 
-import { useAreas, useCreateArea, useUpdateArea } from './areas.queries'
+import {
+  useAreaBoundary,
+  useAreas,
+  useCreateArea,
+  useDeleteArea,
+  useUpdateArea,
+  useUpdateAreaBoundary,
+} from './areas.queries'
 
 import type { Area, AreaListParams } from './areas.types'
 
@@ -73,6 +81,9 @@ export default function AreasPage() {
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
+  const [boundaryArea, setBoundaryArea] = useState<Area | null>(null)
+  const [geoJson, setGeoJson] = useState('')
+
   const params: AreaListParams = {
     search: search || undefined,
     isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
@@ -90,6 +101,9 @@ export default function AreasPage() {
 
   const createMutation = useCreateArea()
   const updateMutation = useUpdateArea()
+  const deleteMutation = useDeleteArea()
+  const boundaryQuery = useAreaBoundary(boundaryArea?.id ?? null)
+  const boundaryMutation = useUpdateAreaBoundary()
 
   const isSaving = createMutation.isPending || updateMutation.isPending
 
@@ -98,6 +112,10 @@ export default function AreasPage() {
       setPageNumber(Math.max(1, areasQuery.data.totalPages))
     }
   }, [areasQuery.data, pageNumber])
+
+  useEffect(() => {
+    if (boundaryQuery.data) setGeoJson(boundaryQuery.data.geoJson ?? '')
+  }, [boundaryQuery.data])
 
   function openCreateForm() {
     setEditingArea(null)
@@ -241,13 +259,17 @@ export default function AreasPage() {
     setSuccessMessage(null)
 
     try {
-      await updateMutation.mutateAsync({
-        id: area.id,
-        name: area.name,
-        code: area.code ?? '',
-        parentAreaId: area.parentAreaId,
-        isActive: !area.isActive,
-      })
+      if (area.isActive) {
+        await deleteMutation.mutateAsync(area.id)
+      } else {
+        await updateMutation.mutateAsync({
+          id: area.id,
+          name: area.name,
+          code: area.code ?? '',
+          parentAreaId: area.parentAreaId,
+          isActive: true,
+        })
+      }
 
       setSuccessMessage(
         area.isActive ? 'Đã vô hiệu hóa khu vực.' : 'Đã kích hoạt khu vực.',
@@ -559,6 +581,18 @@ export default function AreasPage() {
                             type="button"
                             variant="secondary"
                             size="sm"
+                            onClick={() => {
+                              setBoundaryArea(area)
+                              setGeoJson('')
+                            }}
+                          >
+                            GeoJSON
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
                             disabled={updateMutation.isPending}
                             onClick={() => void handleToggleActive(area)}
                           >
@@ -603,6 +637,66 @@ export default function AreasPage() {
           </div>
         </>
       )}
+
+      <Modal
+        open={Boolean(boundaryArea)}
+        title={boundaryArea ? `Ranh giới ${boundaryArea.name}` : 'Ranh giới khu vực'}
+        description="Nhập GeoJSON Polygon hoặc MultiPolygon. Để trống để xóa ranh giới."
+        className="max-w-3xl"
+        onClose={() => !boundaryMutation.isPending && setBoundaryArea(null)}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setBoundaryArea(null)}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              loading={boundaryMutation.isPending}
+              onClick={async () => {
+                if (!boundaryArea) return
+                const normalized = geoJson.trim()
+                if (normalized) {
+                  try {
+                    JSON.parse(normalized)
+                  } catch {
+                    setFormError('GeoJSON không phải JSON hợp lệ.')
+                    return
+                  }
+                }
+                await boundaryMutation.mutateAsync({
+                  areaId: boundaryArea.id,
+                  geoJson: normalized || null,
+                })
+                setBoundaryArea(null)
+                setSuccessMessage(
+                  normalized
+                    ? 'Đã cập nhật ranh giới khu vực.'
+                    : 'Đã xóa ranh giới khu vực.',
+                )
+              }}
+            >
+              Lưu ranh giới
+            </Button>
+          </>
+        }
+      >
+        {boundaryQuery.isPending ? (
+          <Spinner />
+        ) : (
+          <textarea
+            value={geoJson}
+            rows={16}
+            spellCheck={false}
+            placeholder='{"type":"Polygon","coordinates":[...]}'
+            onChange={(event) => setGeoJson(event.target.value)}
+            className="w-full rounded-lg border border-gray-300 p-3 font-mono text-xs dark:border-gray-700 dark:bg-gray-900"
+          />
+        )}
+      </Modal>
     </section>
   )
 }

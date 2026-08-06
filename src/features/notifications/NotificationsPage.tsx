@@ -60,6 +60,8 @@ function getTypeLabel(type: NotificationType): string {
     SLAWarning: 'Cảnh báo SLA',
     SLABreached: 'Vi phạm SLA',
     Escalated: 'Cảnh báo quá hạn',
+    ReportReclassified: 'Đã phân loại lại',
+    ReportCancelled: 'Báo cáo đã hủy',
   }
 
   return labels[type] ?? type
@@ -271,15 +273,24 @@ export default function NotificationsPage() {
                       {notification.message}
                     </p>
 
+                    {notification.reportCode && (
+                      <p className="mt-2 font-mono text-xs text-gray-500">
+                        {notification.reportCode}
+                      </p>
+                    )}
+
                     <p className="mt-3 text-xs text-gray-500">
                       {formatDate(notification.createdAt)}
                     </p>
                   </div>
 
                   <div className="flex flex-wrap gap-2">
-                    {notification.reportId && (
+                    {(notification.actionUrl || notification.reportId) && (
                       <Link
-                        to={getReportPath(role, notification.reportId)}
+                        to={
+                          notification.actionUrl ??
+                          getReportPath(role, notification.reportId!)
+                        }
                         onClick={() => void handleMarkRead(notification)}
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 px-3 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
                       >

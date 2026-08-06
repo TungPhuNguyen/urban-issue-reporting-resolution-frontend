@@ -1,6 +1,7 @@
 import { useEffect, type ReactNode } from 'react'
 
 import { Spinner } from '@/components/ui/Spinner'
+import { useNotificationRealtime } from '@/features/notifications/useNotificationRealtime'
 
 import { useAuthStore } from './auth.store'
 
@@ -12,6 +13,9 @@ export default function AuthInitializer({ children }: AuthInitializerProps) {
   const loadCurrentUser = useAuthStore((state) => state.loadCurrentUser)
 
   const isInitialized = useAuthStore((state) => state.isInitialized)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+
+  useNotificationRealtime(isAuthenticated)
 
   useEffect(() => {
     if (!isInitialized) {

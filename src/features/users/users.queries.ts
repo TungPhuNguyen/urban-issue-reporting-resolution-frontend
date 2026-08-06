@@ -1,59 +1,47 @@
 import {
+  keepPreviousData,
   useMutation,
   useQuery,
   useQueryClient,
-  keepPreviousData,
 } from '@tanstack/react-query'
 import { usersApi } from './users.api'
-import type { CreateUserInput, UpdateUserInput, User } from './users.types'
+import type {
+  AdminUserListParams,
+  ChangeUserStatusInput,
+  StaffInput,
+} from './users.types'
 
-/** Query keys colocated with the feature — the single source for cache keys. */
 export const userKeys = {
-  all: ['users'] as const,
-  list: () => [...userKeys.all, 'list'] as const,
-  detail: (id: number) => [...userKeys.all, 'detail', id] as const,
+  all: ['admin', 'users'] as const,
+  list: (params: AdminUserListParams) => [...userKeys.all, 'list', params] as const,
+  detail: (id: string) => [...userKeys.all, 'detail', id] as const,
 }
 
-export function useUsers() {
+export function useUsers(params: AdminUserListParams) {
   return useQuery({
-    queryKey: userKeys.list(),
-    queryFn: usersApi.list,
+    queryKey: userKeys.list(params),
+    queryFn: () => usersApi.list(params),
     placeholderData: keepPreviousData,
   })
 }
-
-export function useUser(id: number) {
+export function useUser(id: string | null) {
   return useQuery({
-    queryKey: userKeys.detail(id),
-    queryFn: () => usersApi.get(id),
-    enabled: Number.isFinite(id),
+    queryKey: userKeys.detail(id ?? ''),
+    queryFn: () => usersApi.get(id!),
+    enabled: Boolean(id),
   })
 }
-
-export function useCreateUser() {
-  const qc = useQueryClient()
+export function useChangeUserStatus() {
+  const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (input: CreateUserInput) => usersApi.create(input),
-    onSuccess: () => qc.invalidateQueries({ queryKey: userKeys.list() }),
+    mutationFn: (input: ChangeUserStatusInput) => usersApi.changeStatus(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
   })
 }
-
-export function useUpdateUser() {
-  const qc = useQueryClient()
+export function useSaveStaff() {
+  const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: ({ id, input }: { id: number; input: UpdateUserInput }) =>
-      usersApi.update(id, input),
-    onSuccess: (updated: User) => {
-      qc.invalidateQueries({ queryKey: userKeys.list() })
-      qc.setQueryData(userKeys.detail(updated.id), updated)
-    },
-  })
-}
-
-export function useDeleteUser() {
-  const qc = useQueryClient()
-  return useMutation({
-    mutationFn: (id: number) => usersApi.remove(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: userKeys.list() }),
+    mutationFn: (input: StaffInput) => usersApi.saveStaff(input),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: userKeys.all }),
   })
 }

@@ -5,6 +5,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 import RoleLayout from './RoleLayout'
 
+vi.mock('@/features/notifications/notifications.queries', () => ({
+  useUnreadNotificationCount: () => ({ data: 0 }),
+}))
+
 const authState = vi.hoisted(() => ({
   user: {
     fullName: 'Nguyễn Văn An',

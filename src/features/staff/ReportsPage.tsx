@@ -22,9 +22,9 @@ const statusOptions: ReportStatus[] = [
   REPORT_STATUS.Accepted,
   REPORT_STATUS.InProgress,
   REPORT_STATUS.Resolved,
-  REPORT_STATUS.Reopened,
   REPORT_STATUS.Closed,
   REPORT_STATUS.Rejected,
+  REPORT_STATUS.Cancelled,
 ]
 
 const priorityOptions: ReportPriority[] = [

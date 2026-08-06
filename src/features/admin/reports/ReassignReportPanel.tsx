@@ -46,8 +46,9 @@ export default function ReassignReportPanel({
   }, [report.assignedStaffId, report.departmentId])
 
   const canReassign =
-    ['Assigned', 'Accepted', 'InProgress'].includes(report.status) &&
-    (report.assignedStaffId !== null || report.status !== 'Assigned')
+    report.allowedActions?.canReassign ??
+    (['Assigned', 'Accepted', 'InProgress'].includes(report.status) &&
+      (report.assignedStaffId !== null || report.status !== 'Assigned'))
   const hasChanged =
     selectedDepartmentId !== report.departmentId ||
     (staffId || null) !== report.assignedStaffId

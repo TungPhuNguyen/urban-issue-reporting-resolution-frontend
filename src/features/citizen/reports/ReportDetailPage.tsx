@@ -9,7 +9,9 @@ import { StatusBadge } from '@/components/ui/StatusBadge'
 import { env } from '@/config/env'
 import { ApiError } from '@/lib/api/http'
 import { getStatusLabel } from '@/components/ui/report-labels'
+import { ImageUploader } from '@/features/reports/components/ImageUploader'
 
+import { ReportComments } from './ReportComments'
 import { ReportTimeline } from './ReportTimeline'
 import {
   useCitizenReportDetail,
@@ -108,6 +110,14 @@ export default function ReportDetailPage() {
 
   const [showComplaintConfirm, setShowComplaintConfirm] = useState(false)
 
+  const [complaintImages, setComplaintImages] = useState<File[]>([])
+
+  const [cancelReason, setCancelReason] = useState('')
+
+  const [cancelError, setCancelError] = useState<string | null>(null)
+
+  const [isCancelling, setIsCancelling] = useState(false)
+
   const apiOrigin = resolveApiOrigin(env.apiBaseUrl, window.location.origin)
 
   const locationState = location.state as ReportDetailLocationState | null
@@ -184,15 +194,20 @@ export default function ReportDetailPage() {
     return <ErrorCard message="Không có dữ liệu phản ánh." />
   }
 
+  const currentReport = report
+
   const isAutomaticallyAssigned =
     !report.requiresManualAssignment && report.departmentId !== null
 
-  const canClose = report.status === 'Resolved' && !report.complaintSubmittedAt
+  const canClose =
+    report.allowedActions?.canClose ??
+    (report.status === 'Resolved' && !report.complaintSubmittedAt)
 
   const canSubmitComplaint =
-    report.status === 'Resolved' &&
-    !report.hasSubmittedComplaint &&
-    !report.complaintSubmittedAt
+    report.allowedActions?.canComplain ??
+    (report.status === 'Resolved' &&
+      !report.hasSubmittedComplaint &&
+      !report.complaintSubmittedAt)
 
   async function handleCloseReport() {
     setCloseError(null)
@@ -249,6 +264,7 @@ export default function ReportDetailPage() {
       await complaintMutation.mutateAsync({
         reportId,
         reason: normalizedReason,
+        images: complaintImages,
       })
 
       setShowComplaintConfirm(false)
@@ -263,6 +279,35 @@ export default function ReportDetailPage() {
           ? complaintRequestError.message
           : 'Không thể gửi yêu cầu mở lại.',
       )
+    }
+  }
+
+  async function handleCancelReport() {
+    const normalizedReason = cancelReason.trim()
+    if (normalizedReason.length < 5 || normalizedReason.length > 1000) {
+      setCancelError('Lý do hủy phải có từ 5 đến 1000 ký tự.')
+      return
+    }
+
+    setIsCancelling(true)
+    setCancelError(null)
+    try {
+      const { citizenReportApi } = await import('./citizen-report.api')
+      await citizenReportApi.cancelReport({
+        reportId,
+        reason: normalizedReason,
+        rowVersion: currentReport.rowVersion,
+      })
+      await refetch()
+      setCancelReason('')
+    } catch (requestError) {
+      setCancelError(
+        requestError instanceof ApiError
+          ? requestError.message
+          : 'Không thể hủy báo cáo.',
+      )
+    } finally {
+      setIsCancelling(false)
     }
   }
 
@@ -291,11 +336,11 @@ export default function ReportDetailPage() {
             </p>
 
             <p className="mt-1 text-sm break-all text-gray-600 dark:text-gray-400">
-              {report.id}
+              {report.reportCode ?? report.id}
             </p>
 
             <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {report.categoryName}
+              {report.title ?? report.categoryName}
             </h1>
 
             <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
@@ -303,7 +348,17 @@ export default function ReportDetailPage() {
             </p>
           </div>
 
-          <StatusBadge status={report.status} />
+          <div className="flex flex-wrap items-center gap-2">
+            {report.allowedActions?.canEdit && (
+              <Link
+                to={`/citizen/reports/${report.id}/edit`}
+                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50"
+              >
+                Chỉnh sửa
+              </Link>
+            )}
+            <StatusBadge status={report.status} />
+          </div>
         </div>
 
         <div className="mt-6">
@@ -350,6 +405,10 @@ export default function ReportDetailPage() {
 
         <div className="mt-6 grid gap-5 border-t border-gray-200 pt-5 text-sm sm:grid-cols-2 lg:grid-cols-3 dark:border-gray-800">
           <DetailItem label="Danh mục" value={report.categoryName} />
+
+          {report.otherCategoryText && (
+            <DetailItem label="Loại sự cố cụ thể" value={report.otherCategoryText} />
+          )}
 
           <DetailItem label="Khu vực" value={report.areaName} />
 
@@ -445,8 +504,29 @@ export default function ReportDetailPage() {
             </p>
 
             <p className="mt-3 text-sm whitespace-pre-wrap text-orange-800 dark:text-orange-300">
-              {report.complaintReason ?? 'Không có nội dung yêu cầu.'}
+              {report.complaint?.reason ??
+                report.complaintReason ??
+                'Không có nội dung yêu cầu.'}
             </p>
+
+            {(report.complaint?.imageUrls ?? []).length > 0 && (
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {(report.complaint?.imageUrls ?? []).map((imageUrl, index) => (
+                  <a
+                    key={imageUrl}
+                    href={resolveImageUrl(imageUrl, apiOrigin)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <img
+                      src={resolveImageUrl(imageUrl, apiOrigin)}
+                      alt={`Ảnh khiếu nại ${index + 1}`}
+                      className="h-36 w-full rounded-lg object-cover"
+                    />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -484,6 +564,64 @@ export default function ReportDetailPage() {
             </div>
           )}
         </div>
+
+        {report.resolution && (
+          <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
+            <h2 className="text-base font-semibold">Kết quả xử lý</h2>
+            <p className="mt-2 text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+              {report.resolution.note || 'Đơn vị xử lý chưa để lại ghi chú.'}
+            </p>
+            <p className="mt-1 text-xs text-gray-500">
+              {report.resolution.resolvedByUserName ?? 'Cán bộ xử lý'} ·{' '}
+              {formatDateTime(report.resolution.resolvedAt)}
+            </p>
+            {report.resolution.imageUrls.length > 0 && (
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {report.resolution.imageUrls.map((imageUrl, index) => (
+                  <a
+                    key={imageUrl}
+                    href={resolveImageUrl(imageUrl, apiOrigin)}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <img
+                      src={resolveImageUrl(imageUrl, apiOrigin)}
+                      alt={`Ảnh kết quả ${index + 1}`}
+                      className="h-40 w-full rounded-lg object-cover"
+                    />
+                  </a>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {report.allowedActions?.canCancel && (
+          <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
+            <h2 className="text-base font-semibold text-red-700">Hủy báo cáo</h2>
+            <textarea
+              value={cancelReason}
+              rows={3}
+              maxLength={1000}
+              placeholder="Nhập lý do hủy báo cáo"
+              onChange={(event) => {
+                setCancelReason(event.target.value)
+                setCancelError(null)
+              }}
+              className="mt-3 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
+            />
+            {cancelError && <p className="mt-2 text-sm text-red-600">{cancelError}</p>}
+            <Button
+              type="button"
+              variant="danger"
+              className="mt-3"
+              loading={isCancelling}
+              onClick={() => void handleCancelReport()}
+            >
+              Xác nhận hủy báo cáo
+            </Button>
+          </div>
+        )}
 
         <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
           <h2 className="text-base font-semibold text-gray-900 dark:text-gray-100">
@@ -651,6 +789,14 @@ export default function ReportDetailPage() {
                 </p>
               </div>
 
+              <ImageUploader
+                value={complaintImages}
+                maxFiles={5}
+                maxSizeMb={5}
+                disabled={complaintMutation.isPending}
+                onChange={setComplaintImages}
+              />
+
               {complaintError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                   {complaintError}
@@ -724,6 +870,7 @@ export default function ReportDetailPage() {
           }}
         />
       </Card>
+      <ReportComments reportId={reportId} />
     </section>
   )
 }

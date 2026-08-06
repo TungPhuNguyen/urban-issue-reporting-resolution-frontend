@@ -17,6 +17,7 @@ import type {
   DismissComplaintInput,
   ReassignReportInput,
   ReopenReportInput,
+  ClassifyReportInput,
 } from './admin-reports.types'
 
 export const adminReportKeys = {
@@ -351,6 +352,19 @@ export function useDismissComplaint() {
 
       void queryClient.invalidateQueries({
         queryKey: adminReportKeys.all,
+      })
+    },
+  })
+}
+
+export function useClassifyReport() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (input: ClassifyReportInput) => adminReportsApi.classifyReport(input),
+    onSuccess: (result) => {
+      void queryClient.invalidateQueries({ queryKey: adminReportKeys.all })
+      void queryClient.invalidateQueries({
+        queryKey: adminReportKeys.detail(result.reportId),
       })
     },
   })

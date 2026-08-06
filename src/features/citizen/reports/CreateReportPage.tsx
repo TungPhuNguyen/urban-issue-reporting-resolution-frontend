@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { AreaHierarchySelect } from '@/features/reports/components/AreaHierarchySelect'
@@ -6,6 +6,10 @@ import { CategorySelect } from '@/features/reports/components/CategorySelect'
 import { ImageUploader } from '@/features/reports/components/ImageUploader'
 import { LocationPicker } from '@/features/reports/components/LocationPicker'
 import type { LatLng } from '@/features/reports/report-form.types'
+import {
+  usePublicCategories,
+  useResolvedArea,
+} from '@/features/public-catalog/public-catalog.queries'
 
 import { DuplicateReportsDialog } from './DuplicateReportsDialog'
 import { citizenReportApi } from './citizen-report.api'
@@ -20,7 +24,9 @@ interface AreaSelection {
 }
 
 interface FormErrors {
+  title?: string
   categoryId?: string
+  otherCategoryText?: string
   parentAreaId?: string
   areaId?: string
   description?: string
@@ -46,6 +52,10 @@ export default function CreateReportPage() {
   const navigate = useNavigate()
 
   const [categoryId, setCategoryId] = useState<number | null>(null)
+
+  const [title, setTitle] = useState('')
+
+  const [otherCategoryText, setOtherCategoryText] = useState('')
 
   const [selectedArea, setSelectedArea] = useState<AreaSelection>({
     parentAreaId: null,
@@ -73,6 +83,34 @@ export default function CreateReportPage() {
 
   const submitting = submitStage !== 'idle'
 
+  const categoriesQuery = usePublicCategories()
+  const resolvedAreaQuery = useResolvedArea(
+    location?.latitude ?? null,
+    location?.longitude ?? null,
+    Boolean(location),
+  )
+  const selectedCategory = categoriesQuery.data?.find(
+    (category) => category.id === categoryId,
+  )
+  const isOtherCategory =
+    selectedCategory?.name.trim().toLocaleLowerCase('vi-VN') === 'khác' ||
+    selectedCategory?.name.trim().toLowerCase() === 'other'
+
+  useEffect(() => {
+    if (!resolvedAreaQuery.data) return
+
+    setSelectedArea({
+      parentAreaId: resolvedAreaQuery.data.districtId,
+      areaId: resolvedAreaQuery.data.areaId,
+    })
+    setFormErrors((current) => ({
+      ...current,
+      parentAreaId: undefined,
+      areaId: undefined,
+      location: undefined,
+    }))
+  }, [resolvedAreaQuery.data])
+
   function clearFieldError(field: keyof FormErrors) {
     setFormErrors((current) => ({
       ...current,
@@ -85,10 +123,24 @@ export default function CreateReportPage() {
 
     const trimmedDescription = description.trim()
 
+    const trimmedTitle = title.trim()
+
     const trimmedAddress = addressText.trim()
+
+    if (trimmedTitle.length < 10) {
+      errors.title = 'Tiêu đề phải có ít nhất 10 ký tự.'
+    } else if (trimmedTitle.length > 150) {
+      errors.title = 'Tiêu đề không được vượt quá 150 ký tự.'
+    }
 
     if (categoryId === null) {
       errors.categoryId = 'Vui lòng chọn loại sự cố.'
+    }
+
+    if (isOtherCategory && !otherCategoryText.trim()) {
+      errors.otherCategoryText = 'Vui lòng mô tả loại sự cố cụ thể.'
+    } else if (otherCategoryText.trim().length > 250) {
+      errors.otherCategoryText = 'Loại sự cố cụ thể không được vượt quá 250 ký tự.'
     }
 
     if (selectedArea.parentAreaId === null) {
@@ -111,6 +163,13 @@ export default function CreateReportPage() {
 
     if (location === null) {
       errors.location = 'Vui lòng chọn vị trí xảy ra sự cố trên bản đồ.'
+    } else if (resolvedAreaQuery.isError) {
+      errors.location = 'Không xác định được phường/xã từ tọa độ đã chọn.'
+    } else if (
+      resolvedAreaQuery.data &&
+      selectedArea.areaId !== resolvedAreaQuery.data.areaId
+    ) {
+      errors.location = 'Tọa độ không thuộc phường/xã đã chọn.'
     }
 
     if (images.length === 0) {
@@ -158,7 +217,11 @@ export default function CreateReportPage() {
     const payload: CreateReportRequest = {
       categoryId,
       areaId: selectedArea.areaId,
+      title: title.trim(),
       description: description.trim(),
+      otherCategoryText: isOtherCategory
+        ? otherCategoryText.trim() || undefined
+        : undefined,
       addressText: addressText.trim() || undefined,
       latitude: location.latitude,
       longitude: location.longitude,
@@ -198,7 +261,10 @@ export default function CreateReportPage() {
     setSubmitStage('creating')
 
     try {
-      await createReport(pendingReport)
+      await createReport({
+        ...pendingReport,
+        confirmPossibleDuplicate: true,
+      })
     } catch (error) {
       setSubmitError(getErrorMessage(error))
     } finally {
@@ -240,6 +306,31 @@ export default function CreateReportPage() {
         noValidate
         className="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
       >
+        <div>
+          <label htmlFor="title" className="text-sm font-medium text-gray-700">
+            Tiêu đề phản ánh <span className="ml-1 text-red-600">*</span>
+          </label>
+          <input
+            id="title"
+            value={title}
+            maxLength={150}
+            disabled={submitting}
+            placeholder="Ví dụ: Ổ gà lớn trước cổng trường học"
+            onChange={(event) => {
+              setTitle(event.target.value)
+              clearFieldError('title')
+            }}
+            className={[inputClass, formErrors.title ? 'border-red-500' : ''].join(' ')}
+          />
+          <div className="mt-1 flex justify-between text-xs text-gray-500">
+            <span>Từ 10 đến 150 ký tự</span>
+            <span>{title.length}/150</span>
+          </div>
+          {formErrors.title && (
+            <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>
+          )}
+        </div>
+
         {/* Category */}
         <CategorySelect
           id="categoryId"
@@ -248,9 +339,39 @@ export default function CreateReportPage() {
           error={formErrors.categoryId}
           onChange={(value) => {
             setCategoryId(value)
+            setOtherCategoryText('')
             clearFieldError('categoryId')
           }}
         />
+
+        {isOtherCategory && (
+          <div>
+            <label
+              htmlFor="otherCategoryText"
+              className="text-sm font-medium text-gray-700"
+            >
+              Loại sự cố cụ thể <span className="ml-1 text-red-600">*</span>
+            </label>
+            <input
+              id="otherCategoryText"
+              value={otherCategoryText}
+              maxLength={250}
+              disabled={submitting}
+              placeholder="Mô tả ngắn loại sự cố cần Admin phân loại"
+              onChange={(event) => {
+                setOtherCategoryText(event.target.value)
+                clearFieldError('otherCategoryText')
+              }}
+              className={[
+                inputClass,
+                formErrors.otherCategoryText ? 'border-red-500' : '',
+              ].join(' ')}
+            />
+            {formErrors.otherCategoryText && (
+              <p className="mt-1 text-sm text-red-600">{formErrors.otherCategoryText}</p>
+            )}
+          </div>
+        )}
 
         {/* Area hierarchy */}
         <section>
@@ -367,6 +488,18 @@ export default function CreateReportPage() {
               clearFieldError('location')
             }}
           />
+
+          {resolvedAreaQuery.isFetching && (
+            <p className="mt-2 text-sm text-blue-600">
+              Đang xác định phường/xã từ vị trí...
+            </p>
+          )}
+          {resolvedAreaQuery.data && (
+            <p className="mt-2 text-sm text-green-700">
+              Đã tự chọn {resolvedAreaQuery.data.areaName},{' '}
+              {resolvedAreaQuery.data.districtName}.
+            </p>
+          )}
         </section>
 
         {/* Images */}
@@ -414,7 +547,7 @@ export default function CreateReportPage() {
 
           <button
             type="submit"
-            disabled={submitting}
+            disabled={submitting || resolvedAreaQuery.isFetching}
             className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {submitStage === 'checking'

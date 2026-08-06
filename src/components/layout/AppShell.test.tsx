@@ -6,6 +6,10 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 
 import { AppShell } from './AppShell'
 
+vi.mock('@/features/notifications/notifications.queries', () => ({
+  useUnreadNotificationCount: () => ({ data: 0 }),
+}))
+
 function renderAppShell(overrides: Partial<ComponentProps<typeof AppShell>> = {}) {
   const props: ComponentProps<typeof AppShell> = {
     title: 'Cổng quản trị',

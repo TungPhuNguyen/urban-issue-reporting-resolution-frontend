@@ -15,6 +15,7 @@ import { Link, NavLink, Outlet } from 'react-router-dom'
 
 import { CivicPulseLogo } from '@/components/ui/CivicPulseLogo'
 import type { UserRole } from '@/features/auth/auth.types'
+import { useUnreadNotificationCount } from '@/features/notifications/notifications.queries'
 
 export interface AppShellMenuItem {
   label: string
@@ -95,10 +96,10 @@ function SidebarContent({
       </nav>
 
       <div className="sidebar__footer">
-        <button type="button" disabled>
+        <NavLink to={`/${role.toLowerCase()}/account`} onClick={onNavigate}>
           <Settings2 aria-hidden="true" size={18} />
           <span>Hồ sơ &amp; cài đặt</span>
-        </button>
+        </NavLink>
         <button type="button" disabled={isLoggingOut} onClick={() => void onLogout()}>
           <LogOut aria-hidden="true" size={18} />
           <span>{isLoggingOut ? 'Đang đăng xuất...' : 'Đăng xuất'}</span>
@@ -116,6 +117,9 @@ export function AppShell(props: AppShellProps) {
   const menuTriggerRef = useRef<HTMLButtonElement>(null)
   const userInitial = props.userName.trim().charAt(0).toUpperCase() || '?'
   const notificationsPath = `/${props.role.toLowerCase()}/notifications`
+  const accountPath = `/${props.role.toLowerCase()}/account`
+  const unreadCountQuery = useUnreadNotificationCount()
+  const unreadCount = unreadCountQuery.data ?? 0
 
   useEffect(() => {
     if (!isMobileMenuOpen) return
@@ -227,11 +231,18 @@ export function AppShell(props: AppShellProps) {
 
           <div className="app-header__actions">
             <Link
-              className="notification-button"
+              className="notification-button relative"
               to={notificationsPath}
-              aria-label="Thông báo"
+              aria-label={
+                unreadCount > 0 ? `Thông báo, ${unreadCount} chưa đọc` : 'Thông báo'
+              }
             >
               <Bell aria-hidden="true" size={20} />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 inline-flex min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
             </Link>
 
             <div className="profile-menu">
@@ -254,6 +265,9 @@ export function AppShell(props: AppShellProps) {
                   <span>
                     <CircleUserRound aria-hidden="true" size={17} /> {props.role}
                   </span>
+                  <Link to={accountPath} onClick={() => setIsProfileOpen(false)}>
+                    <Settings2 aria-hidden="true" size={17} /> Hồ sơ &amp; cài đặt
+                  </Link>
                   <button type="button" onClick={() => void props.onLogout()}>
                     <LogOut aria-hidden="true" size={17} /> Đăng xuất
                   </button>
