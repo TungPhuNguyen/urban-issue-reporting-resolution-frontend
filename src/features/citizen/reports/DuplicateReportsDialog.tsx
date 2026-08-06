@@ -1,8 +1,12 @@
+import { useState } from 'react'
+import { Check, ThumbsUp } from 'lucide-react'
+
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { getImageUrl } from '@/lib/utils/image'
 
+import { citizenReportApi } from './citizen-report.api'
 import type { CheckDuplicateReportsResult, DuplicateReport } from './citizen-report.types'
 
 interface DuplicateReportsDialogProps {
@@ -31,7 +35,46 @@ function formatDistance(distanceInMeters: number): string {
   return `${(distanceInMeters / 1000).toFixed(1)} km`
 }
 
-function DuplicateReportCard({ report }: { report: DuplicateReport }) {
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error) {
+    return error.message
+  }
+
+  return 'Không thể đồng tình lúc này. Vui lòng thử lại.'
+}
+
+function DuplicateReportCard({
+  report,
+  disabled,
+}: {
+  report: DuplicateReport
+  disabled: boolean
+}) {
+  const [upvoteCount, setUpvoteCount] = useState(report.upvoteCount)
+  const [isUpvoted, setIsUpvoted] = useState(false)
+  const [isUpvoting, setIsUpvoting] = useState(false)
+  const [upvoteError, setUpvoteError] = useState('')
+
+  async function handleUpvote() {
+    if (disabled || isUpvoted || isUpvoting) {
+      return
+    }
+
+    setUpvoteError('')
+    setIsUpvoting(true)
+
+    try {
+      const result = await citizenReportApi.addUpvote(report.id)
+
+      setUpvoteCount(result.upvoteCount)
+      setIsUpvoted(result.isUpvoted)
+    } catch (error) {
+      setUpvoteError(getErrorMessage(error))
+    } finally {
+      setIsUpvoting(false)
+    }
+  }
+
   return (
     <li className="rounded-lg border border-amber-200 bg-white p-4 dark:border-amber-900 dark:bg-gray-900">
       <div className="flex gap-4">
@@ -60,10 +103,34 @@ function DuplicateReportCard({ report }: { report: DuplicateReport }) {
             {report.description}
           </p>
 
-          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
-            <span>{formatDateTime(report.createdAt)}</span>
-            <span>{report.upvoteCount} lượt đồng tình</span>
+          <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs text-gray-500 dark:text-gray-400">
+              <span>{formatDateTime(report.createdAt)}</span>
+              <span aria-live="polite">{upvoteCount} lượt đồng tình</span>
+            </div>
+
+            <Button
+              type="button"
+              size="sm"
+              variant={isUpvoted ? 'secondary' : 'primary'}
+              loading={isUpvoting}
+              disabled={disabled || isUpvoted}
+              onClick={handleUpvote}
+            >
+              {isUpvoted ? (
+                <Check className="h-4 w-4" aria-hidden="true" />
+              ) : (
+                <ThumbsUp className="h-4 w-4" aria-hidden="true" />
+              )}
+              {isUpvoted ? 'Đã đồng tình' : 'Đồng tình'}
+            </Button>
           </div>
+
+          {upvoteError && (
+            <p role="alert" className="mt-2 text-xs text-red-600 dark:text-red-400">
+              {upvoteError}
+            </p>
+          )}
         </div>
       </div>
     </li>
@@ -111,7 +178,7 @@ export function DuplicateReportsDialog({
     >
       <ul className="space-y-3 rounded-lg bg-amber-50/60 p-4 dark:bg-amber-950/20">
         {result.reports.map((report) => (
-          <DuplicateReportCard key={report.id} report={report} />
+          <DuplicateReportCard key={report.id} report={report} disabled={isCreating} />
         ))}
       </ul>
 
