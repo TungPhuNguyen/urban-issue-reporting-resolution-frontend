@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom'
 
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 import { getImageUrl } from '@/lib/utils/image'
 
 import { AcceptReportCard } from './components/AcceptReportCard'
@@ -36,7 +37,7 @@ function formatDateTime(value: string | null | undefined) {
     return 'Chưa cập nhật'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return 'Không xác định'
@@ -50,7 +51,7 @@ function getSlaState(status: ReportStatus, dueAt: string | null) {
     return 'not-started'
   }
 
-  const dueDate = new Date(dueAt)
+  const dueDate = parseApiDateTime(dueAt)
   const isActive = status === 'Accepted' || status === 'InProgress'
 
   if (isActive && !Number.isNaN(dueDate.getTime()) && dueDate.getTime() < Date.now()) {

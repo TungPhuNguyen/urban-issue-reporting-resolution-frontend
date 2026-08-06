@@ -10,6 +10,7 @@ import { getPriorityLabel, getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 import { usePublicCategories } from '@/features/public-catalog/public-catalog.queries'
 import { useAreas } from '@/features/admin/areas/areas.queries'
 import { useDepartments } from '@/features/admin/departments/departments.queries'
@@ -39,7 +40,7 @@ function formatDate(value: string | null | undefined) {
     return 'Chưa có'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value

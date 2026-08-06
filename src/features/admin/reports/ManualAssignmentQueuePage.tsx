@@ -7,13 +7,14 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import { useManualAssignmentQueue } from './admin-reports.queries'
 
 const PAGE_SIZE = 10
 
 function formatDate(value: string) {
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value

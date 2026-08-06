@@ -1,4 +1,5 @@
 import { http } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import type {
   AdminReportDetail,
@@ -73,7 +74,8 @@ export const adminReportsApi = {
 
       items: [...filteredPage.items].sort(
         (first, second) =>
-          new Date(first.createdAt).getTime() - new Date(second.createdAt).getTime(),
+          parseApiDateTime(first.createdAt).getTime() -
+          parseApiDateTime(second.createdAt).getTime(),
       ),
     }
   },

@@ -4,6 +4,7 @@ import { Check, ThumbsUp } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Modal } from '@/components/ui/Modal'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 import { getImageUrl } from '@/lib/utils/image'
 
 import { citizenReportApi } from './citizen-report.api'
@@ -18,7 +19,7 @@ interface DuplicateReportsDialogProps {
 }
 
 function formatDateTime(value: string): string {
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return 'Không xác định'

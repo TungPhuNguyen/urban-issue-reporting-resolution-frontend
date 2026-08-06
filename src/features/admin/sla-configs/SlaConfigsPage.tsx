@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { getPriorityLabel } from '@/components/ui/report-labels'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import { useSlaConfigs, useUpdateSlaConfig } from './sla-configs.queries'
 import type { GetSlaConfigsParams, ReportPriority, SlaConfig } from './sla-configs.types'
@@ -28,7 +29,7 @@ function formatDate(value: string | null): string {
     return 'Chưa cập nhật'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value

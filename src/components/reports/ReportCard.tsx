@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 import { getImageUrl } from '@/lib/utils/image'
 
 export interface ReportCardData {
@@ -33,7 +34,7 @@ function formatDateTime(value: string | null | undefined) {
     return 'Chưa bắt đầu'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return 'Không xác định'

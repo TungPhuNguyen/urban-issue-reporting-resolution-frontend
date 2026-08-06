@@ -6,6 +6,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 import { getImageUrl } from '@/lib/utils/image'
 
 export interface ReportTimelineItem {
@@ -37,7 +38,7 @@ export interface ReportTimelineProps {
 }
 
 function formatDateTime(value: string) {
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return 'Không xác định'

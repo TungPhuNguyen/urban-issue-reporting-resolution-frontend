@@ -9,6 +9,7 @@ import { getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 import { getImageUrl } from '@/lib/utils/image'
 import { usePublicCategories } from '@/features/public-catalog/public-catalog.queries'
 
@@ -32,7 +33,7 @@ function formatDate(value: string | null | undefined) {
     return 'Chưa có'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value

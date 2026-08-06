@@ -8,6 +8,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { env } from '@/config/env'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 import { getStatusLabel } from '@/components/ui/report-labels'
 import { ImageUploader } from '@/features/reports/components/ImageUploader'
 
@@ -45,7 +46,7 @@ function formatDateTime(value: string | null | undefined): string {
     return 'Chưa cập nhật'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return 'Không xác định'

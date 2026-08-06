@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { parseApiDateTime } from '@/lib/utils/date-time'
+
 import StaffReportDetailPage from './ReportDetailPage'
 
 const useStaffReportMock = vi.hoisted(() => vi.fn())
@@ -47,8 +49,8 @@ const report = {
   upvoteCount: 8,
   imageUrls: ['/uploads/reports/report.jpg'],
   appliedSlaHours: 24,
-  slaStartedAt: '2026-07-29T08:00:00Z',
-  dueAt: '2020-07-30T08:00:00Z',
+  slaStartedAt: '2026-07-29T08:00:00',
+  dueAt: '2020-07-30T08:00:00',
   isEscalated: true,
   escalatedAt: '2026-07-30T09:00:00Z',
   hasSubmittedComplaint: true,
@@ -119,10 +121,10 @@ describe('StaffReportDetailPage - UC-18, UC-21 and UC-22', () => {
     renderPage()
 
     expect(screen.getByText('Bắt đầu SLA').parentElement).toHaveTextContent(
-      new Date(report.slaStartedAt).toLocaleString('vi-VN'),
+      parseApiDateTime(report.slaStartedAt).toLocaleString('vi-VN'),
     )
     expect(screen.getByText('Hạn xử lý').parentElement).toHaveTextContent(
-      new Date(report.dueAt).toLocaleString('vi-VN'),
+      parseApiDateTime(report.dueAt).toLocaleString('vi-VN'),
     )
   })
 

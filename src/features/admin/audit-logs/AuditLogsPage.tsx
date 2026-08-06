@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import { useAuditLogDetail, useAuditLogs } from './audit-logs.queries'
 
@@ -26,7 +27,7 @@ const EMPTY_FILTERS: Filters = {
 }
 
 function formatDate(value: string) {
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   return Number.isNaN(date.getTime())
     ? value
