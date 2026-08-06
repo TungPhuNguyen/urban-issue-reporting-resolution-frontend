@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuthStore } from '@/features/auth/auth.store'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import {
   useMarkAllNotificationsAsRead,
@@ -35,7 +36,7 @@ function getErrorMessage(error: unknown, fallback: string): string {
 }
 
 function formatDate(value: string): string {
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value

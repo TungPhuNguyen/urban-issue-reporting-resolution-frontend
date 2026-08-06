@@ -5,6 +5,7 @@ import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import {
   useAddReportComment,
@@ -13,7 +14,7 @@ import {
 } from './citizen-report.queries'
 
 function formatDate(value: string) {
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
   return Number.isNaN(date.getTime()) ? value : date.toLocaleString('vi-VN')
 }
 

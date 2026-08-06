@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { HubConnectionBuilder, LogLevel } from  '@microsoft/signalr'
+import { HubConnectionBuilder, LogLevel } from '@microsoft/signalr'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { env } from '@/config/env'
