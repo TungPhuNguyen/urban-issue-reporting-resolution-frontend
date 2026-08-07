@@ -42,7 +42,7 @@ export default function PublicLayout() {
   const home = user ? roleHome[user.role] : '/citizen/reports'
 
   return (
-    <div className="landing-page min-h-screen">
+    <div className="landing-page flex min-h-dvh flex-col">
       <header className={`public-header ${scrolled ? 'public-header--scrolled' : ''}`}>
         <div className="public-header__inner container">
           <CivicPulseLogo ariaLabel="Urban Issue - Trang chủ" />
@@ -54,8 +54,8 @@ export default function PublicLayout() {
             <NavLink to="/">Trang chủ</NavLink>
             <NavLink to="/reports">Bản đồ phản ánh</NavLink>
             <NavLink to="/lookup">Tra cứu</NavLink>
-            <a href="/#how-it-works">Quy trình</a>
-            <a href="/#impact">Minh bạch</a>
+            {/* <a href="/#how-it-works">Quy trình</a>
+            <a href="/#impact">Minh bạch</a> */}
           </nav>
 
           <div className="public-header__actions">
@@ -91,7 +91,7 @@ export default function PublicLayout() {
         </div>
       </header>
 
-      <main>
+      <main className={`flex-1 ${location.pathname === '/' ? '' : 'public-main'}`}>
         <Outlet />
       </main>
 

@@ -36,7 +36,7 @@ export default function PublicReportDetailPage() {
     )
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
+    <section className="mx-auto max-w-5xl px-4 pt-10 pb-[calc(2.5rem+env(safe-area-inset-bottom))] sm:px-6">
       <Link to="/reports" className="text-sm text-blue-600 hover:underline">
         ← Quay lại bản đồ
       </Link>

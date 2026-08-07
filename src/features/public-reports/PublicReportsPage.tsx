@@ -73,7 +73,7 @@ export default function PublicReportsPage() {
   }
 
   return (
-    <section className="public-reports-page mx-auto max-w-7xl px-4 py-10 sm:px-6">
+    <section className="public-reports-page mx-auto max-w-7xl px-4 pt-10 pb-[calc(2.5rem+env(safe-area-inset-bottom))] sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold">Bản đồ phản ánh đô thị</h1>
@@ -174,13 +174,13 @@ export default function PublicReportsPage() {
         </Button>
       </Card>
 
-      <div className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
-        <Card className="overflow-hidden p-0">
+      <div className="mt-6 grid gap-6 lg:h-[clamp(380px,calc(100dvh_-_360px),620px)] lg:grid-cols-[1.15fr_.85fr]">
+        <Card className="h-[420px] overflow-hidden p-0 lg:h-full">
           <MapContainer
             key={`${center[0]}-${center[1]}`}
             center={center}
             zoom={12}
-            style={{ height: 620, width: '100%' }}
+            style={{ height: '100%', width: '100%' }}
           >
             <TileLayer
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -199,7 +199,7 @@ export default function PublicReportsPage() {
             ))}
           </MapContainer>
         </Card>
-        <div className="flex max-h-[620px] flex-col gap-3 overflow-y-auto pr-1">
+        <div className="flex max-h-[520px] flex-col gap-3 overflow-y-auto pr-1 lg:h-full lg:max-h-none">
           {reportsQuery.isPending ? (
             <Spinner label="Đang tải báo cáo..." />
           ) : reportsQuery.isError ? (

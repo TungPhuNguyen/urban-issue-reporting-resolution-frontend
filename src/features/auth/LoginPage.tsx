@@ -105,14 +105,14 @@ export function LoginPage() {
         </label>
 
         <div className="auth-form__row">
-          <label className="check-row">
+          {/* <label className="check-row">
             <input
               type="checkbox"
               checked={remember}
               onChange={(event) => setRemember(event.target.checked)}
             />
             <span>Ghi nhớ đăng nhập</span>
-          </label>
+          </label> */}
           <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
             Quên mật khẩu?
           </Link>

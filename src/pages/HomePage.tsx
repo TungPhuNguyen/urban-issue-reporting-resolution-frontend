@@ -366,9 +366,6 @@ export function HomePage() {
                   </span>
                   <h3>{feature.title}</h3>
                   <p>{feature.text}</p>
-                  <span className="feature-card__link">
-                    Tìm hiểu thêm <ArrowRight size={16} />
-                  </span>
                 </SpotlightCard>
               </Reveal>
             ))}
