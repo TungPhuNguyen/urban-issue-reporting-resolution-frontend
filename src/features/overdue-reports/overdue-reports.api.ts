@@ -1,4 +1,5 @@
 import { http } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import type {
   AdminReportSummaryApi,
@@ -11,7 +12,7 @@ import type {
 type ReportSummary = AdminReportSummaryApi | StaffReportSummaryApi
 
 function mapReport(report: ReportSummary): OverdueReport {
-  const dueTime = report.dueAt ? new Date(report.dueAt).getTime() : Number.NaN
+  const dueTime = report.dueAt ? parseApiDateTime(report.dueAt).getTime() : Number.NaN
   const overdueMilliseconds = Number.isFinite(dueTime)
     ? Math.max(0, Date.now() - dueTime)
     : Math.max(0, (report.overdueHours ?? 0) * 60 * 60 * 1000)

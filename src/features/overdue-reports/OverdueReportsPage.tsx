@@ -11,6 +11,7 @@ import { Spinner } from '@/components/ui/Spinner'
 import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useAuthStore } from '@/features/auth/auth.store'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import { useOverdueReports } from './overdue-reports.queries'
 import type {
@@ -35,7 +36,7 @@ function formatDateTime(value: string | null) {
     return 'Chưa có'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   return Number.isNaN(date.getTime())
     ? value
