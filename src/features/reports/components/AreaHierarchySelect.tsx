@@ -23,8 +23,6 @@ export function AreaHierarchySelect({
   const handleParentChange = (parentAreaId: number | null) => {
     onChange({
       parentAreaId,
-      // Khi đổi quận/huyện phải xóa
-      // phường/xã đã chọn trước đó.
       areaId: null,
     })
   }

@@ -185,12 +185,12 @@ export default function CitizenDashboardPage() {
                 <p>Tiếp tục hành động</p>
               </div>
             </header>
-            <Link to="/citizen/reports/create">
+            <Link to="/lookup">
               <span className="quick-action__icon blue">
                 <FilePlus2 aria-hidden="true" />
               </span>
               <div>
-                <strong>Tạo báo cáo</strong>
+                <strong>Tra cứu báo cáo</strong>
                 <small>Phản ánh sự cố mới</small>
               </div>
               <ArrowRight aria-hidden="true" />

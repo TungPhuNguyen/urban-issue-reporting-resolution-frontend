@@ -60,7 +60,7 @@ export function AreaSelect({
       >
         <option value="">
           {!enabled
-            ? '-- Chọn quận/huyện trước --'
+            ? '-- Chọn Thành phố trước --'
             : isLoading
               ? 'Đang tải khu vực...'
               : placeholder}

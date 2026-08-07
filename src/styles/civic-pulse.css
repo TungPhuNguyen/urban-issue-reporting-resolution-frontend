@@ -2585,6 +2585,7 @@ button:disabled {
   background: #fff;
   box-shadow: var(--shadow-sm);
 }
+.profile-menu__dropdown > span,
 .profile-menu__dropdown a,
 .profile-menu__dropdown button {
   width: 100%;

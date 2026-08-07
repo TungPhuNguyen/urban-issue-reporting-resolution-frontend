@@ -433,10 +433,10 @@ export default function ReportDetailPage() {
 
           <DetailItem label="Kinh độ" value={report.longitude} />
 
-          <DetailItem label="Bắt đầu SLA" value={formatDateTime(report.slaStartedAt)} />
+          <DetailItem label="Bắt đầu xử lý" value={formatDateTime(report.slaStartedAt)} />
 
           <DetailItem
-            label="Số giờ SLA"
+            label="Số giờ xử lý"
             value={
               report.appliedSlaHours !== null
                 ? `${report.appliedSlaHours} giờ`

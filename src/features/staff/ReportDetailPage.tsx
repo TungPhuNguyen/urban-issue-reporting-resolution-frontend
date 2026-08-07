@@ -264,14 +264,14 @@ export default function StaffReportDetailPage() {
 
         <div className="mt-5 grid gap-5 sm:grid-cols-3">
           <DetailItem
-            label="Số giờ SLA"
+            label="Số giờ xử lý"
             value={
               report.appliedSlaHours === null
                 ? 'Chưa áp dụng'
                 : `${report.appliedSlaHours} giờ`
             }
           />
-          <DetailItem label="Bắt đầu SLA" value={formatDateTime(report.slaStartedAt)} />
+          <DetailItem label="Bắt đầu xử lý" value={formatDateTime(report.slaStartedAt)} />
           <DetailItem label="Hạn xử lý" value={formatDateTime(report.dueAt)} />
         </div>
       </Card>
