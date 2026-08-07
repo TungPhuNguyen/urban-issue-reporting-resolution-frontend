@@ -4,7 +4,6 @@ import { Link, useNavigate } from 'react-router-dom'
 
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
-import { AreaHierarchySelect } from '@/features/reports/components/AreaHierarchySelect'
 import { CategorySelect } from '@/features/reports/components/CategorySelect'
 import { ImageUploader } from '@/features/reports/components/ImageUploader'
 import { LocationPicker } from '@/features/reports/components/LocationPicker'
@@ -146,12 +145,6 @@ export default function CreateReportPage() {
       errors.otherCategoryText = 'Loại sự cố cụ thể không được vượt quá 250 ký tự.'
     }
 
-    if (selectedArea.parentAreaId === null) {
-      errors.parentAreaId = 'Vui lòng chọn Quận/Huyện.'
-    } else if (selectedArea.areaId === null) {
-      errors.areaId = 'Vui lòng chọn Phường/Xã.'
-    }
-
     if (!trimmedDescription) {
       errors.description = 'Mô tả sự cố không được để trống.'
     } else if (trimmedDescription.length < 10) {
@@ -166,13 +159,13 @@ export default function CreateReportPage() {
 
     if (location === null) {
       errors.location = 'Vui lòng chọn vị trí xảy ra sự cố trên bản đồ.'
-    } else if (resolvedAreaQuery.isError) {
+    } else if (resolvedAreaQuery.isError || selectedArea.areaId === null) {
       errors.location = 'Không xác định được phường/xã từ tọa độ đã chọn.'
     } else if (
       resolvedAreaQuery.data &&
       selectedArea.areaId !== resolvedAreaQuery.data.areaId
     ) {
-      errors.location = 'Tọa độ không thuộc phường/xã đã chọn.'
+      errors.location = 'Tọa độ không thuộc phường/xã đã xác định.'
     }
 
     if (images.length === 0) {
@@ -386,35 +379,6 @@ export default function CreateReportPage() {
           )}
         </section>
 
-        {/* Area hierarchy */}
-        <section className="form-section">
-          <header className="form-section__header">
-            <span>
-              <MapPin aria-hidden="true" />
-            </span>
-            <div>
-              <h2>Khu vực xảy ra sự cố</h2>
-              <p>Chọn khu vực và vị trí chính xác trên bản đồ.</p>
-            </div>
-          </header>
-
-          <AreaHierarchySelect
-            value={selectedArea}
-            disabled={submitting}
-            parentError={formErrors.parentAreaId}
-            areaError={formErrors.areaId}
-            onChange={(value) => {
-              setSelectedArea(value)
-
-              setFormErrors((current) => ({
-                ...current,
-                parentAreaId: undefined,
-                areaId: undefined,
-              }))
-            }}
-          />
-        </section>
-
         {/* Description */}
         <div>
           <label htmlFor="description" className="text-sm font-medium text-gray-700">
@@ -453,6 +417,45 @@ export default function CreateReportPage() {
             </p>
           )}
         </div>
+
+        {/* Area hierarchy */}
+        <section className="form-section">
+          <header className="form-section__header">
+            <span>
+              <MapPin aria-hidden="true" />
+            </span>
+            <div>
+              <h2>Khu vực xảy ra sự cố</h2>
+              <p>Khu vực được tự động xác định từ tọa độ đã chọn trên bản đồ.</p>
+            </div>
+          </header>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-sm font-medium text-gray-700">
+                Thành phố
+              </p>
+
+              <div className="mt-1 flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                {resolvedAreaQuery.isFetching
+                  ? 'Đang xác định...'
+                  : resolvedAreaQuery.data?.districtName ?? 'Chưa chọn tọa độ'}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-gray-700">
+                Phường/Xã
+              </p>
+
+              <div className="mt-1 flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                {resolvedAreaQuery.isFetching
+                  ? 'Đang xác định...'
+                  : resolvedAreaQuery.data?.areaName ?? 'Chưa chọn tọa độ'}
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Address text */}
         <div>
@@ -505,6 +508,11 @@ export default function CreateReportPage() {
             disabled={submitting}
             error={formErrors.location}
             onChange={(value) => {
+              setSelectedArea({
+                parentAreaId: null,
+                areaId: null,
+              })
+
               setLocation(value)
               clearFieldError('location')
             }}
@@ -513,6 +521,11 @@ export default function CreateReportPage() {
           {resolvedAreaQuery.isFetching && (
             <p className="mt-2 text-sm text-blue-600">
               Đang xác định phường/xã từ vị trí...
+            </p>
+          )}
+          {location !== null && resolvedAreaQuery.isError && (
+            <p role="alert" className="mt-2 text-sm text-red-600">
+              Không xác định được phường/xã từ tọa độ này. Vui lòng chọn vị trí khác.
             </p>
           )}
           {resolvedAreaQuery.data && (

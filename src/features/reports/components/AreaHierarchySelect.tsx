@@ -40,8 +40,8 @@ export function AreaHierarchySelect({
     <div className="space-y-4">
       <AreaSelect
         id="parentAreaId"
-        label="Quận/Huyện"
-        placeholder="-- Chọn quận/huyện --"
+        label="Thành phố"
+        placeholder="-- Chọn Thành phố --"
         value={value.parentAreaId}
         onChange={handleParentChange}
         disabled={disabled}
@@ -53,7 +53,7 @@ export function AreaHierarchySelect({
         label="Phường/Xã"
         placeholder={
           value.parentAreaId === null
-            ? '-- Chọn quận/huyện trước --'
+            ? '-- Chọn Thành phố trước --'
             : '-- Chọn phường/xã --'
         }
         parentAreaId={value.parentAreaId ?? undefined}
