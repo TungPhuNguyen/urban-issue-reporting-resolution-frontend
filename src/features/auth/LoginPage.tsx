@@ -16,7 +16,7 @@ export function LoginPage() {
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [formError, setFormError] = useState('')
-  const [remember, setRemember] = useState(false)
+  const remember = false
   const isLoading = status === 'loading'
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
