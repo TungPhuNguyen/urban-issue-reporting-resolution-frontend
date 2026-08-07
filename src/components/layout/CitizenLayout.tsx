@@ -19,6 +19,7 @@ const citizenMenuItems: AppShellMenuItem[] = [
     label: 'Báo cáo của tôi',
     path: '/citizen/reports',
     icon: FileText,
+    end: true,
   },
   {
     label: 'Tra cứu theo mã',
