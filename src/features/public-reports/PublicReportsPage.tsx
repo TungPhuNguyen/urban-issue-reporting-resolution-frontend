@@ -25,7 +25,6 @@ const STATUSES: ReportStatus[] = Object.values(REPORT_STATUS)
 export default function PublicReportsPage() {
   const [search, setSearch] = useState('')
   const [categoryId, setCategoryId] = useState('')
-  const [districtId, setDistrictId] = useState('')
   const [areaId, setAreaId] = useState('')
   const [status, setStatus] = useState<ReportStatus | ''>('')
   const [sortBy, setSortBy] = useState<PublicReportSort>('Newest')
@@ -36,15 +35,17 @@ export default function PublicReportsPage() {
   const [pageNumber, setPageNumber] = useState(1)
   const debouncedSearch = useDebounce(search.trim(), 300)
   const categoriesQuery = usePublicCategories()
-  const districtsQuery = usePublicAreas(null)
+  const rootAreasQuery = usePublicAreas(null)
+  const rootAreaId = rootAreasQuery.data?.[0]?.id ?? null
+
   const areasQuery = usePublicAreas(
-    districtId ? Number(districtId) : null,
-    Boolean(districtId),
+    rootAreaId,
+    rootAreaId !== null,
   )
   const reportsQuery = usePublicReports({
     search: debouncedSearch || undefined,
     categoryId: categoryId ? Number(categoryId) : undefined,
-    areaId: areaId ? Number(areaId) : districtId ? Number(districtId) : undefined,
+    areaId: areaId ? Number(areaId) : undefined,
     status: status || undefined,
     sortBy,
     currentLatitude: coordinates?.latitude,
@@ -112,31 +113,20 @@ export default function PublicReportsPage() {
           ))}
         </select>
         <select
-          value={districtId}
-          onChange={(e) => {
-            setDistrictId(e.target.value)
-            setAreaId('')
-            setPageNumber(1)
-          }}
-          className="h-10 rounded-lg border border-gray-300 px-3"
-        >
-          <option value="">Tất cả quận/huyện</option>
-          {districtsQuery.data?.map((item) => (
-            <option key={item.id} value={item.id}>
-              {item.name}
-            </option>
-          ))}
-        </select>
-        <select
           value={areaId}
-          disabled={!districtId}
+          disabled={rootAreaId === null || areasQuery.isPending}
           onChange={(e) => {
             setAreaId(e.target.value)
             setPageNumber(1)
           }}
           className="h-10 rounded-lg border border-gray-300 px-3"
         >
-          <option value="">Tất cả phường/xã</option>
+          <option value="">
+            {areasQuery.isPending
+              ? 'Đang tải phường/xã...'
+              : 'Tất cả phường/xã'}
+          </option>
+
           {areasQuery.data?.map((item) => (
             <option key={item.id} value={item.id}>
               {item.name}
