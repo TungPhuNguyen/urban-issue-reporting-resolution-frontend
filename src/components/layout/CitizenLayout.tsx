@@ -1,9 +1,14 @@
-import { Bell, FileSearch, FileText, Plus } from 'lucide-react'
+import { Bell, FileSearch, FileText, LayoutDashboard, Plus } from 'lucide-react'
 
 import type { AppShellMenuItem } from './AppShell'
 import RoleLayout from './RoleLayout'
 
 const citizenMenuItems: AppShellMenuItem[] = [
+  {
+    label: 'Tổng quan',
+    path: '/citizen/dashboard',
+    icon: LayoutDashboard,
+  },
   {
     label: 'Tạo báo cáo',
     path: '/citizen/reports/create',

@@ -1,6 +1,8 @@
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { parseApiDateTime } from '@/lib/utils/date-time'
@@ -112,25 +114,30 @@ export default function StaffReportDetailPage() {
   const slaState = getSlaState(report.status, report.dueAt)
 
   return (
-    <section className="report-detail-page mx-auto flex max-w-5xl flex-col gap-6">
-      <div>
-        <Link
-          to="/staff/reports"
-          className="text-sm font-medium text-blue-600 hover:underline"
-        >
-          ← Quay lại danh sách
-        </Link>
+    <section className="report-detail-page staff-detail-page">
+      <Link className="back-link" to="/staff/reports">
+        <ArrowLeft aria-hidden="true" size={17} /> Danh sách xử lý
+      </Link>
 
-        <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
-          {report.title ?? 'Chi tiết báo cáo'}
-        </h1>
-
-        <p className="mt-1 text-sm break-all text-gray-500 dark:text-gray-400">
-          {report.reportCode ?? report.id}
-        </p>
+      <div className="page-heading page-heading--split">
+        <div>
+          <div className="heading-badges">
+            <Badge>{report.reportCode ?? report.id}</Badge>
+            <StatusBadge status={report.status} />
+            {report.isEscalated && (
+              <Badge variant="danger">
+                <AlertTriangle aria-hidden="true" size={13} /> Đã nâng cấp
+              </Badge>
+            )}
+          </div>
+          <h1>{report.title ?? 'Chi tiết báo cáo'}</h1>
+          <p>
+            Người báo: {report.citizenName} · {report.areaName}
+          </p>
+        </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="panel report-overview">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -142,7 +149,7 @@ export default function StaffReportDetailPage() {
             </p>
           </div>
 
-          <StatusBadge status={report.status} />
+          <Badge className="badge--violet">Hồ sơ hiện trường</Badge>
         </div>
 
         <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
@@ -200,7 +207,7 @@ export default function StaffReportDetailPage() {
               Báo cáo chưa có hình ảnh.
             </p>
           ) : (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="report-overview__gallery mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {report.imageUrls.map((imageUrl, index) => {
                 const resolvedUrl = getImageUrl(imageUrl)
 
@@ -226,7 +233,7 @@ export default function StaffReportDetailPage() {
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className="panel sla-card p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Thông tin SLA
         </h2>

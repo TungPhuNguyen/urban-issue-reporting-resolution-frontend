@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { EmptyState } from '@/components/ui/EmptyState'
@@ -67,16 +68,13 @@ export default function ManualAssignmentQueuePage() {
   const totalPages = Math.max(page.totalPages, 1)
 
   return (
-    <section className="reports-page flex flex-col gap-4">
-      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-3">
+    <section className="reports-page admin-assignment-page flex flex-col gap-4">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Hàng đợi phân công thủ công
-          </h1>
+          <Badge variant="warning">Cần điều phối</Badge>
+          <h1>Hàng đợi phân công thủ công</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
-            Báo cáo chưa thể tự động chuyển tuyến, sắp xếp từ cũ nhất đến mới nhất.
-          </p>
+          <p>Báo cáo chưa thể tự động chuyển tuyến, sắp xếp từ cũ nhất đến mới nhất.</p>
         </div>
 
         <Button
@@ -88,7 +86,7 @@ export default function ManualAssignmentQueuePage() {
         </Button>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="panel table-panel overflow-hidden">
         {reports.length === 0 ? (
           <EmptyState
             title="Không có báo cáo chờ phân công"
@@ -96,9 +94,9 @@ export default function ManualAssignmentQueuePage() {
             className="min-h-64 rounded-none border-0"
           />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1050px] text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-300">
+          <div className="data-table-wrap">
+            <table className="data-table min-w-[1050px]">
+              <thead>
                 <tr>
                   <th className="px-4 py-3 font-medium">Mã báo cáo</th>
 

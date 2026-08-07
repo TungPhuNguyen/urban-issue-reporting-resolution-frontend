@@ -16,6 +16,8 @@ export const RegisterPage = lazy(() => import('@/features/auth/RegisterPage'))
 
 export const AdminDashboardPage = lazy(() => import('@/features/admin/DashboardPage'))
 
+export const CitizenDashboardPage = lazy(() => import('@/features/citizen/DashboardPage'))
+
 export const CitizenReportsPage = lazy(() => import('@/features/citizen/ReportsPage'))
 
 export const CreateReportPage = lazy(

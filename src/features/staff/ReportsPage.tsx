@@ -1,10 +1,17 @@
+import { AlertTriangle, ArrowUpRight, Clock3, SearchX } from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
 import { Spinner } from '@/components/ui/Spinner'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { getPriorityLabel, getStatusLabel } from '@/components/ui/report-labels'
 import { useDebounce } from '@/hooks/useDebounce'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import { useStaffReports } from './staff.queries'
 import {
@@ -13,7 +20,6 @@ import {
   type ReportPriority,
   type ReportStatus,
 } from './staff.types'
-import { ReportCard } from '@/components/reports/ReportCard'
 
 const PAGE_SIZE = 10
 
@@ -32,6 +38,13 @@ const priorityOptions: ReportPriority[] = [
   REPORT_PRIORITY.Medium,
   REPORT_PRIORITY.High,
 ]
+
+function formatDateTime(value: string | null) {
+  if (!value) return 'Chưa bắt đầu'
+
+  const date = parseApiDateTime(value)
+  return Number.isNaN(date.getTime()) ? 'Không xác định' : date.toLocaleString('vi-VN')
+}
 
 export default function StaffReportsPage() {
   const [search, setSearch] = useState('')
@@ -61,50 +74,41 @@ export default function StaffReportsPage() {
   }
 
   return (
-    <section className="reports-page mx-auto flex max-w-5xl flex-col gap-6">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Báo cáo cần xử lý
-        </h1>
-
-        <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-          Danh sách báo cáo thuộc đơn vị của cán bộ.
-        </p>
+    <section className="reports-page staff-reports-page">
+      <div className="page-heading">
+        <Badge className="badge--violet">Hàng đợi xử lý</Badge>
+        <h1>Danh sách báo cáo</h1>
+        <p>Lọc theo trạng thái, ưu tiên và thời hạn SLA để tập trung đúng công việc.</p>
       </div>
 
-      <Card className="filter-bar filter-bar--wrap p-4">
-        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_180px_180px_auto] md:items-end">
+      <Card className="panel filter-bar filter-bar--wrap">
+        <div className="staff-report-filters">
           <Input
             label="Tìm kiếm"
             type="search"
             value={search}
             maxLength={200}
-            placeholder="Mô tả, địa chỉ, loại sự cố hoặc khu vực"
+            placeholder="Mã, tiêu đề, địa chỉ hoặc khu vực"
             onChange={(event) => {
               setSearch(event.target.value)
               setPageNumber(1)
             }}
           />
 
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor="staff-report-status"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
+          <div className="field">
+            <label id="staff-report-status-label" htmlFor="staff-report-status">
               Trạng thái
             </label>
-
             <select
               id="staff-report-status"
+              aria-labelledby="staff-report-status-label"
               value={status}
               onChange={(event) => {
                 setStatus(event.target.value as ReportStatus | '')
                 setPageNumber(1)
               }}
-              className="focus:border-brand-500 focus:ring-brand-500/30 h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 transition-colors outline-none focus:ring-2 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
             >
               <option value="">Tất cả trạng thái</option>
-
               {statusOptions.map((option) => (
                 <option key={option} value={option}>
                   {getStatusLabel(option)}
@@ -113,25 +117,20 @@ export default function StaffReportsPage() {
             </select>
           </div>
 
-          <div className="flex flex-col gap-1">
-            <label
-              htmlFor="staff-report-priority"
-              className="text-sm font-medium text-gray-700 dark:text-gray-300"
-            >
+          <div className="field">
+            <label id="staff-report-priority-label" htmlFor="staff-report-priority">
               Mức ưu tiên
             </label>
-
             <select
               id="staff-report-priority"
+              aria-labelledby="staff-report-priority-label"
               value={priority}
               onChange={(event) => {
                 setPriority(event.target.value as ReportPriority | '')
                 setPageNumber(1)
               }}
-              className="focus:border-brand-500 focus:ring-brand-500/30 h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-900 transition-colors outline-none focus:ring-2 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
             >
               <option value="">Tất cả mức ưu tiên</option>
-
               {priorityOptions.map((option) => (
                 <option key={option} value={option}>
                   {getPriorityLabel(option)}
@@ -140,127 +139,148 @@ export default function StaffReportsPage() {
             </select>
           </div>
 
-          <button
+          <Button
             type="button"
+            variant="secondary"
             disabled={!hasActiveFilters}
             onClick={clearFilters}
-            className="h-10 rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
           >
             Xóa bộ lọc
-          </button>
+          </Button>
         </div>
       </Card>
 
-      {isLoading && (
-        <Card className="p-10">
-          <div className="flex justify-center">
+      <section className="panel table-panel">
+        <header className="panel__header">
+          <div>
+            <h2>{data?.totalItems ?? 0} báo cáo</h2>
+            <p>Cập nhật mới nhất từ hệ thống</p>
+          </div>
+          {isFetching && !isLoading && <Badge variant="info">Đang cập nhật</Badge>}
+        </header>
+
+        {isLoading ? (
+          <div className="flex min-h-64 items-center justify-center">
             <Spinner label="Đang tải danh sách báo cáo..." />
           </div>
-        </Card>
-      )}
-
-      {!isLoading && isError && (
-        <Card className="p-8 text-center">
-          <p className="font-medium text-red-600">Không thể tải danh sách báo cáo.</p>
-
-          <button
-            type="button"
-            disabled={isFetching}
-            onClick={() => {
-              void refetch()
-            }}
-            className="mt-4 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-60 dark:text-gray-200"
-          >
-            {isFetching ? 'Đang tải lại...' : 'Thử lại'}
-          </button>
-        </Card>
-      )}
-
-      {!isLoading && !isError && reports.length === 0 && (
-        <Card className="border-dashed p-8 text-center">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-            {hasActiveFilters
-              ? 'Không tìm thấy báo cáo phù hợp'
-              : 'Không có báo cáo cần xử lý'}
-          </h2>
-
-          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-            {hasActiveFilters
-              ? 'Hãy thử từ khóa, trạng thái hoặc mức ưu tiên khác.'
-              : 'Các báo cáo thuộc đơn vị sẽ xuất hiện tại đây.'}
-          </p>
-
-          {hasActiveFilters && (
-            <button
-              type="button"
-              onClick={clearFilters}
-              className="mt-5 rounded-lg border border-gray-300 px-5 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
-            >
-              Xóa bộ lọc
-            </button>
-          )}
-        </Card>
-      )}
-
-      {!isLoading && !isError && reports.length > 0 && (
-        <>
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
-              Tổng cộng:{' '}
-              <span className="font-semibold">{data?.totalItems ?? reports.length}</span>{' '}
-              báo cáo
+        ) : isError ? (
+          <div className="empty-state">
+            <h3>Không thể tải danh sách báo cáo</h3>
+            <p>Vui lòng kiểm tra kết nối và thử lại.</p>
+            <Button variant="secondary" onClick={() => void refetch()}>
+              Thử lại
+            </Button>
+          </div>
+        ) : reports.length === 0 ? (
+          <div className="empty-state">
+            <span className="empty-state__icon">
+              <SearchX aria-hidden="true" />
+            </span>
+            <h3>
+              {hasActiveFilters
+                ? 'Không tìm thấy báo cáo phù hợp'
+                : 'Không có báo cáo cần xử lý'}
+            </h3>
+            <p>
+              {hasActiveFilters
+                ? 'Hãy thử từ khóa, trạng thái hoặc mức ưu tiên khác.'
+                : 'Các báo cáo thuộc đơn vị sẽ xuất hiện tại đây.'}
             </p>
-
-            {isFetching && (
-              <span className="text-sm text-gray-500">Đang cập nhật...</span>
+            {hasActiveFilters && (
+              <Button variant="secondary" onClick={clearFilters}>
+                Xóa bộ lọc
+              </Button>
             )}
           </div>
-
-          <div className="flex flex-col gap-4">
-            {reports.map((report) => (
-              <ReportCard
-                key={report.id}
-                report={report}
-                to={`/staff/reports/${report.id}`}
-                showReportId
-                showDueDate
-              />
-            ))}
+        ) : (
+          <div className="data-table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Báo cáo</th>
+                  <th>Khu vực</th>
+                  <th>Trạng thái</th>
+                  <th>Ưu tiên</th>
+                  <th>Hạn xử lý</th>
+                  <th>
+                    <span className="sr-only">Thao tác</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {reports.map((report) => (
+                  <tr key={report.id} className={report.isOverdue ? 'row--danger' : ''}>
+                    <td>
+                      <Link className="table-report" to={`/staff/reports/${report.id}`}>
+                        <span>{report.reportCode ?? `#${report.id.slice(0, 8)}`}</span>
+                        <strong>{report.title ?? report.categoryName}</strong>
+                        {report.title && <small>{report.categoryName}</small>}
+                      </Link>
+                    </td>
+                    <td>
+                      <div className="table-location">
+                        <strong>Khu vực: {report.areaName}</strong>
+                        <small>{report.addressText ?? 'Chưa có địa chỉ mô tả'}</small>
+                      </div>
+                    </td>
+                    <td>
+                      <StatusBadge status={report.status} />
+                    </td>
+                    <td>
+                      <PriorityBadge priority={report.priority} />
+                    </td>
+                    <td>
+                      <div className={`due-cell ${report.isOverdue ? 'danger' : ''}`}>
+                        {report.isOverdue ? (
+                          <AlertTriangle aria-hidden="true" size={15} />
+                        ) : (
+                          <Clock3 aria-hidden="true" size={15} />
+                        )}
+                        <span>{formatDateTime(report.dueAt)}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <Link
+                        className="table-open"
+                        to={`/staff/reports/${report.id}`}
+                        aria-label={`Mở báo cáo ${report.reportCode ?? report.id}`}
+                      >
+                        <ArrowUpRight aria-hidden="true" size={18} />
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
+        )}
+      </section>
 
-          {totalPages > 1 && (
-            <nav
-              aria-label="Phân trang danh sách báo cáo"
-              className="flex flex-wrap items-center justify-center gap-3"
-            >
-              <button
-                type="button"
-                disabled={currentPage <= 1 || isFetching}
-                onClick={() => {
-                  setPageNumber((page) => Math.max(1, page - 1))
-                }}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
-              >
-                Trang trước
-              </button>
-
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                Trang <span className="font-semibold">{currentPage}</span> / {totalPages}
-              </span>
-
-              <button
-                type="button"
-                disabled={currentPage >= totalPages || isFetching}
-                onClick={() => {
-                  setPageNumber((page) => Math.min(totalPages, page + 1))
-                }}
-                className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-gray-800"
-              >
-                Trang sau
-              </button>
-            </nav>
-          )}
-        </>
+      {totalPages > 1 && (
+        <nav
+          aria-label="Phân trang danh sách báo cáo"
+          className="pagination role-pagination"
+        >
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={currentPage <= 1 || isFetching}
+            onClick={() => setPageNumber((page) => Math.max(1, page - 1))}
+          >
+            Trang trước
+          </Button>
+          <span>
+            Trang <strong>{currentPage}</strong> / {totalPages}
+          </span>
+          <Button
+            type="button"
+            variant="secondary"
+            disabled={currentPage >= totalPages || isFetching}
+            onClick={() => setPageNumber((page) => Math.min(totalPages, page + 1))}
+          >
+            Trang sau
+          </Button>
+        </nav>
       )}
     </section>
   )

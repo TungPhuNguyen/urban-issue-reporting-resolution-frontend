@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
@@ -230,15 +231,12 @@ export default function CategoriesPage() {
 
   return (
     <section className="resource-page flex flex-col gap-5">
-      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-3">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Quản lý Categories
-          </h1>
+          <Badge variant="danger">Dữ liệu nền</Badge>
+          <h1>Loại sự cố</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
-            Quản lý các loại sự cố dùng khi người dân tạo báo cáo.
-          </p>
+          <p>Quản lý các loại sự cố dùng khi người dân tạo báo cáo.</p>
         </div>
 
         <Button type="button" onClick={openCreateForm}>
@@ -429,10 +427,10 @@ export default function CategoriesPage() {
         </Card>
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">ID</th>
                     <th className="px-4 py-3">Tên</th>
@@ -443,7 +441,7 @@ export default function CategoriesPage() {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((category) => (
                     <tr key={category.id} className="align-top">
                       <td className="px-4 py-3 font-medium">#{category.id}</td>

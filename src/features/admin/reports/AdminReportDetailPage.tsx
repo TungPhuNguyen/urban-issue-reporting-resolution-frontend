@@ -1,7 +1,9 @@
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
@@ -312,25 +314,33 @@ export default function AdminReportDetailPage() {
     }
   }
   return (
-    <section className="report-detail-page flex flex-col gap-5">
-      <div>
-        <Link
-          to="/admin/reports"
-          className="text-sm font-medium text-blue-600 hover:underline"
-        >
-          ← Quay lại danh sách báo cáo
-        </Link>
+    <section className="report-detail-page admin-detail-page flex flex-col gap-5">
+      <Link className="back-link" to="/admin/reports">
+        <ArrowLeft aria-hidden="true" size={17} /> Quản lý báo cáo
+      </Link>
 
-        <h1 className="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-          {report.title ?? 'Chi tiết báo cáo'}
-        </h1>
-
-        <p className="mt-1 font-mono text-sm text-gray-500">
-          {report.reportCode ?? report.id}
-        </p>
+      <div className="page-heading page-heading--split">
+        <div>
+          <div className="heading-badges">
+            <Badge>{report.reportCode ?? report.id}</Badge>
+            <StatusBadge status={report.status} />
+            {report.requiresManualAssignment && (
+              <Badge variant="warning">Cần điều phối</Badge>
+            )}
+            {report.isEscalated && (
+              <Badge variant="danger">
+                <AlertTriangle aria-hidden="true" size={13} /> Quá hạn
+              </Badge>
+            )}
+          </div>
+          <h1>{report.title ?? 'Chi tiết báo cáo'}</h1>
+          <p>
+            {report.citizenName} · {report.citizenEmail} · {report.areaName}
+          </p>
+        </div>
       </div>
 
-      <Card className="grid gap-5 p-6 md:grid-cols-2">
+      <Card className="panel report-overview grid gap-5 md:grid-cols-2">
         <div>
           <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
             Người báo cáo
@@ -468,7 +478,7 @@ export default function AdminReportDetailPage() {
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className="panel p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Hình ảnh phản ánh
         </h2>
@@ -476,7 +486,7 @@ export default function AdminReportDetailPage() {
         {report.imageUrls.length === 0 ? (
           <p className="mt-4 text-sm text-gray-500">Báo cáo chưa có hình ảnh.</p>
         ) : (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="report-overview__gallery mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {report.imageUrls.map((imageUrl, index) => (
               <a
                 key={`${imageUrl}-${index}`}

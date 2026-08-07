@@ -83,13 +83,12 @@ export function UsersListPage() {
 
   const page = usersQuery.data
   return (
-    <section className="space-y-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="resource-page users-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold">Quản lý người dùng</h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Quản lý Citizen, Staff, Admin và trạng thái tài khoản.
-          </p>
+          <Badge variant="danger">Quản trị truy cập</Badge>
+          <h1>Người dùng &amp; nhân sự</h1>
+          <p>Quản lý Citizen, Staff, Admin và trạng thái tài khoản.</p>
         </div>
         <Button onClick={() => setStaffForm(EMPTY_STAFF)}>Tạo tài khoản Staff</Button>
       </div>
@@ -98,7 +97,7 @@ export function UsersListPage() {
           {actionError}
         </div>
       )}
-      <Card className="grid gap-3 p-4 md:grid-cols-5">
+      <Card className="panel filter-bar filter-bar--wrap grid gap-3 md:grid-cols-5">
         <form
           className="flex gap-2 md:col-span-2"
           onSubmit={(e) => {
@@ -169,10 +168,10 @@ export function UsersListPage() {
         />
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">Người dùng</th>
                     <th className="px-4 py-3">Vai trò</th>
@@ -182,7 +181,7 @@ export function UsersListPage() {
                     <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
+                <tbody>
                   {page.items.map((user) => (
                     <tr key={user.id}>
                       <td className="px-4 py-3">

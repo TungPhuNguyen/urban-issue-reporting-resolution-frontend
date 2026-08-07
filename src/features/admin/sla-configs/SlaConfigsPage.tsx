@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
@@ -135,13 +136,10 @@ export default function SlaConfigsPage() {
   return (
     <section className="resource-page flex flex-col gap-5">
       <div className="page-heading">
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-          Quản lý cấu hình SLA
-        </h1>
+        <Badge variant="danger">Cam kết xử lý</Badge>
+        <h1>Quản lý cấu hình SLA</h1>
 
-        <p className="mt-1 text-sm text-gray-500">
-          Xem và cập nhật thời gian xử lý theo Category và mức ưu tiên.
-        </p>
+        <p>Xem và cập nhật thời gian xử lý theo Category và mức ưu tiên.</p>
       </div>
 
       {successMessage && (
@@ -156,7 +154,7 @@ export default function SlaConfigsPage() {
         </div>
       )}
 
-      <Card className="filter-bar filter-bar--wrap p-5">
+      <Card className="panel filter-bar filter-bar--wrap">
         <form
           className="flex flex-col gap-3 md:flex-row"
           onSubmit={(event) => {
@@ -311,10 +309,10 @@ export default function SlaConfigsPage() {
         </Card>
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">ID</th>
 
@@ -330,7 +328,7 @@ export default function SlaConfigsPage() {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((config) => (
                     <tr key={config.id}>
                       <td className="px-4 py-3 font-medium">#{config.id}</td>

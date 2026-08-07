@@ -1,7 +1,9 @@
+import { ArrowLeft, MapPin, Save } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import {
@@ -160,21 +162,31 @@ export default function EditReportPage() {
     )
 
   return (
-    <section className="mx-auto max-w-4xl">
-      <div className="flex items-center justify-between gap-3">
+    <section className="create-report-page mx-auto max-w-4xl">
+      <Link className="back-link" to={`/citizen/reports/${reportId}`}>
+        <ArrowLeft aria-hidden="true" size={17} /> Chi tiết báo cáo
+      </Link>
+
+      <div className="page-heading">
         <div>
-          <h1 className="text-2xl font-semibold">Chỉnh sửa báo cáo</h1>
-          <p className="text-sm text-gray-500">{reportQuery.data.reportCode}</p>
+          <Badge variant="info">Bản nháp cập nhật</Badge>
+          <h1>Chỉnh sửa báo cáo</h1>
+          <p>
+            {reportQuery.data.reportCode} · Cập nhật thông tin, khu vực và vị trí sự cố.
+          </p>
         </div>
-        <Link
-          to={`/citizen/reports/${reportId}`}
-          className="text-sm text-blue-600 hover:underline"
-        >
-          Quay lại
-        </Link>
       </div>
-      <Card className="mt-6 p-6">
+      <Card className="panel create-report-form edit-report-form">
         <form className="space-y-5" onSubmit={handleSubmit}>
+          <header className="form-section__header">
+            <span>
+              <MapPin aria-hidden="true" />
+            </span>
+            <div>
+              <h2>Thông tin báo cáo</h2>
+              <p>Hình ảnh hiện trường hiện có sẽ được giữ nguyên.</p>
+            </div>
+          </header>
           <label className="flex flex-col gap-1 text-sm font-medium">
             Tiêu đề
             <input
@@ -237,6 +249,7 @@ export default function EditReportPage() {
           )}
           <div className="flex flex-wrap gap-3">
             <Button type="submit" loading={updateMutation.isPending}>
+              <Save aria-hidden="true" size={17} />
               Lưu thay đổi
             </Button>
             {needsDuplicateConfirmation && (

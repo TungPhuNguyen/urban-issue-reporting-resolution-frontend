@@ -1,3 +1,4 @@
+import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
@@ -120,15 +121,12 @@ export default function AdminReportsPage() {
   const totalPages = Math.max(page?.totalPages ?? 0, 1)
 
   return (
-    <section className="reports-page flex flex-col gap-5">
-      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-3">
+    <section className="reports-page admin-reports-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Tất cả báo cáo
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Tìm kiếm, xử lý khiếu nại và theo dõi báo cáo được cảnh báo.
-          </p>
+          <Badge variant="danger">Điều phối toàn hệ thống</Badge>
+          <h1>Quản lý báo cáo</h1>
+          <p>Phân công, xử lý khiếu nại và theo dõi các rủi ro SLA.</p>
         </div>
 
         <Button
@@ -141,7 +139,7 @@ export default function AdminReportsPage() {
         </Button>
       </div>
 
-      <Card className="filter-bar filter-bar--wrap p-5">
+      <Card className="panel filter-bar filter-bar--wrap">
         <form
           className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"
           onSubmit={(event) => {
@@ -324,10 +322,10 @@ export default function AdminReportsPage() {
         />
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">Báo cáo</th>
                     <th className="px-4 py-3">Phân loại</th>
@@ -337,9 +335,12 @@ export default function AdminReportsPage() {
                     <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((report) => (
-                    <tr key={report.id} className="align-top">
+                    <tr
+                      key={report.id}
+                      className={report.isOverdue ? 'row--danger align-top' : 'align-top'}
+                    >
                       <td className="px-4 py-3">
                         <p className="font-medium">
                           {report.reportCode ?? `#${report.id.slice(0, 8)}`}
@@ -386,9 +387,10 @@ export default function AdminReportsPage() {
                       <td className="px-4 py-3 text-right">
                         <Link
                           to={`/admin/reports/${report.id}`}
-                          className="inline-flex h-8 items-center rounded-lg bg-gray-100 px-3 font-medium text-gray-900 hover:bg-gray-200"
+                          className="table-open ml-auto"
+                          aria-label={`Mở báo cáo ${report.reportCode ?? report.id}`}
                         >
-                          Xem chi tiết
+                          <ArrowUpRight aria-hidden="true" size={18} />
                         </Link>
                       </td>
                     </tr>

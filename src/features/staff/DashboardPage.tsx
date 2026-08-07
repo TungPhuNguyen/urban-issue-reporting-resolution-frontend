@@ -1,11 +1,26 @@
+import {
+  AlertTriangle,
+  ArrowRight,
+  CheckCircle2,
+  ClipboardCheck,
+  Clock3,
+  Flame,
+  Gauge,
+  TimerReset,
+} from 'lucide-react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { Reveal } from '@/components/ui/CivicPulseAnimations'
 import { Spinner } from '@/components/ui/Spinner'
 import { getStatusLabel } from '@/components/ui/report-labels'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import { useStaffDashboard } from './staff.queries'
+import type { StaffDashboardTrendItem } from './staff.types'
 
 function dateInput(date: Date) {
   const year = date.getFullYear()
@@ -13,6 +28,19 @@ function dateInput(date: Date) {
   const day = String(date.getDate()).padStart(2, '0')
 
   return `${year}-${month}-${day}`
+}
+
+function chartPath(items: StaffDashboardTrendItem[], max: number, area = false) {
+  if (items.length === 0) return ''
+
+  const points = items.map((item, index) => {
+    const x = (index / Math.max(items.length - 1, 1)) * 700
+    const y = 210 - (item.count / max) * 175
+    return `${x},${y}`
+  })
+  const line = `M ${points.join(' L ')}`
+
+  return area ? `${line} L 700 220 L 0 220 Z` : line
 }
 
 export default function StaffDashboardPage() {
@@ -23,113 +51,235 @@ export default function StaffDashboardPage() {
   const [to, setTo] = useState(dateInput(today))
   const [applied, setApplied] = useState({ from, to })
   const query = useStaffDashboard(applied.from, applied.to)
-  if (query.isPending)
+
+  if (query.isPending) {
     return (
       <div className="flex min-h-64 items-center justify-center">
-        <Spinner />
+        <Spinner label="Đang tải tổng quan xử lý..." />
       </div>
     )
-  if (query.isError || !query.data)
+  }
+
+  if (query.isError || !query.data) {
     return (
-      <Card className="p-8 text-center text-red-600">Không thể tải dashboard Staff.</Card>
+      <Card className="empty-state p-8 text-center">
+        <h3>Không thể tải Dashboard Staff</h3>
+        <p>Vui lòng kiểm tra kết nối và thử lại.</p>
+        <Button variant="secondary" onClick={() => void query.refetch()}>
+          Thử lại
+        </Button>
+      </Card>
     )
+  }
+
   const data = query.data
   const trendMax = Math.max(1, ...data.trend.map((item) => item.count))
-  const metrics = [
-    ['Tổng báo cáo', data.totalReports],
-    ['Đang xử lý', data.inProgressReports],
-    ['Đã xử lý', data.resolvedReports],
-    ['Quá hạn', data.overdueReports],
-    ['Cảnh báo SLA', data.slaWarningReports],
-    ['Vi phạm SLA', data.slaBreachedReports],
-  ] as const
+
   return (
-    <section className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <section className="dashboard-page staff-dashboard">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold">Tổng quan xử lý</h1>
-          <p className="mt-1 text-sm text-gray-500">{data.departmentName}</p>
+          <Badge className="badge--violet">Không gian đơn vị xử lý</Badge>
+          <h1>{data.departmentName}</h1>
+          <p>Ưu tiên công việc cần hành động, theo dõi SLA và hiệu suất xử lý.</p>
         </div>
-        <form
-          className="flex flex-wrap items-end gap-2"
-          onSubmit={(e) => {
-            e.preventDefault()
-            setApplied({ from, to })
-          }}
-        >
-          <label className="text-sm">
-            Từ ngày
-            <input
-              type="date"
-              value={from}
-              onChange={(e) => setFrom(e.target.value)}
-              className="ml-2 h-10 rounded-lg border border-gray-300 px-2"
-            />
-          </label>
-          <label className="text-sm">
-            Đến ngày
-            <input
-              type="date"
-              value={to}
-              onChange={(e) => setTo(e.target.value)}
-              className="ml-2 h-10 rounded-lg border border-gray-300 px-2"
-            />
-          </label>
-          <Button type="submit">Áp dụng</Button>
-        </form>
+        <Link to="/staff/reports">
+          <Button>
+            <ClipboardCheck aria-hidden="true" size={18} />
+            Mở danh sách công việc
+          </Button>
+        </Link>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-6">
-        {metrics.map(([label, value]) => (
-          <Card key={label} className="p-4">
-            <p className="text-sm text-gray-500">{label}</p>
-            <p className="mt-1 text-3xl font-semibold">{value}</p>
-          </Card>
-        ))}
-      </div>
-      <div className="grid gap-5 lg:grid-cols-2">
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold">Theo trạng thái</h2>
-          <div className="mt-4 space-y-3">
-            {data.reportsByStatus.map((item) => (
-              <div key={item.status} className="flex items-center justify-between gap-4">
-                <span className="text-sm">{getStatusLabel(item.status)}</span>
-                <strong>{item.count}</strong>
-              </div>
-            ))}
+
+      <form
+        className="panel dashboard-date-filter"
+        onSubmit={(event) => {
+          event.preventDefault()
+          setApplied({ from, to })
+        }}
+      >
+        <label className="field">
+          <span className="field__label">Từ ngày</span>
+          <input
+            type="date"
+            value={from}
+            onChange={(event) => setFrom(event.target.value)}
+          />
+        </label>
+        <label className="field">
+          <span className="field__label">Đến ngày</span>
+          <input type="date" value={to} onChange={(event) => setTo(event.target.value)} />
+        </label>
+        <Button type="submit">Áp dụng</Button>
+      </form>
+
+      <div className="metric-grid metric-grid--4">
+        <Reveal>
+          <div className="metric-card">
+            <span className="metric-card__icon blue">
+              <ClipboardCheck aria-hidden="true" />
+            </span>
+            <div>
+              <small>Tổng báo cáo</small>
+              <strong>{data.totalReports}</strong>
+              <span>{data.newReports} báo cáo mới</span>
+            </div>
           </div>
-        </Card>
-        <Card className="p-6">
-          <h2 className="text-lg font-semibold">Xu hướng báo cáo</h2>
-          <div className="mt-5 flex h-52 items-end gap-2 overflow-x-auto">
-            {data.trend.map((item) => (
-              <div
-                key={item.date}
-                className="flex min-w-8 flex-1 flex-col items-center justify-end gap-1"
-              >
-                <span className="text-xs">{item.count}</span>
-                <div
-                  className="w-full rounded-t bg-blue-500"
-                  style={{ height: `${Math.max(4, (item.count / trendMax) * 160)}px` }}
+        </Reveal>
+        <Reveal delay={60}>
+          <div className="metric-card">
+            <span className="metric-card__icon amber">
+              <Clock3 aria-hidden="true" />
+            </span>
+            <div>
+              <small>Đang xử lý</small>
+              <strong>{data.inProgressReports}</strong>
+              <span>{data.acceptedReports} đã tiếp nhận</span>
+            </div>
+          </div>
+        </Reveal>
+        <Reveal delay={120}>
+          <div className="metric-card">
+            <span className="metric-card__icon green">
+              <CheckCircle2 aria-hidden="true" />
+            </span>
+            <div>
+              <small>Đã giải quyết</small>
+              <strong>{data.resolvedReports}</strong>
+              <span>
+                {data.averageResolutionHours === null
+                  ? 'Chưa đủ dữ liệu thời gian'
+                  : `Trung bình ${data.averageResolutionHours.toFixed(1)} giờ`}
+              </span>
+            </div>
+          </div>
+        </Reveal>
+        <Reveal delay={180}>
+          <div className="metric-card metric-card--alert">
+            <span className="metric-card__icon red">
+              <AlertTriangle aria-hidden="true" />
+            </span>
+            <div>
+              <small>Quá hạn SLA</small>
+              <strong>{data.overdueReports}</strong>
+              <span>{data.escalatedReports} báo cáo nâng cấp</span>
+            </div>
+          </div>
+        </Reveal>
+      </div>
+
+      <div className="dashboard-chart-grid">
+        <section className="panel chart-panel">
+          <header className="panel__header">
+            <div>
+              <h2>Khối lượng tiếp nhận</h2>
+              <p>Xu hướng trong khoảng thời gian đã chọn</p>
+            </div>
+            <Badge variant="success">{data.trend.length} ngày</Badge>
+          </header>
+          {data.trend.length > 0 ? (
+            <div className="line-chart">
+              <svg viewBox="0 0 700 230" preserveAspectRatio="none" aria-hidden="true">
+                <defs>
+                  <linearGradient id="staffAreaFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stopColor="var(--primary)" stopOpacity=".26" />
+                    <stop offset="1" stopColor="var(--primary)" stopOpacity="0" />
+                  </linearGradient>
+                </defs>
+                <path
+                  className="line-chart__area staff-chart-area"
+                  d={chartPath(data.trend, trendMax, true)}
                 />
-                <span className="text-[10px] text-gray-500">
-                  {new Date(item.date).toLocaleDateString('vi-VN', {
-                    day: '2-digit',
-                    month: '2-digit',
-                  })}
+                <path className="line-chart__line" d={chartPath(data.trend, trendMax)} />
+              </svg>
+              <div className="line-chart__labels">
+                <span>
+                  {parseApiDateTime(data.trend[0]?.date ?? data.from).toLocaleDateString(
+                    'vi-VN',
+                  )}
+                </span>
+                <span>
+                  {parseApiDateTime(
+                    data.trend.at(-1)?.date ?? data.to,
+                  ).toLocaleDateString('vi-VN')}
                 </span>
               </div>
+            </div>
+          ) : (
+            <div className="empty-state compact">
+              <p>Chưa có dữ liệu xu hướng trong khoảng thời gian này.</p>
+            </div>
+          )}
+        </section>
+
+        <section className="panel">
+          <header className="panel__header">
+            <div>
+              <h2>Phân bố trạng thái</h2>
+              <p>Tất cả báo cáo của đơn vị</p>
+            </div>
+          </header>
+          <div className="status-bars">
+            {data.reportsByStatus.map((item) => (
+              <div key={item.status}>
+                <div>
+                  <span>{getStatusLabel(item.status)}</span>
+                  <strong>{item.count}</strong>
+                </div>
+                <i>
+                  <b
+                    style={{
+                      width: `${(item.count / Math.max(data.totalReports, 1)) * 100}%`,
+                    }}
+                  />
+                </i>
+              </div>
             ))}
           </div>
-        </Card>
+        </section>
       </div>
-      <Card className="p-5">
-        <p className="text-sm text-gray-500">Thời gian xử lý trung bình</p>
-        <p className="mt-1 text-2xl font-semibold">
-          {data.averageResolutionHours === null
-            ? 'Chưa đủ dữ liệu'
-            : `${data.averageResolutionHours.toFixed(1)} giờ`}
-        </p>
-      </Card>
+
+      <section className="panel attention-panel">
+        <header className="panel__header">
+          <div>
+            <h2>Cần ưu tiên hôm nay</h2>
+            <p>Các nhóm công việc có rủi ro SLA</p>
+          </div>
+          <Link to="/staff/overdue-reports">
+            Xem chi tiết <ArrowRight aria-hidden="true" size={16} />
+          </Link>
+        </header>
+        <div className="attention-grid">
+          <div>
+            <span className="red">
+              <TimerReset aria-hidden="true" />
+            </span>
+            <strong>{data.slaBreachedReports}</strong>
+            <p>Đã quá hạn SLA</p>
+          </div>
+          <div>
+            <span className="amber">
+              <Gauge aria-hidden="true" />
+            </span>
+            <strong>{data.slaWarningReports}</strong>
+            <p>Sắp chạm ngưỡng SLA</p>
+          </div>
+          <div>
+            <span className="violet">
+              <Flame aria-hidden="true" />
+            </span>
+            <strong>{data.escalatedReports}</strong>
+            <p>Đã nâng cấp xử lý</p>
+          </div>
+          <div>
+            <span className="blue">
+              <ClipboardCheck aria-hidden="true" />
+            </span>
+            <strong>{data.assignedReports}</strong>
+            <p>Chờ nhân viên tiếp nhận</p>
+          </div>
+        </div>
+      </section>
     </section>
   )
 }

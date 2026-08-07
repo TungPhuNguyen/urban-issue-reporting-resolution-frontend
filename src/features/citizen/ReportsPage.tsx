@@ -1,6 +1,9 @@
+import { FilePlus2, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
@@ -49,27 +52,24 @@ export default function CitizenReportsPage() {
   }
 
   return (
-    <section className="reports-page mx-auto flex max-w-5xl flex-col gap-6">
-      <div className="page-heading page-heading--split flex flex-wrap items-center justify-between gap-4">
+    <section className="reports-page citizen-reports-page">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Báo cáo của tôi
-          </h1>
+          <Badge variant="info">Quản lý phản ánh</Badge>
+          <h1>Báo cáo của tôi</h1>
 
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Theo dõi các phản ánh hạ tầng mà bạn đã gửi.
-          </p>
+          <p>Theo dõi trạng thái, tiến trình và phản hồi của từng sự cố bạn đã gửi.</p>
         </div>
 
-        <Link
-          to="/citizen/reports/create"
-          className="button button--primary rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
-        >
-          Tạo phản ánh mới
+        <Link to="/citizen/reports/create">
+          <Button>
+            <FilePlus2 aria-hidden="true" size={18} />
+            Tạo báo cáo
+          </Button>
         </Link>
       </div>
 
-      <Card className="filter-bar filter-bar--wrap p-4">
+      <Card className="panel filter-bar filter-bar--wrap">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_240px_auto] md:items-end">
           <Input
             label="Tìm kiếm"
@@ -151,7 +151,10 @@ export default function CitizenReportsPage() {
       )}
 
       {!isLoading && !isError && reports.length === 0 && (
-        <Card className="border-dashed p-8 text-center">
+        <Card className="empty-state border-dashed p-8 text-center">
+          <span className="empty-state__icon">
+            <SearchX aria-hidden="true" />
+          </span>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {hasActiveFilters
               ? 'Không tìm thấy phản ánh phù hợp'
@@ -185,7 +188,7 @@ export default function CitizenReportsPage() {
 
       {!isLoading && !isError && reports.length > 0 && (
         <>
-          <div className="flex items-center justify-between">
+          <div className="reports-result-summary">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Tổng cộng:{' '}
               <span className="font-semibold">{data?.totalItems ?? reports.length}</span>{' '}
@@ -197,7 +200,7 @@ export default function CitizenReportsPage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="report-grid report-grid--3">
             {reports.map((report) => (
               <ReportCard
                 key={report.id}

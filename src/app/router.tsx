@@ -37,6 +37,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 
 import {
   AdminDashboardPage,
+  CitizenDashboardPage,
   CitizenReportsPage,
   CreateReportPage,
   HomePage,
@@ -93,6 +94,10 @@ export const router = createBrowserRouter([
             element: <CitizenLayout />,
 
             children: [
+              {
+                path: 'dashboard',
+                element: <CitizenDashboardPage />,
+              },
               {
                 path: 'reports',
                 element: <CitizenReportsPage />,

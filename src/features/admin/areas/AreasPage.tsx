@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from 'react'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
@@ -287,15 +288,12 @@ export default function AreasPage() {
 
   return (
     <section className="resource-page flex flex-col gap-5">
-      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-3">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Quản lý khu vực
-          </h1>
+          <Badge variant="danger">Dữ liệu địa bàn</Badge>
+          <h1>Quản lý khu vực</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
-            Quản lý cây khu vực và trạng thái hoạt động của từng khu vực.
-          </p>
+          <p>Quản lý cây khu vực và trạng thái hoạt động của từng khu vực.</p>
         </div>
 
         <Button type="button" onClick={openCreateForm}>
@@ -520,10 +518,10 @@ export default function AreasPage() {
         </Card>
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">ID</th>
                     <th className="px-4 py-3">Tên</th>
@@ -535,7 +533,7 @@ export default function AreasPage() {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((area) => (
                     <tr key={area.id} className="align-top">
                       <td className="px-4 py-3 font-medium">#{area.id}</td>

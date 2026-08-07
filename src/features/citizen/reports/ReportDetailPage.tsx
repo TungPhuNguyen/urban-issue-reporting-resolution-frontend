@@ -1,6 +1,8 @@
+import { ArrowLeft, Edit3 } from 'lucide-react'
 import { type ReactNode, useState } from 'react'
 import { Link, useLocation, useParams } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { PriorityBadge } from '@/components/ui/PriorityBadge'
@@ -313,52 +315,41 @@ export default function ReportDetailPage() {
   }
 
   return (
-    <section className="report-detail-page mx-auto flex max-w-5xl flex-col gap-5">
-      <div>
-        <Link
-          to="/citizen/reports"
-          className="inline-flex items-center text-sm font-medium text-blue-600 transition hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-        >
-          ← Quay lại danh sách phản ánh
-        </Link>
-      </div>
+    <section className="report-detail-page citizen-detail-page">
+      <Link className="back-link" to="/citizen/reports">
+        <ArrowLeft aria-hidden="true" size={17} /> Báo cáo của tôi
+      </Link>
 
-      <Card className="p-5 sm:p-6">
+      <Card className="panel report-overview">
         {createdSuccessfully && (
           <div className="mb-5 rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-800 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">
             Phản ánh đã được gửi thành công.
           </div>
         )}
 
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="page-heading page-heading--split">
           <div>
-            <p className="text-xs font-medium tracking-wide text-gray-500 uppercase dark:text-gray-400">
-              Mã phản ánh
-            </p>
+            <div className="heading-badges">
+              <Badge>{report.reportCode ?? report.id}</Badge>
+              <StatusBadge status={report.status} />
+              <PriorityBadge priority={report.priority} />
+            </div>
 
-            <p className="mt-1 text-sm break-all text-gray-600 dark:text-gray-400">
-              {report.reportCode ?? report.id}
-            </p>
+            <h1>{report.title ?? report.categoryName}</h1>
 
-            <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {report.title ?? report.categoryName}
-            </h1>
-
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {report.addressText || report.areaName}
-            </p>
+            <p>{report.addressText || report.areaName}</p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="heading-actions">
             {report.allowedActions?.canEdit && (
               <Link
                 to={`/citizen/reports/${report.id}/edit`}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-sm font-medium hover:bg-gray-50"
+                className="button button--ghost"
               >
+                <Edit3 aria-hidden="true" size={16} />
                 Chỉnh sửa
               </Link>
             )}
-            <StatusBadge status={report.status} />
           </div>
         </div>
 
@@ -541,7 +532,7 @@ export default function ReportDetailPage() {
               Phản ánh chưa có hình ảnh.
             </p>
           ) : (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="report-overview__gallery mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {report.imageUrls.map((imageUrl, index) => {
                 const resolvedUrl = resolveImageUrl(imageUrl, apiOrigin)
 

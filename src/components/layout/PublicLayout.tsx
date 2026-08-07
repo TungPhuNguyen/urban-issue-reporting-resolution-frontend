@@ -9,7 +9,7 @@ import { useAuthStore } from '@/features/auth/auth.store'
 const roleHome = {
   Admin: '/admin/dashboard',
   Staff: '/staff/dashboard',
-  Citizen: '/citizen/reports',
+  Citizen: '/citizen/dashboard',
 } as const
 
 export default function PublicLayout() {
@@ -39,7 +39,7 @@ export default function PublicLayout() {
     return <Outlet />
   }
 
-  const home = user ? roleHome[user.role] : '/citizen/reports'
+  const home = user ? roleHome[user.role] : '/citizen/dashboard'
 
   return (
     <div className="landing-page flex min-h-dvh flex-col">

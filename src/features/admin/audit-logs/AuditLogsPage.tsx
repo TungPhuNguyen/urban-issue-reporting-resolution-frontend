@@ -1,5 +1,6 @@
 import { type FormEvent, useState } from 'react'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
@@ -87,14 +88,11 @@ export default function AuditLogsPage() {
 
   return (
     <section className="audit-page flex flex-col gap-5">
-      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-3">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Nhật ký hệ thống
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Tra cứu thao tác quản trị và thay đổi nghiệp vụ quan trọng.
-          </p>
+          <Badge variant="danger">Kiểm soát hệ thống</Badge>
+          <h1>Nhật ký hoạt động</h1>
+          <p>Tra cứu thao tác quản trị và thay đổi nghiệp vụ quan trọng.</p>
         </div>
         <Button
           type="button"
@@ -106,7 +104,7 @@ export default function AuditLogsPage() {
         </Button>
       </div>
 
-      <Card className="filter-bar filter-bar--wrap p-5">
+      <Card className="panel filter-bar filter-bar--wrap">
         <form className="grid gap-3 md:grid-cols-2 xl:grid-cols-5" onSubmit={submit}>
           <input
             value={draft.action}
@@ -199,10 +197,10 @@ export default function AuditLogsPage() {
         <Card className="p-10 text-center">Không có nhật ký phù hợp.</Card>
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">Thời gian</th>
                     <th className="px-4 py-3">Người thực hiện</th>
@@ -211,7 +209,7 @@ export default function AuditLogsPage() {
                     <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((item) => (
                     <tr key={item.id}>
                       <td className="px-4 py-3 whitespace-nowrap">

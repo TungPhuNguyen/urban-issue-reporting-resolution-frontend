@@ -45,7 +45,7 @@ export function LoginPage() {
       const roleHome = {
         Admin: '/admin/dashboard',
         Staff: '/staff/dashboard',
-        Citizen: '/citizen/reports',
+        Citizen: '/citizen/dashboard',
       } as const
 
       navigate(roleHome[user.role], { replace: true })

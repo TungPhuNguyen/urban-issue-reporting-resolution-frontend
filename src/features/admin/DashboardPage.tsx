@@ -1,6 +1,8 @@
+import { AlertTriangle, CheckCircle2, ClipboardList, Route } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { getStatusLabel } from '@/components/ui/report-labels'
@@ -68,8 +70,12 @@ interface BreakdownCardProps {
 
 function BreakdownCard({ title, emptyMessage, items }: BreakdownCardProps) {
   return (
-    <Card className="p-5">
-      <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+    <Card className="panel breakdown-panel">
+      <header className="panel__header">
+        <div>
+          <h2>{title}</h2>
+        </div>
+      </header>
 
       {items.length === 0 ? (
         <p className="mt-5 text-sm text-gray-500">{emptyMessage}</p>
@@ -153,15 +159,12 @@ export default function AdminDashboardPage() {
     }))
 
   return (
-    <section className="dashboard-page flex flex-col gap-5">
-      <div className="page-heading page-heading--split flex flex-wrap items-start justify-between gap-4">
+    <section className="dashboard-page admin-dashboard flex flex-col gap-5">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Dashboard quản trị
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Tổng quan báo cáo sự cố trên toàn hệ thống.
-          </p>
+          <Badge variant="danger">Trung tâm điều hành</Badge>
+          <h1>Tổng quan hệ thống</h1>
+          <p>Hiệu suất xử lý, rủi ro SLA và hoạt động điều phối toàn hệ thống.</p>
         </div>
 
         <Button
@@ -174,7 +177,7 @@ export default function AdminDashboardPage() {
         </Button>
       </div>
 
-      <Card className="p-5">
+      <Card className="panel admin-date-filter">
         <div className="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
           <label className="flex flex-col gap-1.5 text-sm font-medium text-gray-700 dark:text-gray-200">
             Từ ngày
@@ -231,54 +234,62 @@ export default function AdminDashboardPage() {
         </Card>
       ) : data ? (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Card className="p-5">
-              <p className="text-sm text-gray-500">Tổng báo cáo</p>
-              <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {formatNumber(data.summary.totalReports)}
-              </p>
+          <div className="metric-grid metric-grid--4">
+            <Card className="metric-card">
+              <span className="metric-card__icon blue">
+                <ClipboardList aria-hidden="true" />
+              </span>
+              <div>
+                <small>Tổng báo cáo</small>
+                <strong>{formatNumber(data.summary.totalReports)}</strong>
+                <span>{formatNumber(data.summary.newReports)} báo cáo mới</span>
+              </div>
             </Card>
 
-            <Card className="p-5">
-              <p className="text-sm text-gray-500">Đã xử lý / đóng</p>
-              <p className="mt-2 text-3xl font-bold text-gray-900 dark:text-gray-100">
-                {formatNumber(data.summary.resolvedReports + data.summary.closedReports)}
-              </p>
-              <p className="mt-1 text-xs text-gray-500">
-                Tỷ lệ {data.summary.resolutionRate.toFixed(2)}%
-              </p>
+            <Card className="metric-card">
+              <span className="metric-card__icon green">
+                <CheckCircle2 aria-hidden="true" />
+              </span>
+              <div>
+                <small>Đã xử lý / đóng</small>
+                <strong>
+                  {formatNumber(
+                    data.summary.resolvedReports + data.summary.closedReports,
+                  )}
+                </strong>
+                <span>Tỷ lệ {data.summary.resolutionRate.toFixed(2)}%</span>
+              </div>
             </Card>
 
-            <Card className="p-5">
-              <p className="text-sm text-gray-500">Đang quá hạn</p>
-              <p className="mt-2 text-3xl font-bold text-red-600">
-                {formatNumber(data.summary.activeOverdueReports)}
-              </p>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="mt-2 px-0"
-                onClick={() => navigate('/admin/overdue-reports')}
-              >
-                Xem danh sách
-              </Button>
+            <Card className="metric-card metric-card--alert">
+              <span className="metric-card__icon red">
+                <AlertTriangle aria-hidden="true" />
+              </span>
+              <div>
+                <small>Đang quá hạn</small>
+                <strong>{formatNumber(data.summary.activeOverdueReports)}</strong>
+                <button type="button" onClick={() => navigate('/admin/overdue-reports')}>
+                  Xem danh sách
+                </button>
+              </div>
             </Card>
 
-            <Card className="p-5">
-              <p className="text-sm text-gray-500">Đã cảnh báo quá hạn</p>
-              <p className="mt-2 text-3xl font-bold text-orange-600">
-                {formatNumber(data.summary.escalatedReports)}
-              </p>
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                className="mt-2 px-0"
-                onClick={() => navigate('/admin/reports?isEscalated=true')}
-              >
-                Xem danh sách
-              </Button>
+            <Card className="metric-card">
+              <span className="metric-card__icon violet">
+                <Route aria-hidden="true" />
+              </span>
+              <div>
+                <small>Chờ điều phối tay</small>
+                <strong>
+                  {formatNumber(data.summary.requiresManualAssignmentReports)}
+                </strong>
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin/reports/manual-assignment')}
+                >
+                  Xử lý ngay
+                </button>
+              </div>
             </Card>
           </div>
 
