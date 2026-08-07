@@ -1,4 +1,4 @@
-import { AlertTriangle, CheckCircle2, ClipboardList, Route } from 'lucide-react'
+import { AlertTriangle, CheckCircle2, ClipboardList } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
@@ -261,6 +261,27 @@ export default function AdminDashboardPage() {
               </div>
             </Card>
 
+            <Card className="metric-card">
+              <span className="metric-card__icon amber">
+                <AlertTriangle aria-hidden="true" />
+              </span>
+
+              <div>
+                <small>Đã cảnh báo quá hạn</small>
+
+                <strong>
+                  {formatNumber(data.summary.escalatedReports)}
+                </strong>
+
+                <button
+                  type="button"
+                  onClick={() => navigate('/admin/reports?isEscalated=true')}
+                >
+                  Xem danh sách
+                </button>
+              </div>
+            </Card>
+
             <Card className="metric-card metric-card--alert">
               <span className="metric-card__icon red">
                 <AlertTriangle aria-hidden="true" />
@@ -270,24 +291,6 @@ export default function AdminDashboardPage() {
                 <strong>{formatNumber(data.summary.activeOverdueReports)}</strong>
                 <button type="button" onClick={() => navigate('/admin/overdue-reports')}>
                   Xem danh sách
-                </button>
-              </div>
-            </Card>
-
-            <Card className="metric-card">
-              <span className="metric-card__icon violet">
-                <Route aria-hidden="true" />
-              </span>
-              <div>
-                <small>Chờ điều phối tay</small>
-                <strong>
-                  {formatNumber(data.summary.requiresManualAssignmentReports)}
-                </strong>
-                <button
-                  type="button"
-                  onClick={() => navigate('/admin/reports/manual-assignment')}
-                >
-                  Xử lý ngay
                 </button>
               </div>
             </Card>

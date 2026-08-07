@@ -17,14 +17,25 @@ import { Reveal } from '@/components/ui/CivicPulseAnimations'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuthStore } from '@/features/auth/auth.store'
 
-import { useCitizenReports } from './reports/citizen-report.queries'
+import { useQuery } from '@tanstack/react-query'
+
+import { citizenReportApi } from './reports/citizen-report.api'
+import { citizenReportKeys } from './reports/citizen-report.queries'
 
 const ACTIVE_STATUSES = new Set(['New', 'Assigned', 'Accepted', 'InProgress'])
 const COMPLETED_STATUSES = new Set(['Resolved', 'Closed'])
 
 export default function CitizenDashboardPage() {
   const user = useAuthStore((state) => state.user)
-  const reportsQuery = useCitizenReports({ pageNumber: 1, pageSize: 100 })
+  const reportsQuery = useQuery({
+    queryKey: [
+      ...citizenReportKeys.all,
+      'dashboard',
+      user?.userId ?? 'anonymous',
+    ] as const,
+    queryFn: getCitizenDashboardReports,
+    enabled: Boolean(user?.userId),
+  })
   const reports = reportsQuery.data?.items ?? []
   const firstName = user?.fullName.trim().split(/\s+/).at(-1) ?? 'bạn'
   const stats = {
@@ -32,6 +43,28 @@ export default function CitizenDashboardPage() {
     active: reports.filter((report) => ACTIVE_STATUSES.has(report.status)).length,
     completed: reports.filter((report) => COMPLETED_STATUSES.has(report.status)).length,
     upvotes: reports.reduce((total, report) => total + report.upvoteCount, 0),
+  }
+  const DASHBOARD_PAGE_SIZE = 100
+
+  async function getCitizenDashboardReports() {
+    const firstPage = await citizenReportApi.getMyReports({
+      pageNumber: 1,
+      pageSize: DASHBOARD_PAGE_SIZE,
+    })
+
+    const remainingPages = await Promise.all(
+      Array.from({ length: Math.max(0, firstPage.totalPages - 1) }, (_, index) =>
+        citizenReportApi.getMyReports({
+          pageNumber: index + 2,
+          pageSize: DASHBOARD_PAGE_SIZE,
+        }),
+      ),
+    )
+
+    return {
+      ...firstPage,
+      items: [firstPage, ...remainingPages].flatMap((page) => page.items),
+    }
   }
 
   return (

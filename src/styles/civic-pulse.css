@@ -2644,6 +2644,8 @@ button:disabled {
 }
 .metric-card__icon svg {
   width: 20px;
+  height: 20px;
+  display: block;
 }
 .metric-card__icon.blue {
   color: var(--primary);
@@ -2667,7 +2669,7 @@ button:disabled {
 }
 .metric-card small,
 .metric-card strong,
-.metric-card span {
+.metric-card div > span {
   display: block;
 }
 .metric-card small {

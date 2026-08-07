@@ -37,9 +37,6 @@ export default function PublicReportDetailPage() {
 
   return (
     <section className="mx-auto max-w-5xl px-4 pt-10 pb-[calc(2.5rem+env(safe-area-inset-bottom))] sm:px-6">
-      <Link to="/reports" className="text-sm text-blue-600 hover:underline">
-        ← Quay lại bản đồ
-      </Link>
       <Card className="mt-5 p-6">
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
