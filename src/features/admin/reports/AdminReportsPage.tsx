@@ -1,12 +1,22 @@
+import { ArrowUpRight } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
+import { getPriorityLabel, getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
+import { usePublicCategories } from '@/features/public-catalog/public-catalog.queries'
+import { useAreas } from '@/features/admin/areas/areas.queries'
+import { useDepartments } from '@/features/admin/departments/departments.queries'
 
-import { useAdminReports } from './admin-reports.queries'
+import { useActiveStaffByDepartment, useAdminReports } from './admin-reports.queries'
 import type { ReportPriority } from './admin-reports.types'
 
 const PAGE_SIZE = 10
@@ -19,6 +29,7 @@ const STATUSES = [
   'Resolved',
   'Closed',
   'Rejected',
+  'Cancelled',
 ]
 
 function parseBoolean(value: string | null) {
@@ -30,7 +41,7 @@ function formatDate(value: string | null | undefined) {
     return 'Chưa có'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value
@@ -59,6 +70,18 @@ export default function AdminReportsPage() {
   const priority = (searchParams.get('priority') as ReportPriority | null) ?? ''
   const hasComplaint = parseBoolean(searchParams.get('hasComplaint'))
   const isEscalated = parseBoolean(searchParams.get('isEscalated'))
+  const categoryId = Number(searchParams.get('categoryId')) || undefined
+  const areaId = Number(searchParams.get('areaId')) || undefined
+  const departmentId = Number(searchParams.get('departmentId')) || undefined
+  const staffId = searchParams.get('staffId') || undefined
+  const categoriesQuery = usePublicCategories()
+  const areasQuery = useAreas({ pageNumber: 1, pageSize: 100 })
+  const departmentsQuery = useDepartments({
+    pageNumber: 1,
+    pageSize: 100,
+    isActive: true,
+  })
+  const staffQuery = useActiveStaffByDepartment(departmentId ?? null)
 
   const query = useAdminReports({
     pageNumber,
@@ -68,6 +91,10 @@ export default function AdminReportsPage() {
     priority: priority || undefined,
     hasComplaint,
     isEscalated,
+    categoryId,
+    areaId,
+    departmentId,
+    staffId,
   })
 
   function updateFilters(updates: Record<string, string | undefined>) {
@@ -94,15 +121,12 @@ export default function AdminReportsPage() {
   const totalPages = Math.max(page?.totalPages ?? 0, 1)
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="reports-page admin-reports-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Tất cả báo cáo
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Tìm kiếm, xử lý khiếu nại và theo dõi báo cáo escalation.
-          </p>
+          <Badge variant="danger">Điều phối toàn hệ thống</Badge>
+          <h1>Quản lý báo cáo</h1>
+          <p>Phân công, xử lý khiếu nại và theo dõi các rủi ro SLA.</p>
         </div>
 
         <Button
@@ -115,7 +139,7 @@ export default function AdminReportsPage() {
         </Button>
       </div>
 
-      <Card className="p-5">
+      <Card className="panel filter-bar filter-bar--wrap">
         <form
           className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"
           onSubmit={(event) => {
@@ -146,7 +170,76 @@ export default function AdminReportsPage() {
             <option value="">Tất cả trạng thái</option>
             {STATUSES.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {getStatusLabel(item)}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Danh mục"
+            value={categoryId ?? ''}
+            onChange={(event) =>
+              updateFilters({ categoryId: event.target.value || undefined })
+            }
+            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="">Tất cả danh mục</option>
+            {categoriesQuery.data?.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Khu vực"
+            value={areaId ?? ''}
+            onChange={(event) =>
+              updateFilters({ areaId: event.target.value || undefined })
+            }
+            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="">Tất cả khu vực</option>
+            {areasQuery.data?.items.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.parentAreaName ? `${item.parentAreaName} / ` : ''}
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Phòng ban"
+            value={departmentId ?? ''}
+            onChange={(event) =>
+              updateFilters({
+                departmentId: event.target.value || undefined,
+                staffId: undefined,
+              })
+            }
+            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="">Tất cả phòng ban</option>
+            {departmentsQuery.data?.items.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.name}
+              </option>
+            ))}
+          </select>
+
+          <select
+            aria-label="Staff"
+            value={staffId ?? ''}
+            disabled={!departmentId}
+            onChange={(event) =>
+              updateFilters({ staffId: event.target.value || undefined })
+            }
+            className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm disabled:opacity-50 dark:border-gray-700 dark:bg-gray-900"
+          >
+            <option value="">Tất cả Staff</option>
+            {staffQuery.data?.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.fullName}
               </option>
             ))}
           </select>
@@ -164,7 +257,7 @@ export default function AdminReportsPage() {
             <option value="">Tất cả mức ưu tiên</option>
             {PRIORITIES.map((item) => (
               <option key={item} value={item}>
-                {item}
+                {getPriorityLabel(item)}
               </option>
             ))}
           </select>
@@ -192,7 +285,7 @@ export default function AdminReportsPage() {
                 })
               }
             />
-            Đã escalation
+            Đã cảnh báo
           </label>
 
           <div className="flex gap-2 xl:col-span-5">
@@ -223,18 +316,16 @@ export default function AdminReportsPage() {
           </Button>
         </Card>
       ) : !page || page.items.length === 0 ? (
-        <Card className="p-10 text-center">
-          <h2 className="text-lg font-semibold">Không có báo cáo phù hợp</h2>
-          <p className="mt-2 text-sm text-gray-500">
-            Hãy thay đổi bộ lọc hoặc làm mới dữ liệu.
-          </p>
-        </Card>
+        <EmptyState
+          title="Không có báo cáo phù hợp"
+          description="Hãy thay đổi bộ lọc hoặc làm mới dữ liệu."
+        />
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">Báo cáo</th>
                     <th className="px-4 py-3">Phân loại</th>
@@ -244,11 +335,19 @@ export default function AdminReportsPage() {
                     <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((report) => (
-                    <tr key={report.id} className="align-top">
+                    <tr
+                      key={report.id}
+                      className={report.isOverdue ? 'row--danger align-top' : 'align-top'}
+                    >
                       <td className="px-4 py-3">
-                        <p className="font-medium">#{report.id.slice(0, 8)}</p>
+                        <p className="font-medium">
+                          {report.reportCode ?? `#${report.id.slice(0, 8)}`}
+                        </p>
+                        {report.title && (
+                          <p className="mt-1 font-medium">{report.title}</p>
+                        )}
                         <p className="mt-1 line-clamp-2 max-w-xs text-gray-500">
                           {report.description}
                         </p>
@@ -259,9 +358,13 @@ export default function AdminReportsPage() {
                       <td className="px-4 py-3">
                         <p>{report.categoryName}</p>
                         <p className="mt-1 text-gray-500">{report.areaName}</p>
-                        <p className="mt-1 text-xs text-gray-500">
-                          {report.priority ?? 'Chưa xác định'}
-                        </p>
+                        <div className="mt-2">
+                          {report.priority ? (
+                            <PriorityBadge priority={report.priority} />
+                          ) : (
+                            <span className="text-xs text-gray-500">Chưa xác định</span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <p>{report.departmentName ?? 'Chưa có phòng ban'}</p>
@@ -270,35 +373,24 @@ export default function AdminReportsPage() {
                         </p>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium text-blue-800">
-                          {report.status}
-                        </span>
+                        <StatusBadge status={report.status} />
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex flex-col items-start gap-1.5">
-                          {report.hasComplaint && (
-                            <span className="rounded-full bg-purple-100 px-2 py-1 text-xs font-medium text-purple-800">
-                              Khiếu nại
-                            </span>
-                          )}
+                          {report.hasComplaint && <Badge variant="info">Khiếu nại</Badge>}
                           {report.isEscalated && (
-                            <span className="rounded-full bg-orange-100 px-2 py-1 text-xs font-medium text-orange-800">
-                              Escalated
-                            </span>
+                            <Badge variant="warning">Đã cảnh báo</Badge>
                           )}
-                          {report.isOverdue && (
-                            <span className="rounded-full bg-red-100 px-2 py-1 text-xs font-medium text-red-800">
-                              Quá hạn
-                            </span>
-                          )}
+                          {report.isOverdue && <Badge variant="danger">Quá hạn</Badge>}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-right">
                         <Link
                           to={`/admin/reports/${report.id}`}
-                          className="inline-flex h-8 items-center rounded-lg bg-gray-100 px-3 font-medium text-gray-900 hover:bg-gray-200"
+                          className="table-open ml-auto"
+                          aria-label={`Mở báo cáo ${report.reportCode ?? report.id}`}
                         >
-                          Xem chi tiết
+                          <ArrowUpRight aria-hidden="true" size={18} />
                         </Link>
                       </td>
                     </tr>

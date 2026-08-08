@@ -1,12 +1,19 @@
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 
 import { Link, useNavigate, useParams } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
+import { getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
-import { getImageUrl } from '@/features/staff/image'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
+import { getImageUrl } from '@/lib/utils/image'
+import { usePublicCategories } from '@/features/public-catalog/public-catalog.queries'
 
 import AdminReportTimeline from './AdminReportTimeline'
 import ReassignReportPanel from './ReassignReportPanel'
@@ -20,6 +27,7 @@ import {
   useAssignStaff,
   useRejectReport,
   useCloseAdminReport,
+  useClassifyReport,
 } from './admin-reports.queries'
 
 function formatDate(value: string | null | undefined) {
@@ -27,7 +35,7 @@ function formatDate(value: string | null | undefined) {
     return 'Chưa có'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value
@@ -86,6 +94,10 @@ export default function AdminReportDetailPage() {
 
   const [showCloseConfirm, setShowCloseConfirm] = useState(false)
 
+  const [classificationCategoryId, setClassificationCategoryId] = useState('')
+  const [classificationNote, setClassificationNote] = useState('')
+  const [classificationError, setClassificationError] = useState<string | null>(null)
+
   const reportQuery = useAdminReportDetail(reportId)
 
   const departmentsQuery = useActiveDepartments()
@@ -98,6 +110,8 @@ export default function AdminReportDetailPage() {
   const assignStaffMutation = useAssignStaff()
   const rejectMutation = useRejectReport()
   const closeMutation = useCloseAdminReport()
+  const classifyMutation = useClassifyReport()
+  const categoriesQuery = usePublicCategories()
 
   if (reportQuery.isPending) {
     return (
@@ -122,7 +136,9 @@ export default function AdminReportDetailPage() {
   }
 
   const report = reportQuery.data
-  const canClose = report.status === 'Resolved' && report.complaintSubmittedAt === null
+  const canClose =
+    report.allowedActions?.canClose ??
+    (report.status === 'Resolved' && report.complaintSubmittedAt === null)
 
   const canReject =
     report.status !== 'Resolved' &&
@@ -134,7 +150,31 @@ export default function AdminReportDetailPage() {
     report.departmentId !== null &&
     report.assignedStaffId === null
 
-  const canAssign = report.status === 'New' && report.departmentId == null
+  const canAssign =
+    report.allowedActions?.canAssign ??
+    (report.status === 'New' && report.departmentId == null)
+
+  async function handleClassify(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    const nextCategoryId = Number(classificationCategoryId)
+    if (!Number.isInteger(nextCategoryId) || nextCategoryId <= 0) {
+      setClassificationError('Vui lòng chọn danh mục mới.')
+      return
+    }
+    setClassificationError(null)
+    try {
+      await classifyMutation.mutateAsync({
+        reportId,
+        categoryId: nextCategoryId,
+        note: classificationNote,
+      })
+      await reportQuery.refetch()
+      setClassificationCategoryId('')
+      setClassificationNote('')
+    } catch (error) {
+      setClassificationError(getErrorMessage(error, 'Không thể phân loại báo cáo.'))
+    }
+  }
 
   async function handleAssign(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -274,23 +314,33 @@ export default function AdminReportDetailPage() {
     }
   }
   return (
-    <section className="flex flex-col gap-5">
-      <div>
-        <Link
-          to="/admin/reports"
-          className="text-sm font-medium text-blue-600 hover:underline"
-        >
-          ← Quay lại danh sách báo cáo
-        </Link>
+    <section className="report-detail-page admin-detail-page flex flex-col gap-5">
+      <Link className="back-link" to="/admin/reports">
+        <ArrowLeft aria-hidden="true" size={17} /> Quản lý báo cáo
+      </Link>
 
-        <h1 className="mt-2 text-2xl font-semibold text-gray-900 dark:text-gray-100">
-          Chi tiết báo cáo
-        </h1>
-
-        <p className="mt-1 font-mono text-sm text-gray-500">{report.id}</p>
+      <div className="page-heading page-heading--split">
+        <div>
+          <div className="heading-badges">
+            <Badge>{report.reportCode ?? report.id}</Badge>
+            <StatusBadge status={report.status} />
+            {report.requiresManualAssignment && (
+              <Badge variant="warning">Cần điều phối</Badge>
+            )}
+            {report.isEscalated && (
+              <Badge variant="danger">
+                <AlertTriangle aria-hidden="true" size={13} /> Quá hạn
+              </Badge>
+            )}
+          </div>
+          <h1>{report.title ?? 'Chi tiết báo cáo'}</h1>
+          <p>
+            {report.citizenName} · {report.citizenEmail} · {report.areaName}
+          </p>
+        </div>
       </div>
 
-      <Card className="grid gap-5 p-6 md:grid-cols-2">
+      <Card className="panel report-overview grid gap-5 md:grid-cols-2">
         <div>
           <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
             Người báo cáo
@@ -306,7 +356,9 @@ export default function AdminReportDetailPage() {
             Trạng thái
           </p>
 
-          <p className="mt-1">{report.status}</p>
+          <div className="mt-1">
+            <StatusBadge status={report.status} />
+          </div>
         </div>
 
         <div>
@@ -315,6 +367,9 @@ export default function AdminReportDetailPage() {
           </p>
 
           <p className="mt-1">{report.categoryName}</p>
+          {report.otherCategoryText && (
+            <p className="mt-1 text-sm text-amber-700">{report.otherCategoryText}</p>
+          )}
         </div>
 
         <div>
@@ -362,7 +417,13 @@ export default function AdminReportDetailPage() {
             Mức ưu tiên
           </p>
 
-          <p className="mt-1">{report.priority ?? 'Chưa xác định'}</p>
+          <div className="mt-1">
+            {report.priority ? (
+              <PriorityBadge priority={report.priority} />
+            ) : (
+              'Chưa xác định'
+            )}
+          </div>
         </div>
 
         <div>
@@ -379,7 +440,7 @@ export default function AdminReportDetailPage() {
 
         <div>
           <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
-            Escalation
+            Cảnh báo quá hạn
           </p>
 
           <p
@@ -388,8 +449,8 @@ export default function AdminReportDetailPage() {
             }`}
           >
             {report.isEscalated
-              ? `Đã escalation lúc ${formatDate(report.escalatedAt)}`
-              : 'Chưa escalation'}
+              ? `Đã cảnh báo lúc ${formatDate(report.escalatedAt)}`
+              : 'Chưa có cảnh báo'}
           </p>
         </div>
 
@@ -417,7 +478,7 @@ export default function AdminReportDetailPage() {
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className="panel p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Hình ảnh phản ánh
         </h2>
@@ -425,7 +486,7 @@ export default function AdminReportDetailPage() {
         {report.imageUrls.length === 0 ? (
           <p className="mt-4 text-sm text-gray-500">Báo cáo chưa có hình ảnh.</p>
         ) : (
-          <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="report-overview__gallery mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {report.imageUrls.map((imageUrl, index) => (
               <a
                 key={`${imageUrl}-${index}`}
@@ -446,6 +507,67 @@ export default function AdminReportDetailPage() {
         )}
       </Card>
 
+      {report.allowedActions?.canClassify && (
+        <Card className="border-amber-200 p-6">
+          <h2 className="text-lg font-semibold">Phân loại báo cáo “Khác”</h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Chọn danh mục chính thức trước khi phân công đơn vị xử lý.
+          </p>
+          <form className="mt-4 grid max-w-2xl gap-3" onSubmit={handleClassify}>
+            <select
+              value={classificationCategoryId}
+              onChange={(event) => setClassificationCategoryId(event.target.value)}
+              className="h-10 rounded-lg border border-gray-300 bg-white px-3 dark:border-gray-700 dark:bg-gray-900"
+            >
+              <option value="">Chọn danh mục mới</option>
+              {categoriesQuery.data
+                ?.filter((category) => category.id !== report.categoryId)
+                .map((category) => (
+                  <option key={category.id} value={category.id}>
+                    {category.name}
+                  </option>
+                ))}
+            </select>
+            <textarea
+              value={classificationNote}
+              maxLength={1000}
+              rows={3}
+              placeholder="Ghi chú phân loại"
+              onChange={(event) => setClassificationNote(event.target.value)}
+              className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
+            />
+            {classificationError && (
+              <p className="text-sm text-red-600">{classificationError}</p>
+            )}
+            <Button type="submit" loading={classifyMutation.isPending}>
+              Xác nhận phân loại
+            </Button>
+          </form>
+        </Card>
+      )}
+
+      {report.resolution && (
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold">Kết quả xử lý</h2>
+          <p className="mt-2 text-sm whitespace-pre-wrap">
+            {report.resolution.note ?? 'Không có ghi chú.'}
+          </p>
+          {report.resolution.imageUrls.length > 0 && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {report.resolution.imageUrls.map((url, index) => (
+                <a key={url} href={getImageUrl(url)} target="_blank" rel="noreferrer">
+                  <img
+                    src={getImageUrl(url)}
+                    alt={`Ảnh kết quả ${index + 1}`}
+                    className="h-40 w-full rounded-lg object-cover"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
       <AdminReportTimeline reportId={report.id} />
 
       <Card className="p-6">
@@ -461,8 +583,9 @@ export default function AdminReportDetailPage() {
 
         {!canAssign ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Báo cáo này không thể phân công mới. Chỉ báo cáo trạng thái New và chưa có
-            phòng ban mới được phân công.
+            Báo cáo này không thể phân công mới. Chỉ báo cáo ở trạng thái{' '}
+            <strong>{getStatusLabel('New')}</strong> và chưa có phòng ban mới được phân
+            công.
           </div>
         ) : (
           <form className="mt-4 flex max-w-2xl flex-col gap-4" onSubmit={handleAssign}>
@@ -587,8 +710,8 @@ export default function AdminReportDetailPage() {
           </div>
         ) : !canAssignStaff ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Chỉ report ở trạng thái Assigned, đã có phòng ban và chưa có Staff mới được
-            phân công trong UC33.
+            Chỉ báo cáo ở trạng thái <strong>{getStatusLabel('Assigned')}</strong>, đã có
+            phòng ban và chưa có Staff mới được phân công.
           </div>
         ) : (
           <form
@@ -712,9 +835,10 @@ export default function AdminReportDetailPage() {
           </form>
         )}
       </Card>
-      {(report.assignedStaffId !== null ||
-        report.status === 'Accepted' ||
-        report.status === 'InProgress') && (
+      {(report.allowedActions?.canReassign ??
+        (report.assignedStaffId !== null ||
+          report.status === 'Accepted' ||
+          report.status === 'InProgress')) && (
         <ReassignReportPanel
           report={report}
           onSuccess={() => void reportQuery.refetch()}
@@ -731,7 +855,8 @@ export default function AdminReportDetailPage() {
 
         {!canReject ? (
           <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
-            Không thể từ chối báo cáo ở trạng thái <strong>{report.status}</strong>.
+            Không thể từ chối báo cáo ở trạng thái{' '}
+            <strong>{getStatusLabel(report.status)}</strong>.
           </div>
         ) : (
           <div className="mt-4 flex max-w-2xl flex-col gap-4">
@@ -796,8 +921,9 @@ export default function AdminReportDetailPage() {
                 </p>
 
                 <p className="mt-1 text-sm text-red-700">
-                  Báo cáo sẽ chuyển sang trạng thái Rejected và không còn nằm trong hàng
-                  đợi xử lý.
+                  Báo cáo sẽ chuyển sang trạng thái{' '}
+                  <strong>{getStatusLabel('Rejected')}</strong> và không còn nằm trong
+                  hàng đợi xử lý.
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-3">
@@ -844,8 +970,9 @@ export default function AdminReportDetailPage() {
               'Báo cáo có khiếu nại đang chờ. Hãy xử lý khiếu nại ở phần bên dưới.'
             ) : (
               <>
-                Chỉ có thể đóng báo cáo ở trạng thái <strong>Resolved</strong>. Trạng thái
-                hiện tại là <strong>{report.status}</strong>.
+                Chỉ có thể đóng báo cáo ở trạng thái{' '}
+                <strong>{getStatusLabel('Resolved')}</strong>. Trạng thái hiện tại là{' '}
+                <strong>{getStatusLabel(report.status)}</strong>.
               </>
             )}
           </div>
@@ -910,8 +1037,9 @@ export default function AdminReportDetailPage() {
                 </p>
 
                 <p className="mt-1 text-sm text-green-800">
-                  Trạng thái sẽ chuyển từ Resolved sang Closed. Ghi chú xử lý và hình ảnh
-                  minh chứng hiện có sẽ được giữ nguyên.
+                  Trạng thái sẽ chuyển từ <strong>{getStatusLabel('Resolved')}</strong>{' '}
+                  sang <strong>{getStatusLabel('Closed')}</strong>. Ghi chú xử lý và hình
+                  ảnh minh chứng hiện có sẽ được giữ nguyên.
                 </p>
 
                 <div className="mt-4 flex flex-wrap gap-3">
@@ -939,7 +1067,9 @@ export default function AdminReportDetailPage() {
         )}
       </Card>
 
-      <ReopenReportPanel report={report} onSuccess={() => void reportQuery.refetch()} />
+      {(report.allowedActions?.canReviewComplaint ?? true) && (
+        <ReopenReportPanel report={report} onSuccess={() => void reportQuery.refetch()} />
+      )}
     </section>
   )
 }

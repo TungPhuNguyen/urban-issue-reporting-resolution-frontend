@@ -38,3 +38,16 @@ export interface UpdateAreaInput {
   parentAreaId: number | null
   isActive: boolean
 }
+
+export interface AreaBoundary {
+  areaId: number
+  areaName: string
+  hasBoundary: boolean
+  geoJson: string | null
+  updatedAt: string | null
+}
+
+export interface UpdateAreaBoundaryInput {
+  areaId: number
+  geoJson: string | null
+}

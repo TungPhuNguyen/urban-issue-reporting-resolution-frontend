@@ -1,9 +1,11 @@
 import { type FormEvent, useEffect, useState } from 'react'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import {
   useCreateRoutingRule,
@@ -50,7 +52,7 @@ function formatDate(value: string | null): string {
     return 'Chưa có'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value
@@ -288,14 +290,13 @@ export default function RoutingRulesPage() {
   const page = rulesQuery.data
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="resource-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Quản lý Routing Rules
-          </h1>
+          <Badge variant="danger">Điều phối tự động</Badge>
+          <h1>Quy tắc định tuyến</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
+          <p>
             Cấu hình Category, Area, Department và PriorityOrder dùng cho định tuyến tự
             động.
           </p>
@@ -568,10 +569,10 @@ export default function RoutingRulesPage() {
         </Card>
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">ID</th>
 
@@ -591,7 +592,7 @@ export default function RoutingRulesPage() {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((rule) => (
                     <tr key={rule.id} className="align-top">
                       <td className="px-4 py-3 font-medium">#{rule.id}</td>

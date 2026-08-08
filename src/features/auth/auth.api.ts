@@ -7,6 +7,9 @@ import type {
   RefreshTokenResponse,
   RegisterRequest,
   RegisterResponse,
+  UpdateProfileRequest,
+  ChangePasswordRequest,
+  ResetPasswordRequest,
 } from './auth.types'
 
 export const authApi = {
@@ -40,5 +43,30 @@ export const authApi = {
     await http.post('/auth/logout', {
       refreshToken,
     })
+  },
+
+  async updateProfile(payload: UpdateProfileRequest): Promise<CurrentUserResponse> {
+    const response = await http.put<CurrentUserResponse>('/auth/profile', payload)
+    return response.data
+  },
+
+  async changePassword(payload: ChangePasswordRequest): Promise<void> {
+    await http.post('/auth/change-password', payload)
+  },
+
+  async resendVerificationEmail(email: string): Promise<void> {
+    await http.post('/auth/resend-verification-email', { email })
+  },
+
+  async verifyEmail(email: string, token: string): Promise<void> {
+    await http.post('/auth/verify-email', { email, token })
+  },
+
+  async forgotPassword(email: string): Promise<void> {
+    await http.post('/auth/forgot-password', { email })
+  },
+
+  async resetPassword(payload: ResetPasswordRequest): Promise<void> {
+    await http.post('/auth/reset-password', payload)
   },
 }

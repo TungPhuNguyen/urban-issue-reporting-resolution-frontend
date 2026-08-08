@@ -10,10 +10,14 @@ export type NotificationType =
   | 'SLAWarning'
   | 'SLABreached'
   | 'Escalated'
+  | 'ReportReclassified'
+  | 'ReportCancelled'
 
 export interface NotificationItem {
   id: number
   reportId: string | null
+  reportCode: string | null
+  actionUrl: string | null
   type: NotificationType
   title: string
   message: string
@@ -38,4 +42,8 @@ export interface PagedResult<T> {
 
 export interface MarkAllReadResult {
   updatedCount: number
+}
+
+export interface UnreadNotificationCountResult {
+  unreadCount: number
 }

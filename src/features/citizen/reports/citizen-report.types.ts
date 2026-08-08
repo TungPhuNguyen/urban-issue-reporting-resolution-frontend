@@ -1,31 +1,47 @@
-export const REPORT_STATUS = {
-  New: 'New',
-  Assigned: 'Assigned',
-  Accepted: 'Accepted',
-  InProgress: 'InProgress',
-  Resolved: 'Resolved',
-  Closed: 'Closed',
-  Rejected: 'Rejected',
-} as const
+import type {
+  PagedResult,
+  ReportAllowedActions,
+  ReportComplaint,
+  ReportPriority,
+  ReportResolution,
+  ReportStatus,
+} from '@/features/reports/report.types'
 
-export type ReportStatus = (typeof REPORT_STATUS)[keyof typeof REPORT_STATUS]
-
-export const REPORT_PRIORITY = {
-  Low: 'Low',
-  Medium: 'Medium',
-  High: 'High',
-} as const
-
-export type ReportPriority = (typeof REPORT_PRIORITY)[keyof typeof REPORT_PRIORITY]
+export { REPORT_PRIORITY, REPORT_STATUS } from '@/features/reports/report.types'
+export type { ReportPriority, ReportStatus } from '@/features/reports/report.types'
+export type { PagedResult } from '@/features/reports/report.types'
 
 export interface CreateReportRequest {
   categoryId: number
   areaId: number
+  title: string
   description: string
+  otherCategoryText?: string
   addressText?: string
   latitude: number
   longitude: number
+  confirmPossibleDuplicate?: boolean
   images: File[]
+}
+
+export interface UpdateReportRequest {
+  reportId: string
+  categoryId: number
+  areaId: number
+  title: string
+  description: string
+  otherCategoryText?: string
+  addressText?: string
+  latitude: number
+  longitude: number
+  confirmPossibleDuplicate?: boolean
+  rowVersion: string
+}
+
+export interface CancelReportRequest {
+  reportId: string
+  reason: string
+  rowVersion: string
 }
 
 export interface CheckDuplicateReportsRequest {
@@ -36,6 +52,8 @@ export interface CheckDuplicateReportsRequest {
 
 export interface DuplicateReport {
   id: string
+  reportCode: string
+  title: string
   description: string
   latitude: number
   longitude: number
@@ -54,6 +72,9 @@ export interface CheckDuplicateReportsResult {
 
 export interface CreateReportResult {
   id: string
+  reportNumber: number
+  reportCode: string
+  title: string
   status: ReportStatus
   departmentId: number | null
   departmentName: string | null
@@ -62,16 +83,10 @@ export interface CreateReportResult {
   imageUrls: string[]
 }
 
-export interface PagedResult<T> {
-  items: T[]
-  pageNumber: number
-  pageSize: number
-  totalItems: number
-  totalPages: number
-}
-
 export interface CitizenReportSummary {
   id: string
+  reportCode: string
+  title: string
   categoryId: number
   categoryName: string
   areaId: number
@@ -79,6 +94,7 @@ export interface CitizenReportSummary {
   departmentId: number | null
   departmentName: string | null
   description: string
+  otherCategoryText: string | null
   addressText: string | null
   priority: ReportPriority | null
   status: ReportStatus
@@ -89,28 +105,14 @@ export interface CitizenReportSummary {
   updatedAt: string | null
 }
 
-export interface CitizenReportDetail {
-  id: string
-  categoryId: number
-  categoryName: string
-  areaId: number
-  areaName: string
-  departmentId: number | null
-  departmentName: string | null
-  description: string
-  addressText: string | null
+export interface CitizenReportDetail extends CitizenReportSummary {
+  reportNumber: number
   latitude: number
   longitude: number
-  priority: ReportPriority | null
-  status: ReportStatus
-  requiresManualAssignment: boolean
-  upvoteCount: number
   imageUrls: string[]
   appliedSlaHours: number | null
   slaStartedAt: string | null
   dueAt: string | null
-  createdAt: string
-  updatedAt: string | null
   acceptedAt: string | null
   resolvedAt: string | null
   closedAt: string | null
@@ -121,6 +123,11 @@ export interface CitizenReportDetail {
   hasSubmittedComplaint: boolean
   complaintSubmittedAt: string | null
   complaintReason: string | null
+  isUpvotedByCurrentUser: boolean
+  complaint: ReportComplaint | null
+  resolution: ReportResolution | null
+  allowedActions: ReportAllowedActions
+  rowVersion: string
 }
 
 export interface ReportTimelineItem {
@@ -145,6 +152,7 @@ export type CitizenReportsResponse = PagedResult<CitizenReportSummary>
 export interface SubmitComplaintInput {
   reportId: string
   reason: string
+  images: File[]
 }
 
 export interface PostResolutionActionResult {
@@ -156,7 +164,24 @@ export interface PostResolutionActionResult {
   reopenedAt: string | null
   dueAt: string | null
 }
+
 export interface CloseCitizenReportInput {
   reportId: string
   note?: string
+}
+
+export interface ReportUpvoteResult {
+  reportId: string
+  reportCode: string
+  isUpvoted: boolean
+  upvoteCount: number
+}
+
+export interface ReportComment {
+  id: number
+  reportId: string
+  authorName: string
+  content: string
+  isMine: boolean
+  createdAt: string
 }

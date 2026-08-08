@@ -1,11 +1,17 @@
-import { useState, type FormEvent } from 'react'
+import { ArrowLeft, Camera, FileText, MapPin, Send } from 'lucide-react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
-import { AreaHierarchySelect } from '@/features/reports/components/AreaHierarchySelect'
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { CategorySelect } from '@/features/reports/components/CategorySelect'
 import { ImageUploader } from '@/features/reports/components/ImageUploader'
 import { LocationPicker } from '@/features/reports/components/LocationPicker'
 import type { LatLng } from '@/features/reports/report-form.types'
+import {
+  usePublicCategories,
+  useResolvedArea,
+} from '@/features/public-catalog/public-catalog.queries'
 
 import { DuplicateReportsDialog } from './DuplicateReportsDialog'
 import { citizenReportApi } from './citizen-report.api'
@@ -20,7 +26,9 @@ interface AreaSelection {
 }
 
 interface FormErrors {
+  title?: string
   categoryId?: string
+  otherCategoryText?: string
   parentAreaId?: string
   areaId?: string
   description?: string
@@ -46,6 +54,10 @@ export default function CreateReportPage() {
   const navigate = useNavigate()
 
   const [categoryId, setCategoryId] = useState<number | null>(null)
+
+  const [title, setTitle] = useState('')
+
+  const [otherCategoryText, setOtherCategoryText] = useState('')
 
   const [selectedArea, setSelectedArea] = useState<AreaSelection>({
     parentAreaId: null,
@@ -73,6 +85,34 @@ export default function CreateReportPage() {
 
   const submitting = submitStage !== 'idle'
 
+  const categoriesQuery = usePublicCategories()
+  const resolvedAreaQuery = useResolvedArea(
+    location?.latitude ?? null,
+    location?.longitude ?? null,
+    Boolean(location),
+  )
+  const selectedCategory = categoriesQuery.data?.find(
+    (category) => category.id === categoryId,
+  )
+  const isOtherCategory =
+    selectedCategory?.name.trim().toLocaleLowerCase('vi-VN') === 'khác' ||
+    selectedCategory?.name.trim().toLowerCase() === 'other'
+
+  useEffect(() => {
+    if (!resolvedAreaQuery.data) return
+
+    setSelectedArea({
+      parentAreaId: resolvedAreaQuery.data.districtId,
+      areaId: resolvedAreaQuery.data.areaId,
+    })
+    setFormErrors((current) => ({
+      ...current,
+      parentAreaId: undefined,
+      areaId: undefined,
+      location: undefined,
+    }))
+  }, [resolvedAreaQuery.data])
+
   function clearFieldError(field: keyof FormErrors) {
     setFormErrors((current) => ({
       ...current,
@@ -85,16 +125,24 @@ export default function CreateReportPage() {
 
     const trimmedDescription = description.trim()
 
+    const trimmedTitle = title.trim()
+
     const trimmedAddress = addressText.trim()
+
+    if (trimmedTitle.length < 10) {
+      errors.title = 'Tiêu đề phải có ít nhất 10 ký tự.'
+    } else if (trimmedTitle.length > 150) {
+      errors.title = 'Tiêu đề không được vượt quá 150 ký tự.'
+    }
 
     if (categoryId === null) {
       errors.categoryId = 'Vui lòng chọn loại sự cố.'
     }
 
-    if (selectedArea.parentAreaId === null) {
-      errors.parentAreaId = 'Vui lòng chọn Quận/Huyện.'
-    } else if (selectedArea.areaId === null) {
-      errors.areaId = 'Vui lòng chọn Phường/Xã.'
+    if (isOtherCategory && !otherCategoryText.trim()) {
+      errors.otherCategoryText = 'Vui lòng mô tả loại sự cố cụ thể.'
+    } else if (otherCategoryText.trim().length > 250) {
+      errors.otherCategoryText = 'Loại sự cố cụ thể không được vượt quá 250 ký tự.'
     }
 
     if (!trimmedDescription) {
@@ -111,6 +159,13 @@ export default function CreateReportPage() {
 
     if (location === null) {
       errors.location = 'Vui lòng chọn vị trí xảy ra sự cố trên bản đồ.'
+    } else if (resolvedAreaQuery.isError || selectedArea.areaId === null) {
+      errors.location = 'Không xác định được phường/xã từ tọa độ đã chọn.'
+    } else if (
+      resolvedAreaQuery.data &&
+      selectedArea.areaId !== resolvedAreaQuery.data.areaId
+    ) {
+      errors.location = 'Tọa độ không thuộc phường/xã đã xác định.'
     }
 
     if (images.length === 0) {
@@ -158,7 +213,11 @@ export default function CreateReportPage() {
     const payload: CreateReportRequest = {
       categoryId,
       areaId: selectedArea.areaId,
+      title: title.trim(),
       description: description.trim(),
+      otherCategoryText: isOtherCategory
+        ? otherCategoryText.trim() || undefined
+        : undefined,
       addressText: addressText.trim() || undefined,
       latitude: location.latitude,
       longitude: location.longitude,
@@ -198,7 +257,10 @@ export default function CreateReportPage() {
     setSubmitStage('creating')
 
     try {
-      await createReport(pendingReport)
+      await createReport({
+        ...pendingReport,
+        confirmPossibleDuplicate: true,
+      })
     } catch (error) {
       setSubmitError(getErrorMessage(error))
     } finally {
@@ -217,60 +279,104 @@ export default function CreateReportPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+    <div className="create-report-page mx-auto max-w-4xl">
+      <Link className="back-link" to="/citizen/reports">
+        <ArrowLeft aria-hidden="true" size={17} /> Báo cáo của tôi
+      </Link>
+
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Tạo phản ánh mới</h1>
+          <Badge variant="info">Gửi phản ánh</Badge>
+          <h1>Tạo báo cáo mới</h1>
 
-          <p className="mt-1 text-sm text-gray-600">
-            Cung cấp đầy đủ thông tin, vị trí và hình ảnh về sự cố hạ tầng.
-          </p>
+          <p>Cung cấp đầy đủ thông tin, vị trí và hình ảnh về sự cố hạ tầng.</p>
         </div>
-
-        <Link
-          to="/citizen/reports"
-          className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Quay lại
-        </Link>
       </div>
 
       <form
         onSubmit={handleSubmit}
         noValidate
-        className="space-y-6 rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+        className="panel create-report-form space-y-6"
       >
-        {/* Category */}
-        <CategorySelect
-          id="categoryId"
-          value={categoryId}
-          disabled={submitting}
-          error={formErrors.categoryId}
-          onChange={(value) => {
-            setCategoryId(value)
-            clearFieldError('categoryId')
-          }}
-        />
+        <section className="form-section">
+          <header className="form-section__header">
+            <span>
+              <FileText aria-hidden="true" />
+            </span>
+            <div>
+              <h2>Nội dung phản ánh</h2>
+              <p>Mô tả rõ vấn đề để đơn vị xử lý có đủ thông tin.</p>
+            </div>
+          </header>
 
-        {/* Area hierarchy */}
-        <section>
-          <h2 className="mb-3 font-semibold text-gray-900">Khu vực xảy ra sự cố</h2>
+          <div>
+            <label htmlFor="title" className="text-sm font-medium text-gray-700">
+              Tiêu đề phản ánh <span className="ml-1 text-red-600">*</span>
+            </label>
+            <input
+              id="title"
+              value={title}
+              maxLength={150}
+              disabled={submitting}
+              placeholder="Ví dụ: Ổ gà lớn trước cổng trường học"
+              onChange={(event) => {
+                setTitle(event.target.value)
+                clearFieldError('title')
+              }}
+              className={[inputClass, formErrors.title ? 'border-red-500' : ''].join(' ')}
+            />
+            <div className="mt-1 flex justify-between text-xs text-gray-500">
+              <span>Từ 10 đến 150 ký tự</span>
+              <span>{title.length}/150</span>
+            </div>
+            {formErrors.title && (
+              <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>
+            )}
+          </div>
 
-          <AreaHierarchySelect
-            value={selectedArea}
+          {/* Category */}
+          <CategorySelect
+            id="categoryId"
+            value={categoryId}
             disabled={submitting}
-            parentError={formErrors.parentAreaId}
-            areaError={formErrors.areaId}
+            error={formErrors.categoryId}
             onChange={(value) => {
-              setSelectedArea(value)
-
-              setFormErrors((current) => ({
-                ...current,
-                parentAreaId: undefined,
-                areaId: undefined,
-              }))
+              setCategoryId(value)
+              setOtherCategoryText('')
+              clearFieldError('categoryId')
             }}
           />
+
+          {isOtherCategory && (
+            <div>
+              <label
+                htmlFor="otherCategoryText"
+                className="text-sm font-medium text-gray-700"
+              >
+                Loại sự cố cụ thể <span className="ml-1 text-red-600">*</span>
+              </label>
+              <input
+                id="otherCategoryText"
+                value={otherCategoryText}
+                maxLength={250}
+                disabled={submitting}
+                placeholder="Mô tả ngắn loại sự cố cần Admin phân loại"
+                onChange={(event) => {
+                  setOtherCategoryText(event.target.value)
+                  clearFieldError('otherCategoryText')
+                }}
+                className={[
+                  inputClass,
+                  formErrors.otherCategoryText ? 'border-red-500' : '',
+                ].join(' ')}
+              />
+              {formErrors.otherCategoryText && (
+                <p className="mt-1 text-sm text-red-600">
+                  {formErrors.otherCategoryText}
+                </p>
+              )}
+            </div>
+          )}
         </section>
 
         {/* Description */}
@@ -312,6 +418,41 @@ export default function CreateReportPage() {
           )}
         </div>
 
+        {/* Area hierarchy */}
+        <section className="form-section">
+          <header className="form-section__header">
+            <span>
+              <MapPin aria-hidden="true" />
+            </span>
+            <div>
+              <h2>Khu vực xảy ra sự cố</h2>
+              <p>Khu vực được tự động xác định từ tọa độ đã chọn trên bản đồ.</p>
+            </div>
+          </header>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <p className="text-sm font-medium text-gray-700">Thành phố</p>
+
+              <div className="mt-1 flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                {resolvedAreaQuery.isFetching
+                  ? 'Đang xác định...'
+                  : (resolvedAreaQuery.data?.districtName ?? 'Chưa chọn tọa độ')}
+              </div>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-gray-700">Phường/Xã</p>
+
+              <div className="mt-1 flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                {resolvedAreaQuery.isFetching
+                  ? 'Đang xác định...'
+                  : (resolvedAreaQuery.data?.areaName ?? 'Chưa chọn tọa độ')}
+              </div>
+            </div>
+          </div>
+        </section>
+
         {/* Address text */}
         <div>
           <label htmlFor="addressText" className="text-sm font-medium text-gray-700">
@@ -349,7 +490,7 @@ export default function CreateReportPage() {
         </div>
 
         {/* Location */}
-        <section>
+        <section className="form-section">
           <div className="mb-3">
             <h2 className="font-semibold text-gray-900">Chọn vị trí sự cố</h2>
 
@@ -363,14 +504,45 @@ export default function CreateReportPage() {
             disabled={submitting}
             error={formErrors.location}
             onChange={(value) => {
+              setSelectedArea({
+                parentAreaId: null,
+                areaId: null,
+              })
+
               setLocation(value)
               clearFieldError('location')
             }}
           />
+
+          {resolvedAreaQuery.isFetching && (
+            <p className="mt-2 text-sm text-blue-600">
+              Đang xác định phường/xã từ vị trí...
+            </p>
+          )}
+          {location !== null && resolvedAreaQuery.isError && (
+            <p role="alert" className="mt-2 text-sm text-red-600">
+              Không xác định được phường/xã từ tọa độ này. Vui lòng chọn vị trí khác.
+            </p>
+          )}
+          {resolvedAreaQuery.data && (
+            <p className="mt-2 text-sm text-green-700">
+              Đã tự chọn {resolvedAreaQuery.data.areaName},{' '}
+              {resolvedAreaQuery.data.districtName}.
+            </p>
+          )}
         </section>
 
         {/* Images */}
-        <section>
+        <section className="form-section">
+          <header className="form-section__header">
+            <span>
+              <Camera aria-hidden="true" />
+            </span>
+            <div>
+              <h2>Hình ảnh minh chứng</h2>
+              <p>Ảnh rõ ràng giúp việc xác minh và xử lý nhanh hơn.</p>
+            </div>
+          </header>
           <ImageUploader
             value={images}
             maxFiles={5}
@@ -412,17 +584,18 @@ export default function CreateReportPage() {
             Hủy
           </Link>
 
-          <button
+          <Button
             type="submit"
-            disabled={submitting}
-            className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            disabled={submitting || resolvedAreaQuery.isFetching}
+            loading={submitting}
           >
+            <Send aria-hidden="true" size={17} />
             {submitStage === 'checking'
               ? 'Đang kiểm tra trùng...'
               : submitStage === 'creating'
                 ? 'Đang gửi phản ánh...'
                 : 'Gửi phản ánh'}
-          </button>
+          </Button>
         </div>
       </form>
 

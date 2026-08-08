@@ -1,11 +1,21 @@
 import { type FormEvent, useEffect, useState } from 'react'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+import { Modal } from '@/components/ui/Modal'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
-import { useAreas, useCreateArea, useUpdateArea } from './areas.queries'
+import {
+  useAreaBoundary,
+  useAreas,
+  useCreateArea,
+  useDeleteArea,
+  useUpdateArea,
+  useUpdateAreaBoundary,
+} from './areas.queries'
 
 import type { Area, AreaListParams } from './areas.types'
 
@@ -42,7 +52,7 @@ function formatDate(value: string | null): string {
     return 'Chưa có'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value
@@ -73,6 +83,9 @@ export default function AreasPage() {
 
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
 
+  const [boundaryArea, setBoundaryArea] = useState<Area | null>(null)
+  const [geoJson, setGeoJson] = useState('')
+
   const params: AreaListParams = {
     search: search || undefined,
     isActive: statusFilter === 'all' ? undefined : statusFilter === 'active',
@@ -90,6 +103,9 @@ export default function AreasPage() {
 
   const createMutation = useCreateArea()
   const updateMutation = useUpdateArea()
+  const deleteMutation = useDeleteArea()
+  const boundaryQuery = useAreaBoundary(boundaryArea?.id ?? null)
+  const boundaryMutation = useUpdateAreaBoundary()
 
   const isSaving = createMutation.isPending || updateMutation.isPending
 
@@ -98,6 +114,10 @@ export default function AreasPage() {
       setPageNumber(Math.max(1, areasQuery.data.totalPages))
     }
   }, [areasQuery.data, pageNumber])
+
+  useEffect(() => {
+    if (boundaryQuery.data) setGeoJson(boundaryQuery.data.geoJson ?? '')
+  }, [boundaryQuery.data])
 
   function openCreateForm() {
     setEditingArea(null)
@@ -241,13 +261,17 @@ export default function AreasPage() {
     setSuccessMessage(null)
 
     try {
-      await updateMutation.mutateAsync({
-        id: area.id,
-        name: area.name,
-        code: area.code ?? '',
-        parentAreaId: area.parentAreaId,
-        isActive: !area.isActive,
-      })
+      if (area.isActive) {
+        await deleteMutation.mutateAsync(area.id)
+      } else {
+        await updateMutation.mutateAsync({
+          id: area.id,
+          name: area.name,
+          code: area.code ?? '',
+          parentAreaId: area.parentAreaId,
+          isActive: true,
+        })
+      }
 
       setSuccessMessage(
         area.isActive ? 'Đã vô hiệu hóa khu vực.' : 'Đã kích hoạt khu vực.',
@@ -263,16 +287,13 @@ export default function AreasPage() {
     parentAreasQuery.data?.items.filter((area) => area.id !== editingArea?.id) ?? []
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="resource-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Quản lý khu vực
-          </h1>
+          <Badge variant="danger">Dữ liệu địa bàn</Badge>
+          <h1>Quản lý khu vực</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
-            Quản lý cây khu vực và trạng thái hoạt động của từng khu vực.
-          </p>
+          <p>Quản lý cây khu vực và trạng thái hoạt động của từng khu vực.</p>
         </div>
 
         <Button type="button" onClick={openCreateForm}>
@@ -497,10 +518,10 @@ export default function AreasPage() {
         </Card>
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">ID</th>
                     <th className="px-4 py-3">Tên</th>
@@ -512,7 +533,7 @@ export default function AreasPage() {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((area) => (
                     <tr key={area.id} className="align-top">
                       <td className="px-4 py-3 font-medium">#{area.id}</td>
@@ -553,6 +574,18 @@ export default function AreasPage() {
                             onClick={() => openEditForm(area)}
                           >
                             Sửa
+                          </Button>
+
+                          <Button
+                            type="button"
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => {
+                              setBoundaryArea(area)
+                              setGeoJson('')
+                            }}
+                          >
+                            GeoJSON
                           </Button>
 
                           <Button
@@ -603,6 +636,66 @@ export default function AreasPage() {
           </div>
         </>
       )}
+
+      <Modal
+        open={Boolean(boundaryArea)}
+        title={boundaryArea ? `Ranh giới ${boundaryArea.name}` : 'Ranh giới khu vực'}
+        description="Nhập GeoJSON Polygon hoặc MultiPolygon. Để trống để xóa ranh giới."
+        className="max-w-3xl"
+        onClose={() => !boundaryMutation.isPending && setBoundaryArea(null)}
+        footer={
+          <>
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setBoundaryArea(null)}
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              loading={boundaryMutation.isPending}
+              onClick={async () => {
+                if (!boundaryArea) return
+                const normalized = geoJson.trim()
+                if (normalized) {
+                  try {
+                    JSON.parse(normalized)
+                  } catch {
+                    setFormError('GeoJSON không phải JSON hợp lệ.')
+                    return
+                  }
+                }
+                await boundaryMutation.mutateAsync({
+                  areaId: boundaryArea.id,
+                  geoJson: normalized || null,
+                })
+                setBoundaryArea(null)
+                setSuccessMessage(
+                  normalized
+                    ? 'Đã cập nhật ranh giới khu vực.'
+                    : 'Đã xóa ranh giới khu vực.',
+                )
+              }}
+            >
+              Lưu ranh giới
+            </Button>
+          </>
+        }
+      >
+        {boundaryQuery.isPending ? (
+          <Spinner />
+        ) : (
+          <textarea
+            value={geoJson}
+            rows={16}
+            spellCheck={false}
+            placeholder='{"type":"Polygon","coordinates":[...]}'
+            onChange={(event) => setGeoJson(event.target.value)}
+            className="w-full rounded-lg border border-gray-300 p-3 font-mono text-xs dark:border-gray-700 dark:bg-gray-900"
+          />
+        )}
+      </Modal>
     </section>
   )
 }

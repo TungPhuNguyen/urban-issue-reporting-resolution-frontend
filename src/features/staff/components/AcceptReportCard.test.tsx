@@ -29,9 +29,9 @@ describe('AcceptReportCard - UC-19 and UC-20', () => {
 
     const priority = screen.getByLabelText('Mức ưu tiên')
 
-    expect(priority).toContainHTML('<option value="Low">Thấp</option>')
-    expect(priority).toContainHTML('<option value="Medium">Trung bình</option>')
-    expect(priority).toContainHTML('<option value="High">Cao</option>')
+    expect(priority).toContainHTML('<option value="Low">Ưu tiên thấp</option>')
+    expect(priority).toContainHTML('<option value="Medium">Ưu tiên vừa</option>')
+    expect(priority).toContainHTML('<option value="High">Ưu tiên cao</option>')
   })
 
   it('requires a priority and sends the selected priority with a trimmed note', async () => {

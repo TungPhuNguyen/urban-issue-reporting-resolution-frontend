@@ -22,7 +22,7 @@ const timeline: ReportTimelineData = {
       id: 2,
       oldStatus: 'Resolved',
       newStatus: 'Closed',
-      note: 'Hệ thống tự động đóng báo cáo.',
+      note: 'Hệ thống phát hiện báo cáo đã quá hạn SLA.',
       updatedByUserId: null,
       updatedByUserName: null,
       createdAt: '2026-08-06T08:00:00Z',
@@ -44,9 +44,14 @@ describe('ReportTimeline', () => {
       />,
     )
 
-    expect(screen.getByText('Người cập nhật: Nguyễn Văn An')).toBeInTheDocument()
+    expect(screen.getByText('Thực hiện bởi: Nguyễn Văn An')).toBeInTheDocument()
 
-    expect(screen.getByText('Người cập nhật: Hệ thống')).toBeInTheDocument()
+    expect(screen.getByText('Thực hiện bởi: Hệ thống')).toBeInTheDocument()
+
+    expect(
+      screen.getByText('Hệ thống phát hiện báo cáo đã quá thời hạn xử lý.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/SLA/i)).not.toBeInTheDocument()
 
     expect(screen.getByAltText('Ảnh tiến trình 1')).toHaveAttribute(
       'src',

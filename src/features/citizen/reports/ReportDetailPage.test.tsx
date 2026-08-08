@@ -18,6 +18,18 @@ vi.mock('./citizen-report.queries', () => ({
   useCitizenReportTimeline: useCitizenReportTimelineMock,
   useCloseCitizenReport: useCloseCitizenReportMock,
   useSubmitComplaint: useSubmitCitizenComplaintMock,
+  useReportComments: () => ({
+    data: { items: [] },
+    isPending: false,
+    isError: false,
+    refetch: vi.fn(),
+  }),
+  useAddReportComment: () => ({ mutateAsync: vi.fn(), isPending: false }),
+  useDeleteReportComment: () => ({
+    mutateAsync: vi.fn(),
+    isPending: false,
+    variables: undefined,
+  }),
 }))
 
 const report = {

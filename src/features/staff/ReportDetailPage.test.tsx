@@ -2,6 +2,8 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { parseApiDateTime } from '@/lib/utils/date-time'
+
 import StaffReportDetailPage from './ReportDetailPage'
 
 const useStaffReportMock = vi.hoisted(() => vi.fn())
@@ -47,8 +49,8 @@ const report = {
   upvoteCount: 8,
   imageUrls: ['/uploads/reports/report.jpg'],
   appliedSlaHours: 24,
-  slaStartedAt: '2026-07-29T08:00:00Z',
-  dueAt: '2020-07-30T08:00:00Z',
+  slaStartedAt: '2026-07-29T08:00:00',
+  dueAt: '2020-07-30T08:00:00',
   isEscalated: true,
   escalatedAt: '2026-07-30T09:00:00Z',
   hasSubmittedComplaint: true,
@@ -90,7 +92,7 @@ describe('StaffReportDetailPage - UC-18, UC-21 and UC-22', () => {
     expect(screen.getByText(report.departmentName)).toBeInTheDocument()
     expect(screen.getByText(report.assignedStaffName)).toBeInTheDocument()
     expect(screen.getByText(report.description)).toBeInTheDocument()
-    expect(screen.getByText('Cao')).toBeInTheDocument()
+    expect(screen.getByText('Ưu tiên cao')).toBeInTheDocument()
     expect(screen.getByText('Đang xử lý')).toBeInTheDocument()
     expect(screen.getByText('8 lượt')).toBeInTheDocument()
     expect(screen.getByText('10.7769, 106.7009')).toBeInTheDocument()
@@ -109,7 +111,7 @@ describe('StaffReportDetailPage - UC-18, UC-21 and UC-22', () => {
     renderPage()
 
     expect(screen.getByText('Quá hạn SLA')).toBeInTheDocument()
-    expect(screen.getByText('Báo cáo đã được escalated')).toBeInTheDocument()
+    expect(screen.getByText('Báo cáo đã được cảnh báo quá hạn')).toBeInTheDocument()
     expect(screen.getByText('Công dân yêu cầu xử lý thêm')).toBeInTheDocument()
     expect(screen.getByText(report.complaintReason)).toBeInTheDocument()
     expect(screen.getByText('24 giờ')).toBeInTheDocument()
@@ -118,11 +120,11 @@ describe('StaffReportDetailPage - UC-18, UC-21 and UC-22', () => {
   it('shows the SLA start and immutable due time returned after acceptance', () => {
     renderPage()
 
-    expect(screen.getByText('Bắt đầu SLA').parentElement).toHaveTextContent(
-      new Date(report.slaStartedAt).toLocaleString('vi-VN'),
+    expect(screen.getByText('Bắt đầu xử lý').parentElement).toHaveTextContent(
+      parseApiDateTime(report.slaStartedAt).toLocaleString('vi-VN'),
     )
     expect(screen.getByText('Hạn xử lý').parentElement).toHaveTextContent(
-      new Date(report.dueAt).toLocaleString('vi-VN'),
+      parseApiDateTime(report.dueAt).toLocaleString('vi-VN'),
     )
   })
 

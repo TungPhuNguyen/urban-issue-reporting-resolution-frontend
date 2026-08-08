@@ -13,6 +13,16 @@ describe('resolveImageUrl', () => {
     ).toBe('https://urban-issue.example/uploads/reports/report.jpg')
   })
 
+  it('normalizes a relative image path', () => {
+    expect(
+      resolveImageUrl(
+        'uploads/reports/report.jpg',
+        'https://api.urban-issue.example/api/v1',
+        'https://urban-issue.example',
+      ),
+    ).toBe('https://api.urban-issue.example/uploads/reports/report.jpg')
+  })
+
   it('keeps an absolute image URL unchanged', () => {
     expect(
       resolveImageUrl(

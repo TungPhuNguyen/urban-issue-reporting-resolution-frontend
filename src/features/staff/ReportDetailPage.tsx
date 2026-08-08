@@ -1,36 +1,26 @@
+import { AlertTriangle, ArrowLeft } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
-import { getImageUrl } from './image'
+import { parseApiDateTime } from '@/lib/utils/date-time'
+import { getImageUrl } from '@/lib/utils/image'
 
 import { AcceptReportCard } from './components/AcceptReportCard'
 import { ProgressUpdateCard } from './components/ProgressUpdateCard'
 import { ReportTimeline } from './components/ReportTimeline'
 import { StartProcessingReportCard } from './components/StartProcessingReportCard'
 import { useStaffReport } from './staff.queries'
-import type { ReportPriority, ReportStatus } from './staff.types'
+import type { ReportStatus } from './staff.types'
+
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 
 interface DetailItemProps {
   label: string
   value: ReactNode
-}
-
-const statusLabels: Record<ReportStatus, string> = {
-  New: 'Mới',
-  Assigned: 'Đã phân công',
-  Accepted: 'Đã tiếp nhận',
-  InProgress: 'Đang xử lý',
-  Resolved: 'Đã giải quyết',
-  Closed: 'Đã đóng',
-  Rejected: 'Đã từ chối',
-}
-
-const priorityLabels: Record<ReportPriority, string> = {
-  Low: 'Thấp',
-  Medium: 'Trung bình',
-  High: 'Cao',
 }
 
 function DetailItem({ label, value }: DetailItemProps) {
@@ -49,7 +39,7 @@ function formatDateTime(value: string | null | undefined) {
     return 'Chưa cập nhật'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return 'Không xác định'
@@ -63,7 +53,7 @@ function getSlaState(status: ReportStatus, dueAt: string | null) {
     return 'not-started'
   }
 
-  const dueDate = new Date(dueAt)
+  const dueDate = parseApiDateTime(dueAt)
   const isActive = status === 'Accepted' || status === 'InProgress'
 
   if (isActive && !Number.isNaN(dueDate.getTime()) && dueDate.getTime() < Date.now()) {
@@ -124,25 +114,30 @@ export default function StaffReportDetailPage() {
   const slaState = getSlaState(report.status, report.dueAt)
 
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-6">
-      <div>
-        <Link
-          to="/staff/reports"
-          className="text-sm font-medium text-blue-600 hover:underline"
-        >
-          ← Quay lại danh sách
-        </Link>
+    <section className="report-detail-page staff-detail-page">
+      <Link className="back-link" to="/staff/reports">
+        <ArrowLeft aria-hidden="true" size={17} /> Danh sách xử lý
+      </Link>
 
-        <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-gray-100">
-          Chi tiết báo cáo
-        </h1>
-
-        <p className="mt-1 text-sm break-all text-gray-500 dark:text-gray-400">
-          {report.id}
-        </p>
+      <div className="page-heading page-heading--split">
+        <div>
+          <div className="heading-badges">
+            <Badge>{report.reportCode ?? report.id}</Badge>
+            <StatusBadge status={report.status} />
+            {report.isEscalated && (
+              <Badge variant="danger">
+                <AlertTriangle aria-hidden="true" size={13} /> Đã nâng cấp
+              </Badge>
+            )}
+          </div>
+          <h1>{report.title ?? 'Chi tiết báo cáo'}</h1>
+          <p>
+            Người báo: {report.citizenName} · {report.areaName}
+          </p>
+        </div>
       </div>
 
-      <Card className="p-6">
+      <Card className="panel report-overview">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -154,9 +149,7 @@ export default function StaffReportDetailPage() {
             </p>
           </div>
 
-          <span className="w-fit rounded-full bg-blue-100 px-3 py-1 text-sm font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">
-            {statusLabels[report.status]}
-          </span>
+          <Badge className="badge--violet">Hồ sơ hiện trường</Badge>
         </div>
 
         <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
@@ -170,6 +163,9 @@ export default function StaffReportDetailPage() {
         <div className="mt-6 grid gap-5 border-t border-gray-200 pt-5 sm:grid-cols-2 lg:grid-cols-3 dark:border-gray-800">
           <DetailItem label="Người báo cáo" value={report.citizenName} />
           <DetailItem label="Danh mục" value={report.categoryName} />
+          {report.otherCategoryText && (
+            <DetailItem label="Loại sự cố cụ thể" value={report.otherCategoryText} />
+          )}
           <DetailItem label="Khu vực" value={report.areaName} />
           <DetailItem label="Địa chỉ" value={report.addressText ?? 'Chưa có địa chỉ'} />
           <DetailItem
@@ -182,7 +178,13 @@ export default function StaffReportDetailPage() {
           />
           <DetailItem
             label="Mức ưu tiên"
-            value={report.priority ? priorityLabels[report.priority] : 'Chưa phân loại'}
+            value={
+              report.priority ? (
+                <PriorityBadge priority={report.priority} />
+              ) : (
+                'Chưa phân loại'
+              )
+            }
           />
           <DetailItem label="Lượt ủng hộ" value={`${report.upvoteCount} lượt`} />
           <DetailItem label="Tọa độ" value={`${report.latitude}, ${report.longitude}`} />
@@ -205,7 +207,7 @@ export default function StaffReportDetailPage() {
               Báo cáo chưa có hình ảnh.
             </p>
           ) : (
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="report-overview__gallery mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {report.imageUrls.map((imageUrl, index) => {
                 const resolvedUrl = getImageUrl(imageUrl)
 
@@ -231,7 +233,7 @@ export default function StaffReportDetailPage() {
         </div>
       </Card>
 
-      <Card className="p-6">
+      <Card className="panel sla-card p-6">
         <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           Thông tin SLA
         </h2>
@@ -262,14 +264,14 @@ export default function StaffReportDetailPage() {
 
         <div className="mt-5 grid gap-5 sm:grid-cols-3">
           <DetailItem
-            label="Số giờ SLA"
+            label="Số giờ xử lý"
             value={
               report.appliedSlaHours === null
                 ? 'Chưa áp dụng'
                 : `${report.appliedSlaHours} giờ`
             }
           />
-          <DetailItem label="Bắt đầu SLA" value={formatDateTime(report.slaStartedAt)} />
+          <DetailItem label="Bắt đầu xử lý" value={formatDateTime(report.slaStartedAt)} />
           <DetailItem label="Hạn xử lý" value={formatDateTime(report.dueAt)} />
         </div>
       </Card>
@@ -277,7 +279,7 @@ export default function StaffReportDetailPage() {
       {report.isEscalated && (
         <Card className="border-red-200 bg-red-50 p-6 dark:border-red-900 dark:bg-red-950/40">
           <h2 className="font-semibold text-red-800 dark:text-red-300">
-            Báo cáo đã được escalated
+            Báo cáo đã được cảnh báo quá hạn
           </h2>
 
           <p className="mt-2 text-sm text-red-700 dark:text-red-400">
@@ -302,9 +304,37 @@ export default function StaffReportDetailPage() {
         </Card>
       )}
 
-      {report.status === 'Assigned' && <AcceptReportCard reportId={reportId} />}
-      {report.status === 'Accepted' && <StartProcessingReportCard reportId={reportId} />}
-      {report.status === 'InProgress' && <ProgressUpdateCard reportId={reportId} />}
+      {report.resolution && (
+        <Card className="p-6">
+          <h2 className="text-lg font-semibold">Kết quả xử lý gần nhất</h2>
+          <p className="mt-2 text-sm whitespace-pre-wrap">
+            {report.resolution.note ?? 'Không có ghi chú.'}
+          </p>
+          {report.resolution.imageUrls.length > 0 && (
+            <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              {report.resolution.imageUrls.map((url, index) => (
+                <a key={url} href={getImageUrl(url)} target="_blank" rel="noreferrer">
+                  <img
+                    src={getImageUrl(url)}
+                    alt={`Ảnh kết quả ${index + 1}`}
+                    className="h-40 w-full rounded-lg object-cover"
+                  />
+                </a>
+              ))}
+            </div>
+          )}
+        </Card>
+      )}
+
+      {(report.allowedActions?.canAccept ?? report.status === 'Assigned') && (
+        <AcceptReportCard reportId={reportId} />
+      )}
+      {(report.allowedActions?.canStartProcessing ?? report.status === 'Accepted') && (
+        <StartProcessingReportCard reportId={reportId} />
+      )}
+      {(report.allowedActions?.canAddProgress ?? report.status === 'InProgress') && (
+        <ProgressUpdateCard reportId={reportId} />
+      )}
       <ReportTimeline reportId={reportId} />
     </section>
   )

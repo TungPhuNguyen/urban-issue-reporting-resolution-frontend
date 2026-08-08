@@ -87,6 +87,18 @@ describe('StaffReportsPage - UC-17', () => {
     })
   })
 
+  it('uses the shared Vietnamese status and priority labels in the filters', () => {
+    render(
+      <MemoryRouter>
+        <StaffReportsPage />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByRole('option', { name: 'Đã xử lý' })).toHaveValue('Resolved')
+    expect(screen.getByRole('option', { name: 'Từ chối' })).toHaveValue('Rejected')
+    expect(screen.getByRole('option', { name: 'Ưu tiên vừa' })).toHaveValue('Medium')
+  })
+
   it('searches after the debounce delay and resets to the first page', () => {
     vi.useFakeTimers()
 

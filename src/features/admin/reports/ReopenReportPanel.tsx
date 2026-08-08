@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { getStatusLabel } from '@/components/ui/report-labels'
 import { ApiError } from '@/lib/api/http'
 
 import { useDismissComplaint, useReopenReport } from './admin-reports.queries'
@@ -32,7 +33,8 @@ export default function ReopenReportPanel({ report, onSuccess }: Props) {
   const dismissMutation = useDismissComplaint()
   const isPending = reopenMutation.isPending || dismissMutation.isPending
   const hasPendingComplaint =
-    report.status === 'Resolved' && report.complaintSubmittedAt !== null
+    report.allowedActions?.canReviewComplaint ??
+    (report.status === 'Resolved' && report.complaintSubmittedAt !== null)
 
   async function submit() {
     if (!decision) {
@@ -147,8 +149,8 @@ export default function ReopenReportPanel({ report, onSuccess }: Props) {
               </p>
               <p className="mt-1 text-sm">
                 {decision === 'reopen'
-                  ? 'Báo cáo sẽ trở về InProgress và tiếp tục xử lý.'
-                  : 'Khiếu nại sẽ được xử lý và báo cáo chuyển sang Closed.'}
+                  ? `Báo cáo sẽ trở về trạng thái ${getStatusLabel('InProgress')} và tiếp tục xử lý.`
+                  : `Khiếu nại sẽ được xử lý và báo cáo chuyển sang trạng thái ${getStatusLabel('Closed')}.`}
               </p>
               <div className="mt-4 flex gap-2">
                 <Button

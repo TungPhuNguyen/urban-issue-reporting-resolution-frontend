@@ -1,43 +1,30 @@
+import { FilePlus2, SearchX } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
+import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Input } from '@/components/ui/Input'
 import { Spinner } from '@/components/ui/Spinner'
+import { getStatusLabel } from '@/components/ui/report-labels'
 import { useDebounce } from '@/hooks/useDebounce'
 
-import { ReportCard } from './reports/ReportCard'
+import { ReportCard } from '@/components/reports/ReportCard'
 import { useCitizenReports } from './reports/citizen-report.queries'
 import { REPORT_STATUS, type ReportStatus } from './reports/citizen-report.types'
 
 const PAGE_SIZE = 10
 
-const statusOptions: {
-  value: ReportStatus
-  label: string
-}[] = [
-  { value: REPORT_STATUS.New, label: 'Mới' },
-  {
-    value: REPORT_STATUS.Assigned,
-    label: 'Đã phân công',
-  },
-  {
-    value: REPORT_STATUS.Accepted,
-    label: 'Đã tiếp nhận',
-  },
-  {
-    value: REPORT_STATUS.InProgress,
-    label: 'Đang xử lý',
-  },
-  {
-    value: REPORT_STATUS.Resolved,
-    label: 'Đã giải quyết',
-  },
-  { value: REPORT_STATUS.Closed, label: 'Đã đóng' },
-  {
-    value: REPORT_STATUS.Rejected,
-    label: 'Đã từ chối',
-  },
+const statusOptions: ReportStatus[] = [
+  REPORT_STATUS.New,
+  REPORT_STATUS.Assigned,
+  REPORT_STATUS.Accepted,
+  REPORT_STATUS.InProgress,
+  REPORT_STATUS.Resolved,
+  REPORT_STATUS.Closed,
+  REPORT_STATUS.Rejected,
+  REPORT_STATUS.Cancelled,
 ]
 
 export default function CitizenReportsPage() {
@@ -65,27 +52,24 @@ export default function CitizenReportsPage() {
   }
 
   return (
-    <section className="mx-auto flex max-w-5xl flex-col gap-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <section className="reports-page citizen-reports-page">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            Báo cáo của tôi
-          </h1>
+          <Badge variant="info">Quản lý phản ánh</Badge>
+          <h1>Báo cáo của tôi</h1>
 
-          <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-            Theo dõi các phản ánh hạ tầng mà bạn đã gửi.
-          </p>
+          <p>Theo dõi trạng thái, tiến trình và phản hồi của từng sự cố bạn đã gửi.</p>
         </div>
 
-        <Link
-          to="/citizen/reports/create"
-          className="rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700"
-        >
-          Tạo phản ánh mới
+        <Link to="/citizen/reports/create">
+          <Button>
+            <FilePlus2 aria-hidden="true" size={18} />
+            Tạo báo cáo
+          </Button>
         </Link>
       </div>
 
-      <Card className="p-4">
+      <Card className="panel filter-bar filter-bar--wrap">
         <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_240px_auto] md:items-end">
           <Input
             label="Tìm kiếm"
@@ -119,8 +103,8 @@ export default function CitizenReportsPage() {
               <option value="">Tất cả trạng thái</option>
 
               {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
+                <option key={option} value={option}>
+                  {getStatusLabel(option)}
                 </option>
               ))}
             </select>
@@ -167,7 +151,10 @@ export default function CitizenReportsPage() {
       )}
 
       {!isLoading && !isError && reports.length === 0 && (
-        <Card className="border-dashed p-8 text-center">
+        <Card className="empty-state border-dashed p-8 text-center">
+          <span className="empty-state__icon">
+            <SearchX aria-hidden="true" />
+          </span>
           <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
             {hasActiveFilters
               ? 'Không tìm thấy phản ánh phù hợp'
@@ -201,7 +188,7 @@ export default function CitizenReportsPage() {
 
       {!isLoading && !isError && reports.length > 0 && (
         <>
-          <div className="flex items-center justify-between">
+          <div className="reports-result-summary">
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Tổng cộng:{' '}
               <span className="font-semibold">{data?.totalItems ?? reports.length}</span>{' '}
@@ -213,9 +200,14 @@ export default function CitizenReportsPage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-4">
+          <div className="report-grid report-grid--3">
             {reports.map((report) => (
-              <ReportCard key={report.id} report={report} />
+              <ReportCard
+                key={report.id}
+                report={report}
+                to={`/citizen/reports/${report.id}`}
+                showReportId
+              />
             ))}
           </div>
 

@@ -1,11 +1,18 @@
+import { AlertTriangle, Siren, UserRoundX } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 import { Button } from '@/components/ui/Button'
+import { Badge } from '@/components/ui/Badge'
 import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
+import { PriorityBadge } from '@/components/ui/PriorityBadge'
+import { getPriorityLabel, getStatusLabel } from '@/components/ui/report-labels'
 import { Spinner } from '@/components/ui/Spinner'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { useAuthStore } from '@/features/auth/auth.store'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import { useOverdueReports } from './overdue-reports.queries'
 import type {
@@ -30,7 +37,7 @@ function formatDateTime(value: string | null) {
     return 'Chưa có'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   return Number.isNaN(date.getTime())
     ? value
@@ -58,16 +65,6 @@ function formatOverdueDuration(milliseconds: number) {
   }
 
   return parts.join(' ')
-}
-
-function priorityLabel(priority: ReportPriority) {
-  const labels: Record<ReportPriority, string> = {
-    Low: 'Thấp',
-    Medium: 'Trung bình',
-    High: 'Cao',
-  }
-
-  return labels[priority]
 }
 
 export default function OverdueReportsPage() {
@@ -112,15 +109,12 @@ export default function OverdueReportsPage() {
   }
 
   return (
-    <section className="flex flex-col gap-5">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="reports-page staff-overdue-page flex flex-col gap-5">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Báo cáo quá hạn SLA
-          </h1>
-          <p className="mt-1 text-sm text-gray-500">
-            Dữ liệu được lọc và phân trang trực tiếp từ server.
-          </p>
+          <Badge variant="danger">Ưu tiên xử lý</Badge>
+          <h1>Báo cáo quá hạn SLA</h1>
+          <p>Theo dõi các công việc đã vượt thời hạn và cần hành động ngay.</p>
         </div>
         <Button
           type="button"
@@ -132,26 +126,44 @@ export default function OverdueReportsPage() {
         </Button>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-3">
-        <Card className="p-4">
-          <p className="text-sm text-gray-500">Tổng báo cáo quá hạn</p>
-          <p className="mt-1 text-2xl font-semibold">{page?.totalItems ?? 0}</p>
+      <div className="metric-grid overdue-metric-grid">
+        <Card className="metric-card metric-card--alert">
+          <span className="metric-card__icon red">
+            <AlertTriangle aria-hidden="true" />
+          </span>
+          <div>
+            <small>Tổng báo cáo quá hạn</small>
+            <strong>{page?.totalItems ?? 0}</strong>
+            <span>Cần được ưu tiên xử lý</span>
+          </div>
         </Card>
-        <Card className="p-4">
-          <p className="text-sm text-gray-500">Escalated trong trang</p>
-          <p className="mt-1 text-2xl font-semibold text-orange-600">
-            {page?.items.filter((report) => report.isEscalated).length ?? 0}
-          </p>
+        <Card className="metric-card">
+          <span className="metric-card__icon amber">
+            <Siren aria-hidden="true" />
+          </span>
+          <div>
+            <small>Đã cảnh báo trong trang</small>
+            <strong>
+              {page?.items.filter((report) => report.isEscalated).length ?? 0}
+            </strong>
+            <span>Đã gửi cảnh báo nâng cấp</span>
+          </div>
         </Card>
-        <Card className="p-4">
-          <p className="text-sm text-gray-500">Chưa có Staff trong trang</p>
-          <p className="mt-1 text-2xl font-semibold">
-            {page?.items.filter((report) => !report.assignedStaffId).length ?? 0}
-          </p>
+        <Card className="metric-card">
+          <span className="metric-card__icon violet">
+            <UserRoundX aria-hidden="true" />
+          </span>
+          <div>
+            <small>Chưa có Staff trong trang</small>
+            <strong>
+              {page?.items.filter((report) => !report.assignedStaffId).length ?? 0}
+            </strong>
+            <span>Cần phân công người phụ trách</span>
+          </div>
         </Card>
       </div>
 
-      <Card className="p-5">
+      <Card className="panel filter-bar filter-bar--wrap">
         <form
           className="grid gap-3 md:grid-cols-2 xl:grid-cols-5"
           onSubmit={submitSearch}
@@ -177,7 +189,7 @@ export default function OverdueReportsPage() {
             <option value="all">Tất cả mức ưu tiên</option>
             {PRIORITIES.map((priority) => (
               <option key={priority} value={priority}>
-                {priorityLabel(priority)}
+                {getPriorityLabel(priority)}
               </option>
             ))}
           </select>
@@ -193,8 +205,8 @@ export default function OverdueReportsPage() {
             className="h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm dark:border-gray-700 dark:bg-gray-900"
           >
             <option value="all">Tất cả trạng thái</option>
-            <option value="Accepted">Accepted</option>
-            <option value="InProgress">InProgress</option>
+            <option value="Accepted">{getStatusLabel('Accepted')}</option>
+            <option value="InProgress">{getStatusLabel('InProgress')}</option>
           </select>
           <label className="flex h-10 items-center gap-2 rounded-lg border border-gray-300 px-3 text-sm dark:border-gray-700">
             <input
@@ -208,7 +220,7 @@ export default function OverdueReportsPage() {
                 setPageNumber(1)
               }}
             />
-            Chỉ báo cáo escalated
+            Chỉ báo cáo đã cảnh báo
           </label>
           <div className="flex gap-2">
             <Button type="submit">Tìm kiếm</Button>
@@ -244,18 +256,16 @@ export default function OverdueReportsPage() {
           </Button>
         </Card>
       ) : !page || page.items.length === 0 ? (
-        <Card className="p-10 text-center">
-          <h2 className="text-lg font-semibold">Không có báo cáo quá hạn phù hợp</h2>
-          <p className="mt-2 text-sm text-gray-500">
-            Hãy thay đổi bộ lọc hoặc làm mới dữ liệu.
-          </p>
-        </Card>
+        <EmptyState
+          title="Không có báo cáo quá hạn phù hợp"
+          description="Hãy thay đổi bộ lọc hoặc làm mới dữ liệu."
+        />
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">Báo cáo</th>
                     <th className="px-4 py-3">Phân loại</th>
@@ -266,9 +276,9 @@ export default function OverdueReportsPage() {
                     <th className="px-4 py-3 text-right">Thao tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((report) => (
-                    <tr key={report.id} className="align-top">
+                    <tr key={report.id} className="row--danger align-top">
                       <td className="px-4 py-3">
                         <p className="font-medium">#{report.id.slice(0, 8)}</p>
                         <p className="mt-1 line-clamp-2 max-w-xs text-gray-500">
@@ -278,9 +288,9 @@ export default function OverdueReportsPage() {
                       <td className="px-4 py-3">
                         <p className="font-medium">{report.categoryName}</p>
                         <p className="mt-1 text-gray-500">{report.areaName}</p>
-                        <p className="mt-1 text-xs text-gray-500">
-                          {priorityLabel(report.priority)}
-                        </p>
+                        <div className="mt-2">
+                          <PriorityBadge priority={report.priority} />
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <p>{report.departmentName ?? 'Theo phòng ban Staff'}</p>
@@ -289,13 +299,11 @@ export default function OverdueReportsPage() {
                         </p>
                       </td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex rounded-full bg-orange-100 px-2.5 py-1 text-xs font-medium text-orange-800">
-                          {report.status}
-                        </span>
+                        <StatusBadge status={report.status} />
                         {report.isEscalated && (
-                          <span className="mt-1 block text-xs font-medium text-red-600">
-                            Escalated
-                          </span>
+                          <div className="mt-2">
+                            <Badge variant="warning">Đã cảnh báo</Badge>
+                          </div>
                         )}
                       </td>
                       <td className="px-4 py-3 whitespace-nowrap text-gray-500">

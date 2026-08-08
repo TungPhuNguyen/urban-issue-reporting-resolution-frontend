@@ -1,19 +1,22 @@
 import { type FormEvent, useState } from 'react'
+import { AlertCircle, Eye, EyeOff, LockKeyhole, LogIn, Mail } from 'lucide-react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 
+import { Button } from '@/components/ui/Button'
+
+import { AuthLayout } from './AuthLayout'
 import { useAuthStore } from './auth.store'
 
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-
   const login = useAuthStore((state) => state.login)
   const status = useAuthStore((state) => state.status)
-
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [formError, setFormError] = useState('')
-
+  const remember = false
   const isLoading = status === 'loading'
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -31,11 +34,7 @@ export function LoginPage() {
     }
 
     try {
-      const user = await login({
-        email: email.trim(),
-        password,
-      })
-
+      const user = await login({ email: email.trim(), password }, remember)
       const redirectTo = (location.state as { from?: string } | null)?.from
 
       if (redirectTo) {
@@ -43,78 +42,90 @@ export function LoginPage() {
         return
       }
 
-      switch (user.role) {
-        case 'Admin':
-          navigate('/admin/dashboard', { replace: true })
-          break
+      const roleHome = {
+        Admin: '/admin/dashboard',
+        Staff: '/staff/dashboard',
+        Citizen: '/citizen/dashboard',
+      } as const
 
-        case 'Staff':
-          navigate('/staff/reports', { replace: true })
-          break
-
-        case 'Citizen':
-          navigate('/citizen/reports', { replace: true })
-          break
-      }
+      navigate(roleHome[user.role], { replace: true })
     } catch {
       setFormError('Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.')
     }
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-      <div className="w-full max-w-md rounded-lg bg-white p-6 shadow">
-        <h1 className="mb-6 text-center text-2xl font-bold">Đăng nhập</h1>
+    <AuthLayout
+      title="Chào mừng trở lại"
+      subtitle="Đăng nhập để tiếp tục theo dõi và xử lý các báo cáo đô thị."
+    >
+      {formError && (
+        <div className="auth-alert auth-alert--error" role="alert">
+          <AlertCircle aria-hidden="true" size={18} />
+          <span>{formError}</span>
+        </div>
+      )}
 
-        {formError && (
-          <div className="mb-4 rounded bg-red-100 p-3 text-sm text-red-700">
-            {formError}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Email</label>
-
+      <form onSubmit={handleSubmit} className="auth-form">
+        <label className="field">
+          <span className="field__label">Email</span>
+          <span className="input-with-icon">
+            <Mail aria-hidden="true" size={18} />
             <input
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
               disabled={isLoading}
-              className="w-full rounded border px-3 py-2"
-              placeholder="Nhập email"
+              autoComplete="email"
+              placeholder="ban@example.com"
             />
-          </div>
+          </span>
+        </label>
 
-          <div>
-            <label className="mb-1 block text-sm font-medium">Mật khẩu</label>
-
+        <label className="field">
+          <span className="field__label">Mật khẩu</span>
+          <span className="input-with-icon">
+            <LockKeyhole aria-hidden="true" size={18} />
             <input
-              type="password"
+              type={showPassword ? 'text' : 'password'}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
               disabled={isLoading}
-              className="w-full rounded border px-3 py-2"
+              autoComplete="current-password"
               placeholder="Nhập mật khẩu"
             />
-          </div>
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </span>
+        </label>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full rounded bg-blue-600 px-4 py-2 text-white disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            {isLoading ? 'Đang đăng nhập...' : 'Đăng nhập'}
-          </button>
-        </form>
-
-        <p className="mt-4 text-center text-sm">
-          Chưa có tài khoản?{' '}
-          <Link to="/register" className="text-blue-600 hover:underline">
-            Đăng ký
+        <div className="auth-form__row">
+          {/* <label className="check-row">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
+            />
+            <span>Ghi nhớ đăng nhập</span>
+          </label> */}
+          <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+            Quên mật khẩu?
           </Link>
-        </p>
-      </div>
-    </div>
+        </div>
+
+        <Button type="submit" size="lg" loading={isLoading} className="button--full">
+          <LogIn aria-hidden="true" size={18} /> Đăng nhập
+        </Button>
+      </form>
+
+      <p className="auth-switch">
+        Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
+      </p>
+    </AuthLayout>
   )
 }

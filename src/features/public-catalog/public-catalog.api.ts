@@ -1,6 +1,6 @@
 import { http } from '@/lib/api/http'
 
-import type { Area, Category } from './public-catalog.types'
+import type { Area, AreaLocationMatch, Category } from './public-catalog.types'
 
 export const publicCatalogApi = {
   async getCategories(): Promise<Category[]> {
@@ -15,5 +15,13 @@ export const publicCatalogApi = {
     })
 
     return response.data.filter((area) => area.parentAreaId === parentAreaId)
+  },
+
+  async resolveArea(latitude: number, longitude: number): Promise<AreaLocationMatch> {
+    const response = await http.get<AreaLocationMatch>('/public/areas/resolve', {
+      params: { latitude, longitude },
+    })
+
+    return response.data
   },
 }

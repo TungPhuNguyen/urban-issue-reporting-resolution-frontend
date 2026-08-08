@@ -1,0 +1,168 @@
+import { useEffect, useId, useRef, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { X } from 'lucide-react'
+import { clsx } from 'clsx'
+
+export interface ModalProps {
+  open: boolean
+  title: string
+  description?: string
+  children: ReactNode
+  footer?: ReactNode
+  onClose: () => void
+  className?: string
+}
+
+const FOCUSABLE_ELEMENTS = [
+  'a[href]',
+  'button:not([disabled])',
+  'input:not([disabled])',
+  'select:not([disabled])',
+  'textarea:not([disabled])',
+  '[tabindex]:not([tabindex="-1"])',
+].join(',')
+
+export function Modal({
+  open,
+  title,
+  description,
+  children,
+  footer,
+  onClose,
+  className,
+}: ModalProps) {
+  const titleId = useId()
+  const descriptionId = useId()
+  const dialogRef = useRef<HTMLDivElement>(null)
+  const previousActiveElementRef = useRef<HTMLElement | null>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
+
+  useEffect(() => {
+    if (!open) {
+      return
+    }
+
+    previousActiveElementRef.current =
+      document.activeElement instanceof HTMLElement ? document.activeElement : null
+
+    const dialog = dialogRef.current
+    const focusableElements = dialog
+      ? Array.from(dialog.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS))
+      : []
+
+    ;(focusableElements[0] ?? dialog)?.focus()
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        onCloseRef.current()
+
+        return
+      }
+
+      if (event.key !== 'Tab' || !dialogRef.current) {
+        return
+      }
+
+      const currentFocusableElements = Array.from(
+        dialogRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_ELEMENTS),
+      )
+
+      if (currentFocusableElements.length === 0) {
+        event.preventDefault()
+        dialogRef.current.focus()
+
+        return
+      }
+
+      const firstElement = currentFocusableElements[0]!
+      const lastElement = currentFocusableElements.at(-1)!
+
+      if (event.shiftKey && document.activeElement === firstElement) {
+        event.preventDefault()
+        lastElement.focus()
+      } else if (!event.shiftKey && document.activeElement === lastElement) {
+        event.preventDefault()
+        firstElement.focus()
+      }
+    }
+
+    const previousOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    document.addEventListener('keydown', handleKeyDown)
+
+    return () => {
+      document.body.style.overflow = previousOverflow
+      document.removeEventListener('keydown', handleKeyDown)
+      previousActiveElementRef.current?.focus()
+    }
+  }, [open])
+
+  if (!open) {
+    return null
+  }
+
+  return createPortal(
+    <div
+      className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) {
+          onCloseRef.current()
+        }
+      }}
+    >
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        aria-describedby={description ? descriptionId : undefined}
+        tabIndex={-1}
+        className={clsx(
+          'modal flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-xl bg-white shadow-xl',
+          'dark:bg-gray-900',
+          className,
+        )}
+      >
+        <div className="modal__header flex items-start justify-between gap-4 border-b border-gray-200 px-6 py-4 dark:border-gray-800">
+          <div>
+            <h2
+              id={titleId}
+              className="text-lg font-semibold text-gray-900 dark:text-gray-100"
+            >
+              {title}
+            </h2>
+
+            {description && (
+              <p
+                id={descriptionId}
+                className="mt-1 text-sm text-gray-500 dark:text-gray-400"
+              >
+                {description}
+              </p>
+            )}
+          </div>
+
+          <button
+            type="button"
+            aria-label="Đóng"
+            onClick={() => onCloseRef.current()}
+            className="focus-visible:ring-brand-500 rounded-lg p-1.5 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:ring-2 focus-visible:outline-none dark:hover:bg-gray-800 dark:hover:text-gray-100"
+          >
+            <X className="h-5 w-5" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="modal__body overflow-y-auto px-6 py-5">{children}</div>
+
+        {footer && (
+          <div className="modal__footer flex justify-end gap-3 border-t border-gray-200 px-6 py-4 dark:border-gray-800">
+            {footer}
+          </div>
+        )}
+      </div>
+    </div>,
+    document.body,
+  )
+}

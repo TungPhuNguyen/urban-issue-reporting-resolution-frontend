@@ -1,3 +1,4 @@
+import { LocateFixed, LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
 
@@ -23,6 +24,19 @@ interface MapViewControllerProps {
 }
 
 const DEFAULT_CENTER: [number, number] = [21.0285, 105.8542]
+
+function getGeolocationErrorMessage(error: GeolocationPositionError): string {
+  switch (error.code) {
+    case 1:
+      return 'Bạn đã từ chối quyền truy cập vị trí. Hãy cấp quyền trong cài đặt trình duyệt rồi thử lại.'
+    case 2:
+      return 'Không thể xác định vị trí hiện tại. Hãy kiểm tra GPS hoặc kết nối mạng.'
+    case 3:
+      return 'Quá thời gian xác định vị trí. Vui lòng thử lại.'
+    default:
+      return 'Không thể lấy vị trí hiện tại. Vui lòng thử lại.'
+  }
+}
 
 function MapClickHandler({ disabled, onPick }: MapClickHandlerProps) {
   useMapEvents({
@@ -64,6 +78,8 @@ export function LocationPicker({
   const [position, setPosition] = useState<[number, number] | null>(
     value ? [value.latitude, value.longitude] : null,
   )
+  const [isLocating, setIsLocating] = useState(false)
+  const [geolocationError, setGeolocationError] = useState('')
 
   /*
    * Synchronize the marker with the parent form.
@@ -89,12 +105,67 @@ export function LocationPicker({
     })
   }
 
+  const handleUseCurrentLocation = () => {
+    if (disabled || isLocating) {
+      return
+    }
+
+    if (!navigator.geolocation) {
+      setGeolocationError(
+        'Trình duyệt không hỗ trợ định vị. Vui lòng chọn vị trí trực tiếp trên bản đồ.',
+      )
+      return
+    }
+
+    setIsLocating(true)
+    setGeolocationError('')
+
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        handlePick(coords.latitude, coords.longitude)
+        setIsLocating(false)
+      },
+      (geolocationPositionError) => {
+        setGeolocationError(getGeolocationErrorMessage(geolocationPositionError))
+        setIsLocating(false)
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10_000,
+        maximumAge: 0,
+      },
+    )
+  }
+
   return (
     <div className={className}>
-      <label className="mb-1 block text-sm font-medium">
-        Vị trí xảy ra sự cố
-        <span className="ml-1 text-red-500">*</span>
-      </label>
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+        <label className="block text-sm font-medium">
+          Vị trí xảy ra sự cố
+          <span className="ml-1 text-red-500">*</span>
+        </label>
+
+        <button
+          type="button"
+          disabled={disabled || isLocating}
+          aria-busy={isLocating}
+          onClick={handleUseCurrentLocation}
+          className="inline-flex h-9 items-center justify-center gap-2 rounded-lg border border-blue-600 bg-white px-3 text-sm font-medium text-blue-700 transition hover:bg-blue-50 focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          {isLocating ? (
+            <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin" />
+          ) : (
+            <LocateFixed aria-hidden="true" className="h-4 w-4" />
+          )}
+          {isLocating ? 'Đang xác định vị trí...' : 'Sử dụng vị trí hiện tại'}
+        </button>
+      </div>
+
+      {geolocationError && (
+        <p role="alert" className="mb-2 text-sm text-red-600">
+          {geolocationError}
+        </p>
+      )}
 
       <div
         className={[

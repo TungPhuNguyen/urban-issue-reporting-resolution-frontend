@@ -9,6 +9,22 @@ export const publicCatalogKeys = {
 
   areas: (parentAreaId: number | null = null) =>
     [...publicCatalogKeys.all, 'areas', parentAreaId ?? 'root'] as const,
+
+  resolvedArea: (latitude: number, longitude: number) =>
+    [...publicCatalogKeys.all, 'resolved-area', latitude, longitude] as const,
+}
+
+export function useResolvedArea(
+  latitude: number | null,
+  longitude: number | null,
+  enabled = true,
+) {
+  return useQuery({
+    queryKey: publicCatalogKeys.resolvedArea(latitude ?? 0, longitude ?? 0),
+    queryFn: () => publicCatalogApi.resolveArea(latitude!, longitude!),
+    enabled: enabled && latitude !== null && longitude !== null,
+    retry: false,
+  })
 }
 
 export function usePublicCategories() {

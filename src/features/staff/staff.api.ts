@@ -9,6 +9,7 @@ import type {
   ReportStatus,
   StaffReportTimeline,
   StaffProgressUpdate,
+  StaffDashboard,
 } from './staff.types'
 
 export interface GetStaffReportsParams {
@@ -123,6 +124,13 @@ export const staffReportApi = {
       formData,
     )
 
+    return response.data
+  },
+
+  async getDashboard(from?: string, to?: string): Promise<StaffDashboard> {
+    const response = await http.get<StaffDashboard>('/staff/dashboard/summary', {
+      params: { from: from || undefined, to: to || undefined },
+    })
     return response.data
   },
 }

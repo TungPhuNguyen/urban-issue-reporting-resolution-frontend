@@ -1,9 +1,12 @@
 import { type FormEvent, useEffect, useState } from 'react'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
 import { Spinner } from '@/components/ui/Spinner'
+import { getPriorityLabel } from '@/components/ui/report-labels'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import { useSlaConfigs, useUpdateSlaConfig } from './sla-configs.queries'
 import type { GetSlaConfigsParams, ReportPriority, SlaConfig } from './sla-configs.types'
@@ -27,7 +30,7 @@ function formatDate(value: string | null): string {
     return 'Chưa cập nhật'
   }
 
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value
@@ -37,19 +40,6 @@ function formatDate(value: string | null): string {
     dateStyle: 'short',
     timeStyle: 'short',
   }).format(date)
-}
-
-function getPriorityLabel(priority: ReportPriority): string {
-  switch (priority) {
-    case 'High':
-      return 'Cao'
-
-    case 'Medium':
-      return 'Trung bình'
-
-    case 'Low':
-      return 'Thấp'
-  }
 }
 
 export default function SlaConfigsPage() {
@@ -144,15 +134,12 @@ export default function SlaConfigsPage() {
   const page = configsQuery.data
 
   return (
-    <section className="flex flex-col gap-5">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-          Quản lý cấu hình SLA
-        </h1>
+    <section className="resource-page flex flex-col gap-5">
+      <div className="page-heading">
+        <Badge variant="danger">Cam kết xử lý</Badge>
+        <h1>Quản lý cấu hình SLA</h1>
 
-        <p className="mt-1 text-sm text-gray-500">
-          Xem và cập nhật thời gian xử lý theo Category và mức ưu tiên.
-        </p>
+        <p>Xem và cập nhật thời gian xử lý theo Category và mức ưu tiên.</p>
       </div>
 
       {successMessage && (
@@ -167,7 +154,7 @@ export default function SlaConfigsPage() {
         </div>
       )}
 
-      <Card className="p-5">
+      <Card className="panel filter-bar filter-bar--wrap">
         <form
           className="flex flex-col gap-3 md:flex-row"
           onSubmit={(event) => {
@@ -194,11 +181,11 @@ export default function SlaConfigsPage() {
           >
             <option value="">Tất cả mức ưu tiên</option>
 
-            <option value="Low">Thấp</option>
+            <option value="Low">{getPriorityLabel('Low')}</option>
 
-            <option value="Medium">Trung bình</option>
+            <option value="Medium">{getPriorityLabel('Medium')}</option>
 
-            <option value="High">Cao</option>
+            <option value="High">{getPriorityLabel('High')}</option>
           </select>
 
           <Button type="submit">Tìm kiếm</Button>
@@ -322,10 +309,10 @@ export default function SlaConfigsPage() {
         </Card>
       ) : (
         <>
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-left text-sm">
-                <thead className="bg-gray-50 text-xs tracking-wide text-gray-500 uppercase dark:bg-gray-900">
+          <Card className="panel table-panel overflow-hidden">
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
                   <tr>
                     <th className="px-4 py-3">ID</th>
 
@@ -341,7 +328,7 @@ export default function SlaConfigsPage() {
                   </tr>
                 </thead>
 
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-800">
+                <tbody>
                   {page.items.map((config) => (
                     <tr key={config.id}>
                       <td className="px-4 py-3 font-medium">#{config.id}</td>

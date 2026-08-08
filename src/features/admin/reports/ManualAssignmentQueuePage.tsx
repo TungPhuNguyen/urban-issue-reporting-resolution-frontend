@@ -1,17 +1,21 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { Card } from '@/components/ui/Card'
+import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
+import { StatusBadge } from '@/components/ui/StatusBadge'
 import { ApiError } from '@/lib/api/http'
+import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import { useManualAssignmentQueue } from './admin-reports.queries'
 
 const PAGE_SIZE = 10
 
 function formatDate(value: string) {
-  const date = new Date(value)
+  const date = parseApiDateTime(value)
 
   if (Number.isNaN(date.getTime())) {
     return value
@@ -64,16 +68,13 @@ export default function ManualAssignmentQueuePage() {
   const totalPages = Math.max(page.totalPages, 1)
 
   return (
-    <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
+    <section className="reports-page admin-assignment-page flex flex-col gap-4">
+      <div className="page-heading page-heading--split">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Hàng đợi phân công thủ công
-          </h1>
+          <Badge variant="warning">Cần điều phối</Badge>
+          <h1>Hàng đợi phân công thủ công</h1>
 
-          <p className="mt-1 text-sm text-gray-500">
-            Báo cáo chưa thể tự động chuyển tuyến, sắp xếp từ cũ nhất đến mới nhất.
-          </p>
+          <p>Báo cáo chưa thể tự động chuyển tuyến, sắp xếp từ cũ nhất đến mới nhất.</p>
         </div>
 
         <Button
@@ -85,19 +86,17 @@ export default function ManualAssignmentQueuePage() {
         </Button>
       </div>
 
-      <Card className="overflow-hidden">
+      <Card className="panel table-panel overflow-hidden">
         {reports.length === 0 ? (
-          <div className="flex min-h-64 flex-col items-center justify-center gap-2 p-8 text-center">
-            <h2 className="text-lg font-medium">Không có báo cáo chờ phân công</h2>
-
-            <p className="text-sm text-gray-500">
-              Hàng đợi sẽ tự động cập nhật khi có báo cáo mới.
-            </p>
-          </div>
+          <EmptyState
+            title="Không có báo cáo chờ phân công"
+            description="Hàng đợi sẽ tự động cập nhật khi có báo cáo mới."
+            className="min-h-64 rounded-none border-0"
+          />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[1050px] text-left text-sm">
-              <thead className="border-b border-gray-200 bg-gray-50 text-gray-600 dark:border-gray-800 dark:bg-gray-800/50 dark:text-gray-300">
+          <div className="data-table-wrap">
+            <table className="data-table min-w-[1050px]">
+              <thead>
                 <tr>
                   <th className="px-4 py-3 font-medium">Mã báo cáo</th>
 
@@ -142,9 +141,7 @@ export default function ManualAssignmentQueuePage() {
                     </td>
 
                     <td className="px-4 py-3">
-                      <span className="inline-flex rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-800">
-                        {report.status}
-                      </span>
+                      <StatusBadge status={report.status} />
                     </td>
 
                     <td className="px-4 py-3 text-gray-500">
@@ -154,7 +151,7 @@ export default function ManualAssignmentQueuePage() {
                     <td className="px-4 py-3 text-right">
                       <Link
                         to={`/admin/reports/${report.id}`}
-                        className="inline-flex h-8 items-center justify-center rounded-lg bg-gray-100 px-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-200"
+                        className="button button--ghost inline-flex h-8 items-center justify-center rounded-lg bg-gray-100 px-3 text-sm font-medium text-gray-900 transition-colors hover:bg-gray-200"
                       >
                         Xem chi tiết
                       </Link>

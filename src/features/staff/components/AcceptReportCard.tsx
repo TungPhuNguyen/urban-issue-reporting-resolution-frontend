@@ -1,6 +1,7 @@
 import { useState } from 'react'
 
 import { Card } from '@/components/ui/Card'
+import { getPriorityLabel } from '@/components/ui/report-labels'
 import { useAcceptStaffReport } from '../staff.queries'
 import { REPORT_PRIORITY, type ReportPriority } from '../staff.types'
 
@@ -60,9 +61,15 @@ export function AcceptReportCard({ reportId }: AcceptReportCardProps) {
             className="w-full rounded-lg border border-gray-300 p-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-gray-600 dark:bg-gray-800"
           >
             <option value="">-- Chọn mức ưu tiên --</option>
-            <option value={REPORT_PRIORITY.Low}>Thấp</option>
-            <option value={REPORT_PRIORITY.Medium}>Trung bình</option>
-            <option value={REPORT_PRIORITY.High}>Cao</option>
+            <option value={REPORT_PRIORITY.Low}>
+              {getPriorityLabel(REPORT_PRIORITY.Low)}
+            </option>
+            <option value={REPORT_PRIORITY.Medium}>
+              {getPriorityLabel(REPORT_PRIORITY.Medium)}
+            </option>
+            <option value={REPORT_PRIORITY.High}>
+              {getPriorityLabel(REPORT_PRIORITY.High)}
+            </option>
           </select>
         </div>
 

@@ -18,6 +18,17 @@ import CategoriesPage from '@/features/admin/categories/CategoriesPage'
 import AreasPage from '@/features/admin/areas/AreasPage'
 import DepartmentsPage from '@/features/admin/departments/DepartmentsPage'
 import NotificationsPage from '@/features/notifications/NotificationsPage'
+import AccountPage from '@/features/auth/AccountPage'
+import ForgotPasswordPage from '@/features/auth/ForgotPasswordPage'
+import ResetPasswordPage from '@/features/auth/ResetPasswordPage'
+import VerifyEmailPage from '@/features/auth/VerifyEmailPage'
+import EditReportPage from '@/features/citizen/reports/EditReportPage'
+import ReportLookupPage from '@/features/citizen/reports/ReportLookupPage'
+import PublicReportsPage from '@/features/public-reports/PublicReportsPage'
+import PublicReportDetailPage from '@/features/public-reports/PublicReportDetailPage'
+import PublicReportLookupPage from '@/features/public-reports/PublicReportLookupPage'
+import StaffDashboardPage from '@/features/staff/DashboardPage'
+import UsersListPage from '@/features/users/UsersListPage'
 
 import OverdueReportsPage from '@/features/overdue-reports/OverdueReportsPage'
 
@@ -26,6 +37,7 @@ import { NotFoundPage } from '@/pages/NotFoundPage'
 
 import {
   AdminDashboardPage,
+  CitizenDashboardPage,
   CitizenReportsPage,
   CreateReportPage,
   HomePage,
@@ -56,6 +68,13 @@ export const router = createBrowserRouter([
         element: <RegisterPage />,
       },
 
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'verify-email', element: <VerifyEmailPage /> },
+      { path: 'reports', element: <PublicReportsPage /> },
+      { path: 'reports/:reportId', element: <PublicReportDetailPage /> },
+      { path: 'lookup', element: <PublicReportLookupPage /> },
+
       {
         path: '403',
         element: <ForbiddenPage />,
@@ -76,6 +95,10 @@ export const router = createBrowserRouter([
 
             children: [
               {
+                path: 'dashboard',
+                element: <CitizenDashboardPage />,
+              },
+              {
                 path: 'reports',
                 element: <CitizenReportsPage />,
               },
@@ -89,10 +112,13 @@ export const router = createBrowserRouter([
                 path: 'reports/:reportId',
                 element: <ReportDetailPage />,
               },
+              { path: 'reports/:reportId/edit', element: <EditReportPage /> },
+              { path: 'reports/lookup', element: <ReportLookupPage /> },
               {
                 path: 'notifications',
                 element: <NotificationsPage />,
               },
+              { path: 'account', element: <AccountPage /> },
             ],
           },
         ],
@@ -107,6 +133,7 @@ export const router = createBrowserRouter([
             element: <StaffLayout />,
 
             children: [
+              { path: 'dashboard', element: <StaffDashboardPage /> },
               {
                 path: 'reports',
                 element: <StaffReportsPage />,
@@ -123,6 +150,7 @@ export const router = createBrowserRouter([
                 path: 'overdue-reports',
                 element: <OverdueReportsPage />,
               },
+              { path: 'account', element: <AccountPage /> },
             ],
           },
         ],
@@ -192,6 +220,8 @@ export const router = createBrowserRouter([
                 path: 'overdue-reports',
                 element: <OverdueReportsPage />,
               },
+              { path: 'users', element: <UsersListPage /> },
+              { path: 'account', element: <AccountPage /> },
             ],
           },
         ],

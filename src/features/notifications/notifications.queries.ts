@@ -27,15 +27,8 @@ export function useNotifications(params: NotificationListParams) {
 export function useUnreadNotificationCount() {
   return useQuery({
     queryKey: notificationKeys.unreadCount(),
-    queryFn: async () => {
-      const result = await notificationsApi.getMine({
-        isRead: false,
-        pageNumber: 1,
-        pageSize: 1,
-      })
-
-      return result.totalItems
-    },
+    queryFn: notificationsApi.getUnreadCount,
+    refetchInterval: 60_000,
   })
 }
 
