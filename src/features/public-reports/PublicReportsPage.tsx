@@ -38,10 +38,7 @@ export default function PublicReportsPage() {
   const rootAreasQuery = usePublicAreas(null)
   const rootAreaId = rootAreasQuery.data?.[0]?.id ?? null
 
-  const areasQuery = usePublicAreas(
-    rootAreaId,
-    rootAreaId !== null,
-  )
+  const areasQuery = usePublicAreas(rootAreaId, rootAreaId !== null)
   const reportsQuery = usePublicReports({
     search: debouncedSearch || undefined,
     categoryId: categoryId ? Number(categoryId) : undefined,
@@ -122,9 +119,7 @@ export default function PublicReportsPage() {
           className="h-10 rounded-lg border border-gray-300 px-3"
         >
           <option value="">
-            {areasQuery.isPending
-              ? 'Đang tải phường/xã...'
-              : 'Tất cả phường/xã'}
+            {areasQuery.isPending ? 'Đang tải phường/xã...' : 'Tất cả phường/xã'}
           </option>
 
           {areasQuery.data?.map((item) => (

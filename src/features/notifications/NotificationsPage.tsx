@@ -8,6 +8,7 @@ import { EmptyState } from '@/components/ui/EmptyState'
 import { Spinner } from '@/components/ui/Spinner'
 import { useAuthStore } from '@/features/auth/auth.store'
 import { ApiError } from '@/lib/api/http'
+import { localizeCitizenFacingText } from '@/lib/utils/citizen-facing-text'
 import { parseApiDateTime } from '@/lib/utils/date-time'
 
 import {
@@ -48,7 +49,10 @@ function formatDate(value: string): string {
   }).format(date)
 }
 
-function getTypeLabel(type: NotificationType): string {
+function getTypeLabel(
+  type: NotificationType,
+  role: 'Citizen' | 'Staff' | 'Admin' | undefined,
+): string {
   const labels: Record<NotificationType, string> = {
     ReportAssigned: 'Phân công báo cáo',
     ReportStatusChanged: 'Thay đổi trạng thái',
@@ -63,6 +67,16 @@ function getTypeLabel(type: NotificationType): string {
     Escalated: 'Cảnh báo quá hạn',
     ReportReclassified: 'Đã phân loại lại',
     ReportCancelled: 'Báo cáo đã hủy',
+  }
+
+  if (role === 'Citizen') {
+    if (type === 'SLAWarning') {
+      return 'Sắp đến hạn xử lý'
+    }
+
+    if (type === 'SLABreached') {
+      return 'Quá hạn xử lý'
+    }
   }
 
   return labels[type] ?? type
@@ -265,13 +279,19 @@ export default function NotificationsPage() {
                         />
                       )}
                       <h2 className="font-semibold text-gray-900 dark:text-gray-100">
-                        {notification.title}
+                        {role === 'Citizen'
+                          ? localizeCitizenFacingText(notification.title)
+                          : notification.title}
                       </h2>
-                      <Badge variant="default">{getTypeLabel(notification.type)}</Badge>
+                      <Badge variant="default">
+                        {getTypeLabel(notification.type, role)}
+                      </Badge>
                     </div>
 
                     <p className="mt-2 text-sm whitespace-pre-wrap text-gray-600 dark:text-gray-300">
-                      {notification.message}
+                      {role === 'Citizen'
+                        ? localizeCitizenFacingText(notification.message)
+                        : notification.message}
                     </p>
 
                     {notification.reportCode && (

@@ -269,9 +269,7 @@ export default function AdminDashboardPage() {
               <div>
                 <small>Đã cảnh báo quá hạn</small>
 
-                <strong>
-                  {formatNumber(data.summary.escalatedReports)}
-                </strong>
+                <strong>{formatNumber(data.summary.escalatedReports)}</strong>
 
                 <button
                   type="button"

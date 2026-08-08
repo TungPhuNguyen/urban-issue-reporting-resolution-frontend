@@ -432,26 +432,22 @@ export default function CreateReportPage() {
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <p className="text-sm font-medium text-gray-700">
-                Thành phố
-              </p>
+              <p className="text-sm font-medium text-gray-700">Thành phố</p>
 
               <div className="mt-1 flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                 {resolvedAreaQuery.isFetching
                   ? 'Đang xác định...'
-                  : resolvedAreaQuery.data?.districtName ?? 'Chưa chọn tọa độ'}
+                  : (resolvedAreaQuery.data?.districtName ?? 'Chưa chọn tọa độ')}
               </div>
             </div>
 
             <div>
-              <p className="text-sm font-medium text-gray-700">
-                Phường/Xã
-              </p>
+              <p className="text-sm font-medium text-gray-700">Phường/Xã</p>
 
               <div className="mt-1 flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
                 {resolvedAreaQuery.isFetching
                   ? 'Đang xác định...'
-                  : resolvedAreaQuery.data?.areaName ?? 'Chưa chọn tọa độ'}
+                  : (resolvedAreaQuery.data?.areaName ?? 'Chưa chọn tọa độ')}
               </div>
             </div>
           </div>

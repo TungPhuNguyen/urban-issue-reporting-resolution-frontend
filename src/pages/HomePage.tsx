@@ -184,7 +184,7 @@ function DashboardPreview() {
             <div>
               <small>Cần chú ý</small>
               <strong>17</strong>
-              <span>Gần quá hạn SLA</span>
+              <span>Gần quá hạn xử lý</span>
             </div>
           </div>
           <div className="preview-grid">
@@ -397,8 +397,8 @@ export function HomePage() {
             <Badge variant="success">Quy trình khép kín</Badge>
             <h2>Từ một bức ảnh đến một thay đổi có thể nhìn thấy</h2>
             <p>
-              Mỗi báo cáo có mã tra cứu, dòng thời gian và mốc SLA rõ ràng. Không còn phản
-              ánh bị bỏ quên giữa nhiều đầu mối.
+              Mỗi báo cáo có mã tra cứu, dòng thời gian và thời hạn xử lý rõ ràng. Không
+              còn phản ánh bị bỏ quên giữa nhiều đầu mối.
             </p>
             <Link to="/register">
               <Button variant="dark">

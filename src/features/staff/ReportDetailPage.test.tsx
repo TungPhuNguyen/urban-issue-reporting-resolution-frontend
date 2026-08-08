@@ -120,7 +120,7 @@ describe('StaffReportDetailPage - UC-18, UC-21 and UC-22', () => {
   it('shows the SLA start and immutable due time returned after acceptance', () => {
     renderPage()
 
-    expect(screen.getByText('Bắt đầu SLA').parentElement).toHaveTextContent(
+    expect(screen.getByText('Bắt đầu xử lý').parentElement).toHaveTextContent(
       parseApiDateTime(report.slaStartedAt).toLocaleString('vi-VN'),
     )
     expect(screen.getByText('Hạn xử lý').parentElement).toHaveTextContent(

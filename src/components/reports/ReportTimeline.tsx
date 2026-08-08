@@ -35,6 +35,7 @@ export interface ReportTimelineProps {
   emptyMessage?: string
   onRetry?: () => void
   imageUrlResolver?: (imageUrl: string) => string
+  noteFormatter?: (note: string) => string
 }
 
 function formatDateTime(value: string) {
@@ -69,6 +70,7 @@ export function ReportTimeline({
   emptyMessage = 'Chưa có lịch sử xử lý.',
   onRetry,
   imageUrlResolver = getImageUrl,
+  noteFormatter = (note) => note,
 }: ReportTimelineProps) {
   const headingId = useId()
 
@@ -158,7 +160,7 @@ export function ReportTimeline({
 
                 {item.note && (
                   <p className="mt-3 text-sm leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
-                    {item.note}
+                    {noteFormatter(item.note)}
                   </p>
                 )}
 
