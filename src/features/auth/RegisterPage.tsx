@@ -101,7 +101,7 @@ export default function RegisterPage() {
       subtitle="Tham gia Civic Pulse để gửi phản ánh và theo dõi kết quả xử lý."
     >
       {formError && (
-        <div className="auth-alert auth-alert--error" role="alert">
+        <div className="form-alert form-alert--error" role="alert">
           <AlertCircle aria-hidden="true" size={18} />
           <span>{formError}</span>
         </div>

@@ -60,7 +60,7 @@ export function LoginPage() {
       subtitle="Đăng nhập để tiếp tục theo dõi và xử lý các báo cáo đô thị."
     >
       {formError && (
-        <div className="auth-alert auth-alert--error" role="alert">
+        <div className="form-alert form-alert--error" role="alert">
           <AlertCircle aria-hidden="true" size={18} />
           <span>{formError}</span>
         </div>
@@ -113,9 +113,9 @@ export function LoginPage() {
             />
             <span>Ghi nhớ đăng nhập</span>
           </label> */}
-          <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+          {/* <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
             Quên mật khẩu?
-          </Link>
+          </Link> */}
         </div>
 
         <Button type="submit" size="lg" loading={isLoading} className="button--full">

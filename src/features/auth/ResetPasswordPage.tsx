@@ -42,8 +42,8 @@ export default function ResetPasswordPage() {
   }
   return (
     <AuthLayout title="Đặt lại mật khẩu" subtitle="Tạo mật khẩu mới cho tài khoản.">
-      {notice && <div className="auth-alert auth-alert--success">{notice}</div>}
-      {error && <div className="auth-alert auth-alert--error">{error}</div>}
+      {notice && <div className="form-alert form-alert--success">{notice}</div>}
+      {error && <div className="form-alert form-alert--error">{error}</div>}
       <form className="auth-form" onSubmit={submit}>
         <label className="field">
           <span className="field__label">Email</span>

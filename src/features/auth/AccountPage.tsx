@@ -8,7 +8,17 @@ import { authApi } from './auth.api'
 import { useAuthStore } from './auth.store'
 
 function message(error: unknown, fallback: string) {
-  return error instanceof ApiError ? error.message : fallback
+  if (error instanceof ApiError) {
+    if (error.fieldErrors) {
+      return Object.values(error.fieldErrors)
+        .flat()
+        .join('\n')
+    }
+
+    return error.message
+  }
+
+  return fallback
 }
 
 export default function AccountPage() {
@@ -104,7 +114,9 @@ export default function AccountPage() {
       )}
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-          {error}
+          {error.split('\n').map((item, index) => (
+            <p key={index}>{item}</p>
+          ))}
         </div>
       )}
       {user.isEmailVerified === false && (
