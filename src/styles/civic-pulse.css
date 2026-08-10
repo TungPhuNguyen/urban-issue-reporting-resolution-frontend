@@ -5171,14 +5171,19 @@ button:disabled {
   .hero-section h1 {
     font-size: clamp(42px, 13vw, 65px);
   }
+  .floating-issue--one,
+ .floating-issue--two {
+  display: none;
+ }
   .hero-actions,
   .cta-card__actions,
   .heading-actions {
     width: 100%;
+    flex-direction: column;
   }
   .hero-actions .button,
   .cta-card__actions .button {
-    flex: 1;
+    width: 100%;
   }
   .feature-grid,
   .impact-stats,
@@ -5268,6 +5273,9 @@ button:disabled {
 @media (max-width: 480px) {
   .public-header__inner {
     min-height: 68px;
+  }
+  .public-header__cta {
+   display: none;
   }
   .public-header__actions .button {
     min-height: 38px;
@@ -6382,4 +6390,12 @@ body {
     min-width: 0;
     max-width: none;
   }
+}
+
+.leaflet-container {
+  z-index: 0 !important;
+}
+
+.leaflet-control-container {
+  z-index: 0 !important;
 }

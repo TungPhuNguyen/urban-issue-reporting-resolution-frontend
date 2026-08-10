@@ -176,6 +176,7 @@ export default function PublicReportsPage() {
             key={`${center[0]}-${center[1]}`}
             center={center}
             zoom={12}
+            className="relative z-0"
             style={{ height: '100%', width: '100%' }}
           >
             <TileLayer
@@ -184,10 +185,10 @@ export default function PublicReportsPage() {
             />
             {reports.map((report) => (
               <Marker
-                   key={report.id}
-                   position={[report.latitude, report.longitude]}
-                   icon={markerIcon}
-                    >
+                key={report.id}
+                position={[report.latitude, report.longitude]}
+                icon={markerIcon}
+              >
                 <Popup>
                   <strong>{report.title}</strong>
                   <br />

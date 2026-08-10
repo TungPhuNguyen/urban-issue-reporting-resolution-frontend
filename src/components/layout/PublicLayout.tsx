@@ -60,7 +60,7 @@ export default function PublicLayout() {
 
           <div className="public-header__actions">
             {isAuthenticated ? (
-              <Link to={home}>
+              <Link className="public-header__cta" to={home}>
                 <Button variant="dark">
                   Vào hệ thống <ArrowUpRight aria-hidden="true" size={18} />
                 </Button>
@@ -70,7 +70,7 @@ export default function PublicLayout() {
                 <Link className="text-link public-header__login" to="/login">
                   Đăng nhập
                 </Link>
-                <Link to="/register" aria-label="Đăng ký">
+                <Link className="public-header__cta" to="/register" aria-label="Đăng ký">
                   <Button>
                     Báo cáo ngay <ArrowUpRight aria-hidden="true" size={18} />
                   </Button>
