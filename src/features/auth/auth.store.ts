@@ -159,9 +159,7 @@ export const useAuthStore = create<AuthState>()(
         } finally {
           tokenStorage.clear()
 
-          queryClient.removeQueries({
-            queryKey: ['citizen-reports'],
-          })
+          queryClient.clear()
 
           set({
             user: null,
@@ -176,9 +174,7 @@ export const useAuthStore = create<AuthState>()(
       clearAuth: () => {
         tokenStorage.clear()
 
-        queryClient.removeQueries({
-          queryKey: ['citizen-reports'],
-        })
+        queryClient.clear()
 
         set({
           user: null,

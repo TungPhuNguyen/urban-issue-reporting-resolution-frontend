@@ -7,28 +7,36 @@ import {
 
 import { notificationsApi } from './notifications.api'
 import type { NotificationListParams } from './notifications.types'
+import { useAuthStore } from '@/features/auth/auth.store'
 
 export const notificationKeys = {
   all: ['notifications'] as const,
-  lists: () => [...notificationKeys.all, 'list'] as const,
-  list: (params: NotificationListParams) =>
-    [...notificationKeys.lists(), params] as const,
-  unreadCount: () => [...notificationKeys.all, 'unread-count'] as const,
+  lists: (userId: string) => [...notificationKeys.all, userId, 'list'] as const,
+  list: (userId: string, params: NotificationListParams) =>
+    [...notificationKeys.lists(userId), params] as const,
+  unreadCount: (userId: string) =>
+    [...notificationKeys.all, userId, 'unread-count'] as const,
 }
 
 export function useNotifications(params: NotificationListParams) {
+  const userId = useAuthStore((state) => state.user?.userId)
+
   return useQuery({
-    queryKey: notificationKeys.list(params),
+    queryKey: notificationKeys.list(userId ?? 'anonymous', params),
     queryFn: () => notificationsApi.getMine(params),
     placeholderData: keepPreviousData,
+    enabled: Boolean(userId),
   })
 }
 
 export function useUnreadNotificationCount() {
+  const userId = useAuthStore((state) => state.user?.userId)
+
   return useQuery({
-    queryKey: notificationKeys.unreadCount(),
+    queryKey: notificationKeys.unreadCount(userId ?? 'anonymous'),
     queryFn: notificationsApi.getUnreadCount,
     refetchInterval: 60_000,
+    enabled: Boolean(userId),
   })
 }
 
