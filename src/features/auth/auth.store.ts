@@ -34,50 +34,61 @@ export const useAuthStore = create<AuthState>()(
       error: null,
 
       login: async (payload, remember = false) => {
-        set({
-          status: 'loading',
-          error: null,
-        })
+    set({
+      status: 'loading',
+      error: null,
+    })
 
-        try {
-          const response = await authApi.login(payload)
+    try {
+      const response = await authApi.login(payload)
 
-          const user: AuthUser = {
-            userId: response.userId,
-            fullName: response.fullName,
-            email: response.email,
-            role: response.role,
-            departmentId: response.departmentId,
-            isEmailVerified: response.isEmailVerified,
-          }
+      // Lưu token trước để /auth/me có Bearer token.
+      tokenStorage.set(
+        response.accessToken,
+        response.refreshToken,
+        remember,
+      )
 
-          tokenStorage.set(response.accessToken, response.refreshToken, remember)
+      // LoginResponse không có đầy đủ profile.
+      // Gọi /auth/me để lấy phoneNumber, departmentName...
+      const profile = await authApi.getCurrentUser()
 
-          set({
-            user,
-            isAuthenticated: true,
-            isInitialized: true,
-            status: 'idle',
-            error: null,
-          })
+      const user: AuthUser = {
+        userId: profile.userId,
+        fullName: profile.fullName,
+        email: profile.email,
+        role: profile.role,
+        departmentId: profile.departmentId,
+        departmentName: profile.departmentName,
+        phoneNumber: profile.phoneNumber,
+        isEmailVerified: profile.isEmailVerified,
+      }
 
-          return user
-        } catch (error) {
-          tokenStorage.clear()
+      set({
+        user,
+        isAuthenticated: true,
+        isInitialized: true,
+        status: 'idle',
+        error: null,
+      })
 
-          set({
-            user: null,
-            isAuthenticated: false,
-            isInitialized: true,
-            status: 'error',
-            error: 'Email hoặc mật khẩu không chính xác.',
-          })
+      return user
+    } catch (error) {
+      tokenStorage.clear()
 
-          throw error
-        }
-      },
+      set({
+        user: null,
+        isAuthenticated: false,
+        isInitialized: true,
+        status: 'error',
+        error: 'Email hoặc mật khẩu không chính xác.',
+      })
 
-      loadCurrentUser: async () => {
+      throw error
+    }
+  },
+
+  loadCurrentUser: async () => {
         const accessToken = tokenStorage.getAccess()
         const refreshToken = tokenStorage.getRefresh()
 

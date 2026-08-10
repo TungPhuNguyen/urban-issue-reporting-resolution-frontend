@@ -1,3 +1,4 @@
+import L from 'leaflet'
 import { LocateFixed, LoaderCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-leaflet'
@@ -5,6 +6,16 @@ import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from 'react-lea
 import type { LatLng } from '../report-form.types'
 
 import 'leaflet/dist/leaflet.css'
+
+const markerIcon = L.icon({
+  iconUrl: '/leaflet/marker-icon.png',
+  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+  shadowUrl: '/leaflet/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+})
 
 interface LocationPickerProps {
   value: LatLng | null
@@ -194,8 +205,9 @@ export function LocationPicker({
 
           {position && (
             <Marker
-              position={position}
-              draggable={!disabled}
+  	      position={position}
+   	      icon={markerIcon}
+     	      draggable={!disabled}
               eventHandlers={{
                 dragend: (event) => {
                   if (disabled) {

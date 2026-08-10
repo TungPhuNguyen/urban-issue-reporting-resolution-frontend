@@ -19,6 +19,17 @@ import { usePublicReports } from './public-reports.queries'
 import type { PublicReportSort } from './public-reports.types'
 
 import 'leaflet/dist/leaflet.css'
+import L from 'leaflet'
+
+const markerIcon = L.icon({
+  iconUrl: '/leaflet/marker-icon.png',
+  iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+  shadowUrl: '/leaflet/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+})
 
 const STATUSES: ReportStatus[] = Object.values(REPORT_STATUS)
 
@@ -172,7 +183,11 @@ export default function PublicReportsPage() {
               attribution="&copy; OpenStreetMap contributors"
             />
             {reports.map((report) => (
-              <Marker key={report.id} position={[report.latitude, report.longitude]}>
+              <Marker
+                   key={report.id}
+                   position={[report.latitude, report.longitude]}
+                   icon={markerIcon}
+                    >
                 <Popup>
                   <strong>{report.title}</strong>
                   <br />
