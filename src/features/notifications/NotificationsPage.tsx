@@ -309,8 +309,9 @@ export default function NotificationsPage() {
                     {(notification.actionUrl || notification.reportId) && (
                       <Link
                         to={
-                          notification.actionUrl ??
-                          getReportPath(role, notification.reportId!)
+                          notification.reportId
+                            ? getReportPath(role, notification.reportId)
+                            : notification.actionUrl!
                         }
                         onClick={() => void handleMarkRead(notification)}
                         className="inline-flex h-9 items-center justify-center rounded-lg border border-gray-300 px-3 text-sm font-medium hover:bg-gray-50 dark:border-gray-700 dark:hover:bg-gray-800"
