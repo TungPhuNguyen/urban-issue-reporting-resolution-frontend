@@ -263,6 +263,11 @@ export default function ReportDetailPage() {
       return
     }
 
+    if (complaintImages.length === 0) {
+      setComplaintError('Vui lòng đính kèm ít nhất 1 ảnh minh chứng.')
+      return
+    }
+
     try {
       await complaintMutation.mutateAsync({
         reportId,
@@ -781,6 +786,7 @@ export default function ReportDetailPage() {
                 </p>
               </div>
 
+              <div className="flex flex-col gap-1">
               <ImageUploader
                 value={complaintImages}
                 maxFiles={5}
@@ -788,6 +794,10 @@ export default function ReportDetailPage() {
                 disabled={complaintMutation.isPending}
                 onChange={setComplaintImages}
               />
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Bắt buộc đính kèm ít nhất 1 ảnh minh chứng (tối đa 5 ảnh).
+                </p>
+              </div>
 
               {complaintError && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -806,7 +816,9 @@ export default function ReportDetailPage() {
                   <Button
                     type="button"
                     disabled={
-                      complaintMutation.isPending || complaintReason.trim().length < 10
+                      complaintMutation.isPending ||
+                      complaintReason.trim().length < 10 ||
+                      complaintImages.length === 0
                     }
                     onClick={() => {
                       setComplaintError(null)
