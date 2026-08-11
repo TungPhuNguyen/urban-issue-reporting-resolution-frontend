@@ -209,6 +209,7 @@ export interface ClassifyReportInput {
 
 export interface AdminReportTimelineItem {
   id: number
+  eventType?: string | null
   oldStatus: ReportStatus | null
   newStatus: ReportStatus
   note: string | null

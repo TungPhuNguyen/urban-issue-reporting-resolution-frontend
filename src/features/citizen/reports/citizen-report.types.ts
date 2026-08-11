@@ -132,6 +132,7 @@ export interface CitizenReportDetail extends CitizenReportSummary {
 
 export interface ReportTimelineItem {
   id: number
+  eventType?: string | null
   oldStatus: ReportStatus | null
   newStatus: ReportStatus
   note: string | null

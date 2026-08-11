@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import { AlertCircle } from 'lucide-react'
 
+import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 import { EmptyState } from '@/components/ui/EmptyState'
 import { getStatusLabel } from '@/components/ui/report-labels'
@@ -11,6 +12,7 @@ import { getImageUrl } from '@/lib/utils/image'
 
 export interface ReportTimelineItem {
   id: number | string
+  eventType?: string | null
   oldStatus?: string | null
   newStatus: string
   note?: string | null
@@ -138,7 +140,17 @@ export function ReportTimeline({
 
               <article className="rounded-lg border border-gray-200 p-4 dark:border-gray-700">
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <StatusBadge status={item.newStatus} />
+                  {item.eventType === 'ComplaintSubmitted' ? (
+                    <Badge variant="warning">
+                      <span
+                        aria-hidden="true"
+                        className="mr-1.5 h-1.5 w-1.5 rounded-full bg-current"
+                      />
+                      Khiếu nại
+                    </Badge>
+                  ) : (
+                    <StatusBadge status={item.newStatus} />
+                  )}
                   <time
                     dateTime={item.createdAt}
                     className="text-xs text-gray-500 dark:text-gray-400"

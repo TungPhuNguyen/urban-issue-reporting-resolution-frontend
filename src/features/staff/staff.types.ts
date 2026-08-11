@@ -188,6 +188,8 @@ export interface StaffReportActionResult {
 export interface StaffReportTimelineItem {
   id: number
 
+  eventType?: string | null
+
   oldStatus: ReportStatus | null
   newStatus: ReportStatus
 
