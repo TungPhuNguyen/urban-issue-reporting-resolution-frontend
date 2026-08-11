@@ -3745,10 +3745,12 @@ button:disabled {
 .report-card-link {
   display: block;
   min-width: 0;
+  height: 100%;
 }
 .report-card {
   display: grid;
   grid-template-columns: 128px 1fr;
+  height: 100%;
   min-height: 184px;
   overflow: hidden;
   border: 1px solid var(--line);

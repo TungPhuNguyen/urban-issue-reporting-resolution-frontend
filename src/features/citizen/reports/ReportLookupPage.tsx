@@ -41,7 +41,7 @@ export default function ReportLookupPage() {
     <section className="mx-auto max-w-2xl">
       <h1 className="text-2xl font-semibold">Tra cứu báo cáo của tôi</h1>
       <p className="mt-1 text-sm text-gray-500">
-        Nhập mã được cấp khi gửi phản ánh, ví dụ UI-2026-000001.
+        Nhập mã được cấp khi gửi phản ánh.
       </p>
       <Card className="mt-6 p-6">
         <form className="flex flex-col gap-4 sm:flex-row" onSubmit={handleSubmit}>

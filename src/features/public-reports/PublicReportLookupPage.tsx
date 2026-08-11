@@ -44,8 +44,9 @@ export default function PublicReportLookupPage() {
         <form className="flex gap-3" onSubmit={submit}>
           <input
             value={code}
+            maxLength={50}
             onChange={(e) => setCode(e.target.value)}
-            placeholder="UI-2026-000001"
+            placeholder="UI-100000"
             className="h-11 min-w-0 flex-1 rounded-lg border border-gray-300 px-3 uppercase"
           />
           <Button type="submit" loading={loading}>

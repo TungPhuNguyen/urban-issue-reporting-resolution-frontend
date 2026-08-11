@@ -278,7 +278,7 @@ export default function NotificationsPage() {
                           className="h-2.5 w-2.5 rounded-full bg-blue-600"
                         />
                       )}
-                      <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+                      <h2 className="break-words font-semibold text-gray-900 dark:text-gray-100">
                         {role === 'Citizen'
                           ? localizeCitizenFacingText(notification.title)
                           : notification.title}
@@ -288,7 +288,7 @@ export default function NotificationsPage() {
                       </Badge>
                     </div>
 
-                    <p className="mt-2 text-sm whitespace-pre-wrap text-gray-600 dark:text-gray-300">
+                    <p className="mt-2 break-words text-sm whitespace-pre-wrap text-gray-600 dark:text-gray-300">
                       {role === 'Citizen'
                         ? localizeCitizenFacingText(notification.message)
                         : notification.message}

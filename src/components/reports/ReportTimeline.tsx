@@ -171,7 +171,7 @@ export function ReportTimeline({
                 </p>
 
                 {item.note && (
-                  <p className="mt-3 text-sm leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                  <p className="mt-3 break-words text-sm leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
                     {noteFormatter(item.note)}
                   </p>
                 )}

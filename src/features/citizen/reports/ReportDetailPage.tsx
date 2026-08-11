@@ -484,7 +484,7 @@ export default function ReportDetailPage() {
               Lý do mở lại
             </h2>
 
-            <p className="mt-2 text-sm whitespace-pre-wrap text-blue-800 dark:text-blue-400">
+            <p className="mt-2 break-words text-sm whitespace-pre-wrap text-blue-800 dark:text-blue-400">
               {report.reopenReason}
             </p>
           </div>
@@ -500,7 +500,7 @@ export default function ReportDetailPage() {
               Thời gian gửi: {formatDateTime(report.complaintSubmittedAt)}
             </p>
 
-            <p className="mt-3 text-sm whitespace-pre-wrap text-orange-800 dark:text-orange-300">
+            <p className="mt-3 break-words text-sm whitespace-pre-wrap text-orange-800 dark:text-orange-300">
               {report.complaint?.reason ??
                 report.complaintReason ??
                 'Không có nội dung yêu cầu.'}
@@ -565,7 +565,7 @@ export default function ReportDetailPage() {
         {report.resolution && (
           <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
             <h2 className="text-base font-semibold">Kết quả xử lý</h2>
-            <p className="mt-2 text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+            <p className="mt-2 break-words text-sm whitespace-pre-wrap text-gray-700 dark:text-gray-300">
               {report.resolution.note || 'Đơn vị xử lý chưa để lại ghi chú.'}
             </p>
             <p className="mt-1 text-xs text-gray-500">

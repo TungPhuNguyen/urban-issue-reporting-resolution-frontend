@@ -298,7 +298,7 @@ export default function StaffReportDetailPage() {
             Thời gian gửi: {formatDateTime(report.complaintSubmittedAt)}
           </p>
 
-          <p className="mt-3 whitespace-pre-wrap text-orange-800 dark:text-orange-300">
+          <p className="mt-3 break-words whitespace-pre-wrap text-orange-800 dark:text-orange-300">
             {report.complaintReason ?? 'Không có nội dung yêu cầu.'}
           </p>
         </Card>
@@ -307,7 +307,7 @@ export default function StaffReportDetailPage() {
       {report.resolution && (
         <Card className="p-6">
           <h2 className="text-lg font-semibold">Kết quả xử lý gần nhất</h2>
-          <p className="mt-2 text-sm whitespace-pre-wrap">
+          <p className="mt-2 break-words text-sm whitespace-pre-wrap">
             {report.resolution.note ?? 'Không có ghi chú.'}
           </p>
           {report.resolution.imageUrls.length > 0 && (

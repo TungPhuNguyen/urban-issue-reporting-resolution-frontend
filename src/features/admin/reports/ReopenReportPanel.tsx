@@ -43,8 +43,8 @@ export default function ReopenReportPanel({ report, onSuccess }: Props) {
 
     const value = reason.trim()
 
-    if (value.length < 10 || value.length > 2000) {
-      setError('Lý do quyết định phải từ 10 đến 2000 ký tự.')
+    if (value.length < 10 || value.length > 1000) {
+      setError('Lý do quyết định phải từ 10 đến 1000 ký tự.')
       return
     }
 
@@ -103,7 +103,7 @@ export default function ReopenReportPanel({ report, onSuccess }: Props) {
             id="complaintDecisionReason"
             value={reason}
             rows={4}
-            maxLength={2000}
+            maxLength={1000}
             disabled={isPending}
             placeholder="Nhập lý do cụ thể, tối thiểu 10 ký tự."
             onChange={(event) => {
@@ -114,13 +114,17 @@ export default function ReopenReportPanel({ report, onSuccess }: Props) {
             }}
             className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900"
           />
-          <p className="text-right text-xs text-gray-500">{reason.length}/2000</p>
+          <p className="text-right text-xs text-gray-500">{reason.length}/1000</p>
 
           {decision === null ? (
             <div className="flex flex-wrap gap-2">
               <Button
                 type="button"
-                disabled={isPending || reason.trim().length < 10}
+                disabled={
+                  isPending ||
+                  reason.trim().length < 10 ||
+                  reason.trim().length > 1000
+                }
                 onClick={() => setDecision('reopen')}
               >
                 Chấp nhận và mở lại
@@ -128,7 +132,11 @@ export default function ReopenReportPanel({ report, onSuccess }: Props) {
               <Button
                 type="button"
                 variant="secondary"
-                disabled={isPending || reason.trim().length < 10}
+                disabled={
+                  isPending ||
+                  reason.trim().length < 10 ||
+                  reason.trim().length > 1000
+                }
                 onClick={() => setDecision('dismiss')}
               >
                 Không chấp nhận

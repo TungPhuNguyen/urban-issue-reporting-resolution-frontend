@@ -189,8 +189,8 @@ export default function PublicReportsPage() {
                 position={[report.latitude, report.longitude]}
                 icon={markerIcon}
               >
-                <Popup>
-                  <strong>{report.title}</strong>
+                <Popup maxWidth={260}>
+                  <strong className="block break-words">{report.title}</strong>
                   <br />
                   {report.reportCode}
                   <br />

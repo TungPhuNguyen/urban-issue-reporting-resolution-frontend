@@ -549,7 +549,7 @@ export default function AdminReportDetailPage() {
       {report.resolution && (
         <Card className="p-6">
           <h2 className="text-lg font-semibold">Kết quả xử lý</h2>
-          <p className="mt-2 text-sm whitespace-pre-wrap">
+          <p className="mt-2 break-words text-sm whitespace-pre-wrap">
             {report.resolution.note ?? 'Không có ghi chú.'}
           </p>
           {report.resolution.imageUrls.length > 0 && (

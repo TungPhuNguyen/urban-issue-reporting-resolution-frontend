@@ -113,7 +113,7 @@ export function ReportComments({ reportId }: { reportId: string }) {
                     </Button>
                   )}
                 </div>
-                <p className="mt-2 text-sm whitespace-pre-wrap">{comment.content}</p>
+                <p className="mt-2 break-words text-sm whitespace-pre-wrap">{comment.content}</p>
               </li>
             ))}
           </ul>
