@@ -385,7 +385,7 @@ export default function AdminReportDetailPage() {
             Địa chỉ
           </p>
 
-          <p className="mt-1">{report.addressText ?? 'Chưa xác định'}</p>
+          <p className="mt-1 break-words">{report.addressText ?? 'Chưa xác định'}</p>
         </div>
 
         <div>
@@ -474,7 +474,7 @@ export default function AdminReportDetailPage() {
             Mô tả
           </p>
 
-          <p className="mt-1 whitespace-pre-wrap">{report.description}</p>
+          <p className="mt-1 break-words whitespace-pre-wrap">{report.description}</p>
         </div>
       </Card>
 

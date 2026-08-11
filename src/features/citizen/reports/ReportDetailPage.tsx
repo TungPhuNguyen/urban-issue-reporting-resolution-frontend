@@ -390,7 +390,7 @@ export default function ReportDetailPage() {
             Mô tả sự cố
           </h2>
 
-          <p className="mt-2 text-sm leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+          <p className="mt-2 break-words text-sm leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
             {report.description}
           </p>
         </div>

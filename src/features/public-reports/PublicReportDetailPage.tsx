@@ -41,7 +41,7 @@ export default function PublicReportDetailPage() {
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-sm text-gray-500">{report.reportCode}</p>
-            <h1 className="mt-1 text-2xl font-bold">{report.title}</h1>
+            <h1 className="mt-1 text-2xl font-bold break-all">{report.title}</h1>
             <p className="mt-1 text-sm text-gray-500">
               {report.categoryName} · {report.areaName}
             </p>
@@ -51,7 +51,7 @@ export default function PublicReportDetailPage() {
             <StatusBadge status={report.status} />
           </div>
         </div>
-        <p className="mt-6 whitespace-pre-wrap text-gray-700">{report.description}</p>
+         <p className="mt-6 break-words whitespace-pre-wrap text-gray-700">{report.description}</p>
         <div className="mt-5 grid gap-3 text-sm sm:grid-cols-3">
           <span>Đơn vị: {report.departmentName ?? 'Chưa phân công'}</span>
           <span>Ủng hộ: {report.upvoteCount}</span>

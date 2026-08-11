@@ -144,8 +144,8 @@ export default function StaffReportDetailPage() {
               {report.categoryName}
             </h2>
 
-            <p className="mt-1 text-sm text-gray-600 dark:text-gray-400">
-              {report.addressText || report.areaName}
+            <p className="mt-1 break-words text-sm text-gray-600 dark:text-gray-400">
+              {report.areaName}
             </p>
           </div>
 
@@ -155,7 +155,7 @@ export default function StaffReportDetailPage() {
         <div className="mt-6 border-t border-gray-200 pt-5 dark:border-gray-800">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">Mô tả sự cố</h3>
 
-          <p className="mt-2 leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+          <p className="mt-2 break-words leading-6 whitespace-pre-wrap text-gray-700 dark:text-gray-300">
             {report.description}
           </p>
         </div>

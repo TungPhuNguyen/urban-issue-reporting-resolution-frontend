@@ -121,6 +121,8 @@
   max-width: 220px;
   color: var(--muted);
   font-size: 8.5px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 
 .role-pagination {
@@ -881,12 +883,16 @@ button:disabled {
   font-size: clamp(28px, 3vw, 38px);
   line-height: 1.14;
   letter-spacing: -1.15px;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .page-heading p {
   max-width: 720px;
   margin-bottom: 0;
   color: var(--muted);
   line-height: 1.6;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .heading-badges {
   display: flex;
@@ -4723,6 +4729,8 @@ button:disabled {
   color: var(--ink);
   font-size: 11px;
   line-height: 1.4;
+  overflow-wrap: break-word;
+  word-break: break-word;
 }
 .table-report small,
 .table-sub {
