@@ -8,7 +8,9 @@ import { tokenStorage } from './token-storage'
 
 /** Shape our backend uses for error payloads. Adapt to your API. */
 export interface ApiErrorBody {
-  message: string
+  message?: string
+  title?: string
+  detail?: string
   code?: string
   errors?: Record<string, string[]>
 }
@@ -23,7 +25,13 @@ export class ApiError extends Error {
   readonly fieldErrors?: Record<string, string[]>
 
   constructor(status: number, body?: ApiErrorBody) {
-    super(body?.message ?? `Request failed with status ${status}`)
+    super(
+      body?.detail ??
+        body?.title ??
+        body?.message ??
+        `Request failed with status ${status}`,
+    )
+
     this.name = 'ApiError'
     this.status = status
     this.code = body?.code
@@ -34,7 +42,6 @@ export class ApiError extends Error {
 export const http: AxiosInstance = axios.create({
   baseURL: env.apiBaseUrl,
   timeout: 15_000,
-  headers: { 'Content-Type': 'application/json' },
 })
 
 // --- Request interceptor: attach bearer token -------------------------------
@@ -53,7 +60,7 @@ async function refreshSession(): Promise<void> {
   const refresh = tokenStorage.getRefresh()
   if (!refresh) throw new Error('No refresh token')
   const { data } = await axios.post<{ accessToken: string; refreshToken?: string }>(
-    `${env.apiBaseUrl}/auth/refresh`,
+    `${env.apiBaseUrl}/auth/refresh-token`,
     { refreshToken: refresh },
   )
   tokenStorage.set(data.accessToken, data.refreshToken)

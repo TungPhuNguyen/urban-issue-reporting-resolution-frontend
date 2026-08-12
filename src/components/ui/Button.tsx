@@ -1,7 +1,16 @@
 import { forwardRef, type ButtonHTMLAttributes } from 'react'
 import { clsx } from 'clsx'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type Variant =
+  | 'primary'
+  | 'secondary'
+  | 'ghost'
+  | 'danger'
+  | 'dark'
+  | 'light'
+  | 'outline-light'
+  | 'text'
+  | 'success'
 type Size = 'sm' | 'md' | 'lg'
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -11,18 +20,25 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const variants: Record<Variant, string> = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500',
+  primary:
+    'button--primary bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500',
   secondary:
-    'bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
+    'button--ghost bg-gray-100 text-gray-900 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-100 dark:hover:bg-gray-700',
   ghost:
-    'bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
-  danger: 'bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
+    'button--ghost bg-transparent text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-800',
+  danger:
+    'button--danger bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-500',
+  dark: 'button--dark',
+  light: 'button--light',
+  'outline-light': 'button--outline-light',
+  text: 'button--text',
+  success: 'button--success',
 }
 
 const sizes: Record<Size, string> = {
-  sm: 'h-8 px-3 text-sm',
+  sm: 'button--sm h-8 px-3 text-sm',
   md: 'h-10 px-4 text-sm',
-  lg: 'h-12 px-6 text-base',
+  lg: 'button--lg h-12 px-6 text-base',
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button(
@@ -34,7 +50,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref}
       disabled={disabled || loading}
       className={clsx(
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
+        'button inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
         'focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none',
         'disabled:cursor-not-allowed disabled:opacity-50',
         variants[variant],

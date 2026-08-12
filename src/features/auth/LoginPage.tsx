@@ -1,65 +1,131 @@
-import { useState, type FormEvent } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
-import { useTranslation } from 'react-i18next'
-import { useAuthStore } from './auth.store'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import { Card } from '@/components/ui/Card'
+import { type FormEvent, useState } from 'react'
+import { AlertCircle, Eye, EyeOff, LockKeyhole, LogIn, Mail } from 'lucide-react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 
-interface LocationState {
-  from?: { pathname: string }
-}
+import { Button } from '@/components/ui/Button'
+
+import { AuthLayout } from './AuthLayout'
+import { useAuthStore } from './auth.store'
 
 export function LoginPage() {
-  const { t } = useTranslation()
   const navigate = useNavigate()
   const location = useLocation()
-  const { login, status, error } = useAuthStore()
+  const login = useAuthStore((state) => state.login)
+  const status = useAuthStore((state) => state.status)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [formError, setFormError] = useState('')
+  const remember = false
+  const isLoading = status === 'loading'
 
-  const [email, setEmail] = useState('demo@example.com')
-  const [password, setPassword] = useState('password')
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setFormError('')
 
-  const redirectTo = (location.state as LocationState)?.from?.pathname ?? '/'
+    if (!email.trim()) {
+      setFormError('Email không được để trống.')
+      return
+    }
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault()
+    if (!password) {
+      setFormError('Mật khẩu không được để trống.')
+      return
+    }
+
     try {
-      await login({ email, password })
-      navigate(redirectTo, { replace: true })
+      const user = await login({ email: email.trim(), password }, remember)
+      const redirectTo = (location.state as { from?: string } | null)?.from
+
+      if (redirectTo) {
+        navigate(redirectTo, { replace: true })
+        return
+      }
+
+      const roleHome = {
+        Admin: '/admin/dashboard',
+        Staff: '/staff/dashboard',
+        Citizen: '/citizen/dashboard',
+      } as const
+
+      navigate(roleHome[user.role], { replace: true })
     } catch {
-      /* error surfaced via store */
+      setFormError('Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.')
     }
   }
 
   return (
-    <div className="flex min-h-full items-center justify-center p-4">
-      <Card className="w-full max-w-sm p-6">
-        <h1 className="text-xl font-semibold">{t('auth.login')}</h1>
-        <p className="mt-1 text-sm text-gray-500">{t('auth.signInToContinue')}</p>
-        <form onSubmit={onSubmit} className="mt-6 flex flex-col gap-4">
-          <Input
-            label={t('auth.email')}
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <Input
-            label={t('auth.password')}
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          {error && (
-            <p className="text-sm text-red-600">{t('auth.invalidCredentials')}</p>
-          )}
-          <Button type="submit" loading={status === 'loading'}>
-            {t('auth.login')}
-          </Button>
-          <p className="text-center text-xs text-gray-400">demo@example.com / password</p>
-        </form>
-      </Card>
-    </div>
+    <AuthLayout
+      title="Chào mừng trở lại"
+      subtitle="Đăng nhập để tiếp tục theo dõi và xử lý các báo cáo đô thị."
+    >
+      {formError && (
+        <div className="form-alert form-alert--error" role="alert">
+          <AlertCircle aria-hidden="true" size={18} />
+          <span>{formError}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="auth-form">
+        <label className="field">
+          <span className="field__label">Email</span>
+          <span className="input-with-icon">
+            <Mail aria-hidden="true" size={18} />
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              disabled={isLoading}
+              autoComplete="email"
+              placeholder="ban@example.com"
+            />
+          </span>
+        </label>
+
+        <label className="field">
+          <span className="field__label">Mật khẩu</span>
+          <span className="input-with-icon">
+            <LockKeyhole aria-hidden="true" size={18} />
+            <input
+              type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              disabled={isLoading}
+              autoComplete="current-password"
+              placeholder="Nhập mật khẩu"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword((value) => !value)}
+              aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </span>
+        </label>
+
+        <div className="auth-form__row">
+          {/* <label className="check-row">
+            <input
+              type="checkbox"
+              checked={remember}
+              onChange={(event) => setRemember(event.target.checked)}
+            />
+            <span>Ghi nhớ đăng nhập</span>
+          </label> */}
+          {/* <Link to="/forgot-password" className="text-sm text-blue-600 hover:underline">
+            Quên mật khẩu?
+          </Link> */}
+        </div>
+
+        <Button type="submit" size="lg" loading={isLoading} className="button--full">
+          <LogIn aria-hidden="true" size={18} /> Đăng nhập
+        </Button>
+      </form>
+
+      <p className="auth-switch">
+        Chưa có tài khoản? <Link to="/register">Đăng ký ngay</Link>
+      </p>
+    </AuthLayout>
   )
 }

@@ -21,8 +21,8 @@ export function AppLayout() {
     )
 
   return (
-    <div className="mx-auto flex min-h-full max-w-5xl flex-col">
-      <header className="flex items-center justify-between gap-4 border-b border-gray-200 px-4 py-3 dark:border-gray-800">
+    <div className="mx-auto flex min-h-full max-w-5xl flex-col relative">
+      <header className="sticky top-0 z-[1100] flex items-center justify-between gap-4 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-950">
         <div className="flex items-center gap-6">
           <span className="text-brand-600 text-lg font-bold">{t('app.name')}</span>
           <nav className="flex items-center gap-1">
@@ -47,7 +47,7 @@ export function AppLayout() {
               </option>
             ))}
           </select>
-          {user && <span className="text-sm text-gray-500">{user.name}</span>}
+          {user && <span className="text-sm text-gray-500">{user.fullName}</span>}
           <Button
             variant="ghost"
             size="sm"
@@ -61,7 +61,7 @@ export function AppLayout() {
         </div>
       </header>
 
-      <main className="flex-1 p-4">
+      <main className="relative z-10 flex-1 p-4">
         <Suspense fallback={<Spinner />}>
           <Outlet />
         </Suspense>

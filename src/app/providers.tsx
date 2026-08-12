@@ -4,6 +4,7 @@ import { I18nextProvider } from 'react-i18next'
 import { queryClient } from './query-client'
 import i18n from '@/lib/i18n'
 import { Spinner } from '@/components/ui/Spinner'
+import AuthInitializer from '@/features/auth/AuthInitializer'
 
 /** Wraps the app with every cross-cutting provider in one place. */
 export function AppProviders({ children }: { children: ReactNode }) {
@@ -11,7 +12,9 @@ export function AppProviders({ children }: { children: ReactNode }) {
     <StrictMode>
       <I18nextProvider i18n={i18n}>
         <QueryClientProvider client={queryClient}>
-          <Suspense fallback={<Spinner />}>{children}</Suspense>
+          <Suspense fallback={<Spinner />}>
+            <AuthInitializer>{children}</AuthInitializer>
+          </Suspense>
         </QueryClientProvider>
       </I18nextProvider>
     </StrictMode>
