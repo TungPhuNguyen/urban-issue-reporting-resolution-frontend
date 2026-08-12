@@ -10,7 +10,6 @@ import {
   usePublicCategories,
   useResolvedArea,
 } from '@/features/public-catalog/public-catalog.queries'
-import { AreaHierarchySelect } from '@/features/reports/components/AreaHierarchySelect'
 import { CategorySelect } from '@/features/reports/components/CategorySelect'
 import { LocationPicker } from '@/features/reports/components/LocationPicker'
 import type { LatLng } from '@/features/reports/report-form.types'
@@ -90,7 +89,12 @@ export default function EditReportPage() {
 
   async function save(confirmPossibleDuplicate: boolean) {
     const report = reportQuery.data
-    if (!report || !form.categoryId || !form.areaId || !form.location) return
+    if (!report || !form.categoryId || !form.location) return
+
+    if (!form.areaId) {
+      setError('Vui lòng chờ hệ thống xác định phường/xã từ vị trí đã chọn.')
+      return
+    }
 
     const title = form.title.trim()
     const description = form.description.trim()
@@ -215,10 +219,6 @@ export default function EditReportPage() {
               />
             </label>
           )}
-          <AreaHierarchySelect
-            value={{ parentAreaId: form.parentAreaId, areaId: form.areaId }}
-            onChange={(area) => setForm((f) => ({ ...f, ...area }))}
-          />
           <label className="flex flex-col gap-1 text-sm font-medium">
             Mô tả
             <textarea
@@ -229,6 +229,29 @@ export default function EditReportPage() {
               className="rounded-lg border border-gray-300 px-3 py-2 dark:border-gray-700 dark:bg-gray-900"
             />
           </label>
+          <section className="form-section">
+            <header className="form-section__header">
+              <span><MapPin aria-hidden="true" /></span>
+              <div>
+                <h2>Khu vực xảy ra sự cố</h2>
+                <p>Khu vực được tự động xác định từ tọa độ đã chọn trên bản đồ.</p>
+              </div>
+            </header>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Thành phố</p>
+                <div className="mt-1 flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                  {resolvedAreaQuery.isFetching ? 'Đang xác định...' : (resolvedAreaQuery.data?.districtName ?? 'Chưa chọn tọa độ')}
+                </div>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Phường/Xã</p>
+                <div className="mt-1 flex min-h-10 items-center rounded-lg border border-gray-300 bg-gray-200 px-3 py-2 text-sm text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200">
+                  {resolvedAreaQuery.isFetching ? 'Đang xác định...' : (resolvedAreaQuery.data?.areaName ?? 'Chưa chọn tọa độ')}
+                </div>
+              </div>
+            </div>
+          </section>
           <label className="flex flex-col gap-1 text-sm font-medium">
             Địa chỉ mô tả
             <input
@@ -238,17 +261,48 @@ export default function EditReportPage() {
               className="h-10 rounded-lg border border-gray-300 px-3 dark:border-gray-700 dark:bg-gray-900"
             />
           </label>
-          <LocationPicker
-            value={form.location}
-            onChange={(location) => setForm((f) => ({ ...f, location }))}
-          />
+          <section className="form-section">
+            <div className="mb-3">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">
+                Chọn vị trí sự cố
+              </h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Bấm vào bản đồ hoặc kéo marker để chọn chính xác vị trí xảy ra sự cố.
+              </p>
+            </div>
+
+            <LocationPicker
+              value={form.location}
+              onChange={(location) =>
+                setForm((f) => ({ ...f, location, parentAreaId: null, areaId: null }))
+              }
+            />
+
+            {resolvedAreaQuery.isFetching && (
+              <p className="mt-2 text-sm text-blue-600">Đang xác định phường/xã từ vị trí...</p>
+            )}
+            {form.location !== null && resolvedAreaQuery.isError && (
+              <p role="alert" className="mt-2 text-sm text-red-600">
+                Không xác định được phường/xã từ tọa độ này. Vui lòng chọn vị trí khác.
+              </p>
+            )}
+            {resolvedAreaQuery.data && (
+              <p className="mt-2 text-sm text-green-700">
+                Đã tự chọn {resolvedAreaQuery.data.areaName}, {resolvedAreaQuery.data.districtName}.
+              </p>
+            )}
+          </section>
           {error && (
             <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
               {error}
             </div>
           )}
           <div className="flex flex-wrap gap-3">
-            <Button type="submit" loading={updateMutation.isPending}>
+            <Button
+              type="submit"
+              loading={updateMutation.isPending}
+              disabled={resolvedAreaQuery.isFetching}
+            >
               <Save aria-hidden="true" size={17} />
               Lưu thay đổi
             </Button>
