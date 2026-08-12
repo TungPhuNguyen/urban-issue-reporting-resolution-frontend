@@ -86,7 +86,7 @@ export default function ReopenReportPanel({ report, onSuccess }: Props) {
       {report.complaintReason && (
         <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4">
           <p className="text-sm font-medium text-blue-900">Nội dung của Citizen</p>
-          <p className="mt-2 text-sm whitespace-pre-wrap text-blue-800">
+          <p className="mt-2 break-words text-sm whitespace-pre-wrap text-blue-800">
             {report.complaintReason}
           </p>
         </div>

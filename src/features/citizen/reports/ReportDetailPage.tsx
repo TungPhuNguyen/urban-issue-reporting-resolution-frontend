@@ -472,7 +472,7 @@ export default function ReportDetailPage() {
               Lý do từ chối
             </h2>
 
-            <p className="mt-2 text-sm whitespace-pre-wrap text-red-800 dark:text-red-400">
+            <p className="mt-2 break-words text-sm whitespace-pre-wrap text-red-800 dark:text-red-400">
               {report.rejectedReason}
             </p>
           </div>
@@ -634,7 +634,7 @@ export default function ReportDetailPage() {
               Báo cáo đã được đóng
               {report.closedAt ? ` vào ${formatDateTime(report.closedAt)}` : ''}.
             </div>
-          ) : report.complaintSubmittedAt ? (
+          ) : report.complaint?.status === 'Pending' ? (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
               Không thể đóng báo cáo khi yêu cầu mở lại đang chờ Admin xem xét.
             </div>
@@ -743,7 +743,7 @@ export default function ReportDetailPage() {
             Gửi yêu cầu khi vấn đề chưa được xử lý hoàn toàn hoặc đã tái diễn.
           </p>
 
-          {report.complaintSubmittedAt ? (
+          {report.complaint?.status === 'Pending' ? (
             <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-300">
               Yêu cầu mở lại đã được gửi và đang chờ Admin xem xét.
             </div>

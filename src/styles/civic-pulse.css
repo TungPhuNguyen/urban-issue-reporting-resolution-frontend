@@ -3745,7 +3745,6 @@ button:disabled {
 .report-card-link {
   display: block;
   min-width: 0;
-  height: 100%;
 }
 .report-card {
   display: grid;
