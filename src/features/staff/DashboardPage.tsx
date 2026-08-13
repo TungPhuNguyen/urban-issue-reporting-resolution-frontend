@@ -50,6 +50,7 @@ export default function StaffDashboardPage() {
   const [from, setFrom] = useState(dateInput(monthAgo))
   const [to, setTo] = useState(dateInput(today))
   const [applied, setApplied] = useState({ from, to })
+  const [dateRangeError, setDateRangeError] = useState<string | null>(null)
   const query = useStaffDashboard(applied.from, applied.to)
 
   if (query.isPending) {
@@ -95,6 +96,11 @@ export default function StaffDashboardPage() {
         className="panel dashboard-date-filter"
         onSubmit={(event) => {
           event.preventDefault()
+          if (from > to) {
+            setDateRangeError('"Từ ngày" không được sau "Đến ngày".')
+            return
+          }
+          setDateRangeError(null)
           setApplied({ from, to })
         }}
       >
@@ -103,14 +109,31 @@ export default function StaffDashboardPage() {
           <input
             type="date"
             value={from}
-            onChange={(event) => setFrom(event.target.value)}
+            max={to}
+            onChange={(event) => {
+              setFrom(event.target.value)
+              setDateRangeError(null)
+            }}
           />
         </label>
         <label className="field">
           <span className="field__label">Đến ngày</span>
-          <input type="date" value={to} onChange={(event) => setTo(event.target.value)} />
+          <input 
+            type="date" 
+            value={to} 
+            min={from} 
+            onChange={(event) => {
+              setTo(event.target.value)
+              setDateRangeError(null)
+            }}
+          />
         </label>
         <Button type="submit">Áp dụng</Button>
+        {dateRangeError && (
+          <p role="alert" className="w-full text-sm text-red-600">
+            {dateRangeError}
+          </p>
+        )}
       </form>
 
       <div className="metric-grid metric-grid--4">
