@@ -103,12 +103,25 @@ export default function StaffDashboardPage() {
           <input
             type="date"
             value={from}
-            onChange={(event) => setFrom(event.target.value)}
+            max={to}
+            onChange={(event) => {
+              const value = event.target.value
+              setFrom(value)
+              if (value > to) setTo(value)
+            }}
           />
         </label>
         <label className="field">
           <span className="field__label">Đến ngày</span>
-          <input type="date" value={to} onChange={(event) => setTo(event.target.value)} />
+          <input 
+            type="date" 
+            value={to} 
+            min={from} 
+            onChange={(event) => {
+              const value = event.target.value
+              setTo(value)
+              if (value < from) setFrom(value)
+            }} />
         </label>
         <Button type="submit">Áp dụng</Button>
       </form>
